@@ -47,6 +47,18 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
     return () => clearInterval(timer);
   }, []);
 
+  const routeLabels: Record<string, string> = {
+  dashboard: 'Dashboard',
+  equipment: 'Equipamentos',
+  'equipment-details': 'Detalhes do Equipamento',
+  'add-equipment': 'Adicionar Equipamento',
+  'edit-equipment': 'Editar Equipamento',
+  reports: 'Relatórios',
+  inventory: 'Patrimônio',
+  construction: 'Obras'
+};
+
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar 
@@ -109,7 +121,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
           <nav className="flex items-center text-sm">
             <span className="text-gray-500">Sistema</span>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-primary font-medium capitalize">{activeRoute.replace('-', ' ')}</span>
+            <span className="text-primary font-medium">{routeLabels[activeRoute] || activeRoute}</span>
           </nav>
         </div>
         

@@ -54,8 +54,8 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
     return new Intl.NumberFormat('pt-BR', { 
       style: 'currency', 
       currency: 'BRL',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(value);
   };
 
@@ -283,18 +283,6 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
               </div>
             </div>
 
-            {/* Insights */}
-            <div className="pt-4 mt-4 border-t border-gray-100">
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Insights</h3>
-              <div className="space-y-2">
-                <p className="text-xs text-gray-600">
-                  • Valor médio: {formatCurrency(stats.averageValue)}
-                </p>
-                <p className="text-xs text-gray-600">
-                  • Taxa de disponibilidade: {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}%
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

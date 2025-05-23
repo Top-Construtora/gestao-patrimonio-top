@@ -208,15 +208,7 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          icon={<RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />}
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          {refreshing ? 'Atualizando...' : 'Atualizar'}
-        </Button>
+        
       </div>
 
       {/* Equipment Details Component */}
