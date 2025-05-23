@@ -14,6 +14,8 @@ import {
   Building2,
   ChevronRight
 } from 'lucide-react';
+import logo from '/assets/images/logo.png';
+
 
 interface SidebarProps {
   isOpen: boolean;
@@ -61,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
           {/* Header */}
           <div className="flex items-center justify-between h-20 px-5 border-b border-secondary-light bg-secondary/95 backdrop-blur-sm">
             <div className="flex items-center">
-              <img src="../images/logo.png" alt="Logo" />
+              <img src={logo} alt="Logo"/>
               <span className="ml-2 text-lg font-semibold text-white"></span>
             </div>
             <button
