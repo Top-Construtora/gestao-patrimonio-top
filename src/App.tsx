@@ -135,10 +135,10 @@ function App() {
     }
   }, [equipmentToDelete, currentUser, showSuccess, showError]);
 
-  // Adicionar equipamento
-  const handleAddEquipment = useCallback(async (data: Omit<Equipment, 'id'>) => {
+  // Adicionar equipamento com anexos
+  const handleAddEquipment = useCallback(async (data: Omit<Equipment, 'id'>, attachmentFiles?: File[]) => {
     try {
-      await inventoryService.createEquipment(data, currentUser);
+      await inventoryService.createEquipment(data, currentUser, attachmentFiles);
       
       const [updatedEquipment, updatedHistory] = await Promise.all([
         inventoryService.getAllEquipment(),
@@ -148,7 +148,11 @@ function App() {
       setEquipment(updatedEquipment);
       setHistory(updatedHistory);
       
-      showSuccess('Equipamento cadastrado com sucesso!');
+      const attachmentText = attachmentFiles && attachmentFiles.length > 0 
+        ? ` com ${attachmentFiles.length} anexo(s)` 
+        : '';
+      
+      showSuccess(`Equipamento cadastrado com sucesso${attachmentText}!`);
       setRoute('equipment');
     } catch (error) {
       console.error('Erro ao adicionar:', error);
@@ -299,7 +303,7 @@ function App() {
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         title="Confirmar Exclusão"
-        message="Tem certeza que deseja excluir este equipamento? Esta ação não pode ser desfeita."
+        message="Tem certeza que deseja excluir este equipamento? Esta ação não pode ser desfeita e todos os anexos também serão removidos."
         itemName={equipment.find(item => item.id === equipmentToDelete)?.assetNumber || ''}
         onConfirm={handleConfirmDelete}
         onCancel={() => {

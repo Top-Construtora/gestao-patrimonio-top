@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Equipment, HistoryEntry, Attachment } from '../types';
 import Button from '../components/common/Button';
-import Card from '../components/common/Card';
 import EquipmentDetails from '../components/equipment/EquipmentDetails';
 import LoadingOverlay from '../components/common/LoadingOverlay';
 import { 
   ArrowLeft, 
   AlertTriangle, 
-  Package,
   RefreshCw,
-  Paperclip,
   Clock,
-  History as HistoryIcon
+  History as HistoryIcon,
+  Paperclip,
+  Package
 } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 
@@ -32,26 +31,24 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadEquipmentData = async () => {
     try {
       setError(null);
       
-      // Load equipment details
-      const equipmentData = await inventoryService.getEquipmentById(equipmentId);
+      const [equipmentData, historyData, attachmentsData] = await Promise.all([
+        inventoryService.getEquipmentById(equipmentId),
+        inventoryService.getEquipmentHistory(equipmentId),
+        inventoryService.getEquipmentAttachments(equipmentId)
+      ]);
+
       if (!equipmentData) {
         throw new Error('Equipamento não encontrado');
       }
+      
       setEquipment(equipmentData);
-
-      // Load equipment history
-      const historyData = await inventoryService.getEquipmentHistory(equipmentId);
       setHistory(historyData);
-
-      // Load equipment attachments
-      const attachmentsData = await inventoryService.getEquipmentAttachments(equipmentId);
       setAttachments(attachmentsData);
     } catch (err) {
       console.error('Error loading equipment details:', err);
@@ -72,9 +69,7 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
   }, [equipmentId]);
 
   const handleRefresh = async () => {
-    setRefreshing(true);
     await loadEquipmentData();
-    setRefreshing(false);
   };
 
   const handleUploadAttachment = async (file: File) => {
@@ -139,7 +134,7 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
     }
   };
 
-  // Calculate statistics
+  // Calculate age for display
   const calculateAge = () => {
     if (!equipment?.acquisitionDate) return 'N/A';
     const years = Math.floor((Date.now() - new Date(equipment.acquisitionDate).getTime()) / (1000 * 60 * 60 * 24 * 365));
@@ -191,27 +186,23 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </button>
-          
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Detalhes do Equipamento</h1>
-            <p className="text-gray-600 mt-2">Visualize e gerencie informações, histórico e anexos</p>
-          </div>
-        </div>
-
+      {/* Header Simplificado */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onBack}
+          className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar
+        </button>
         
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Detalhes do Equipamento</h1>
+          <p className="text-gray-600 mt-1">Visualize e gerencie informações, histórico e anexos</p>
+        </div>
       </div>
 
-      {/* Equipment Details Component */}
+      {/* Componente de Detalhes */}
       <EquipmentDetails 
         equipment={equipment}
         history={history}
@@ -222,81 +213,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
         onDeleteAttachment={handleDeleteAttachment}
         onDownloadAttachment={handleDownloadAttachment}
       />
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-blue-600">Tempo de Uso</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">
-                {calculateAge()}
-              </p>
-            </div>
-            <div className="p-3 bg-white bg-opacity-60 rounded-full ml-3 flex-shrink-0">
-              <Clock className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-purple-600">Alterações</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">{history.length}</p>
-            </div>
-            <div className="p-3 bg-white bg-opacity-60 rounded-full ml-3 flex-shrink-0">
-              <HistoryIcon className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-green-600">Anexos</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">{attachments.length}</p>
-            </div>
-            <div className="p-3 bg-white bg-opacity-60 rounded-full ml-3 flex-shrink-0">
-              <Paperclip className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className={`border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ${
-          equipment.status === 'ativo' 
-            ? 'bg-gradient-to-br from-emerald-50 to-emerald-100' 
-            : equipment.status === 'manutenção'
-            ? 'bg-gradient-to-br from-yellow-50 to-yellow-100'
-            : 'bg-gradient-to-br from-red-50 to-red-100'
-        }`}>
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium ${
-                equipment.status === 'ativo' 
-                  ? 'text-emerald-600' 
-                  : equipment.status === 'manutenção'
-                  ? 'text-yellow-600'
-                  : 'text-red-600'
-              }`}>Status</p>
-              <p className="text-sm font-bold text-gray-900 mt-2">
-                {equipment.status === 'ativo' ? 'Ativo' : 
-                 equipment.status === 'manutenção' ? 'Em Manutenção' : 
-                 'Desativado'}
-              </p>
-            </div>
-            <div className={`p-3 bg-white bg-opacity-60 rounded-full ml-3 flex-shrink-0`}>
-              <Package className={`w-6 h-6 ${
-                equipment.status === 'ativo' 
-                  ? 'text-emerald-600' 
-                  : equipment.status === 'manutenção'
-                  ? 'text-yellow-600'
-                  : 'text-red-600'
-              }`} />
-            </div>
-          </div>
-        </Card>
-      </div>
     </div>
   );
 };
