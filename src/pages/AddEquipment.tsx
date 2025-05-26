@@ -230,13 +230,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </button>
           
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Novo Equipamento</h1>
