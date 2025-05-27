@@ -1,3 +1,4 @@
+// src/types.ts
 export interface Equipment {
   id: string;
   assetNumber: string;
@@ -10,7 +11,7 @@ export interface Equipment {
   responsible: string;
   acquisitionDate: string;
   value: number;
-  observacoesManutenção?: string; 
+  maintenanceDescription?: string;
 }
 
 export interface HistoryEntry {
@@ -36,3 +37,45 @@ export interface Attachment {
 }
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'loading';
+
+// Tipos adicionais para o Supabase
+export interface DatabaseEquipment {
+  id: string;
+  asset_number: string;
+  description: string;
+  brand: string;
+  model: string;
+  specs: string | null;
+  status: 'ativo' | 'manutenção' | 'desativado';
+  location: string;
+  responsible: string;
+  acquisition_date: string;
+  value: number;
+  maintenance_description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DatabaseHistoryEntry {
+  id: string;
+  equipment_id: string;
+  timestamp: string;
+  user: string;
+  change_type: 'criou' | 'editou' | 'excluiu' | 'manutenção' | 'alterou status' | 'anexou arquivo' | 'removeu arquivo';
+  field: string | null;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+}
+
+export interface DatabaseAttachment {
+  id: string;
+  equipment_id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  uploaded_by: string;
+  uploaded_at: string;
+  created_at: string;
+}
