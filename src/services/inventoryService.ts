@@ -1,118 +1,158 @@
-// src/services/inventoryService.ts
+// src/services/inventoryService.ts - Versão MOCK para desenvolvimento
 import { Equipment, HistoryEntry, Attachment } from '../types';
-import { supabase } from '../lib/supabase';
 
-// Função para converter dados do banco para o formato da aplicação
-const convertEquipmentFromDB = (dbEquipment: any): Equipment => ({
-  id: dbEquipment.id,
-  assetNumber: dbEquipment.asset_number,
-  description: dbEquipment.description,
-  brand: dbEquipment.brand,
-  model: dbEquipment.model,
-  specs: dbEquipment.specs,
-  status: dbEquipment.status,
-  location: dbEquipment.location,
-  responsible: dbEquipment.responsible,
-  acquisitionDate: dbEquipment.acquisition_date,
-  value: dbEquipment.value,
-  maintenanceDescription: dbEquipment.maintenance_description
-});
-
-// Função para converter dados da aplicação para o formato do banco
-const convertEquipmentToDB = (equipment: Omit<Equipment, 'id'>) => ({
-  asset_number: equipment.assetNumber,
-  description: equipment.description,
-  brand: equipment.brand,
-  model: equipment.model,
-  specs: equipment.specs,
-  status: equipment.status,
-  location: equipment.location,
-  responsible: equipment.responsible,
-  acquisition_date: equipment.acquisitionDate,
-  value: equipment.value,
-  maintenance_description: equipment.maintenanceDescription
-});
-
-// Função para converter histórico do banco para a aplicação
-const convertHistoryFromDB = (dbHistory: any): HistoryEntry => ({
-  id: dbHistory.id,
-  equipmentId: dbHistory.equipment_id,
-  timestamp: dbHistory.timestamp,
-  user: dbHistory.user,
-  changeType: dbHistory.change_type,
-  field: dbHistory.field,
-  oldValue: dbHistory.old_value,
-  newValue: dbHistory.new_value
-});
-
-// Função para converter anexos do banco para a aplicação
-const convertAttachmentFromDB = (dbAttachment: any): Attachment => ({
-  id: dbAttachment.id,
-  equipmentId: dbAttachment.equipment_id,
-  name: dbAttachment.name,
-  size: dbAttachment.size,
-  type: dbAttachment.type,
-  url: dbAttachment.url,
-  uploadedBy: dbAttachment.uploaded_by,
-  uploadedAt: dbAttachment.uploaded_at
-});
-
-// Função para adicionar entrada no histórico
-const addHistoryEntry = async (entry: Omit<HistoryEntry, 'id' | 'timestamp'>): Promise<void> => {
-  const { error } = await supabase
-    .from('history_entries')
-    .insert({
-      equipment_id: entry.equipmentId,
-      user: entry.user,
-      change_type: entry.changeType,
-      field: entry.field,
-      old_value: entry.oldValue,
-      new_value: entry.newValue
-    });
-
-  if (error) {
-    console.error('Error adding history entry:', error);
-    throw error;
+// Dados de exemplo em memória
+let mockEquipment: Equipment[] = [
+  {
+    id: '1',
+    assetNumber: 'COMP-001',
+    description: 'Desktop Dell OptiPlex 7090',
+    brand: 'Dell',
+    model: 'OptiPlex 7090',
+    specs: 'Intel Core i7-11700, 16GB RAM, SSD 512GB',
+    status: 'ativo',
+    location: 'Escritório Principal - TI',
+    responsible: 'João Silva',
+    acquisitionDate: '2023-01-15',
+    value: 3500.00
+  },
+  {
+    id: '2',
+    assetNumber: 'NOT-001',
+    description: 'Notebook Lenovo ThinkPad T14',
+    brand: 'Lenovo',
+    model: 'ThinkPad T14',
+    specs: 'Intel Core i5-11th Gen, 8GB RAM, SSD 256GB',
+    status: 'ativo',
+    location: 'Obra Centro - Escritório',
+    responsible: 'Maria Santos',
+    acquisitionDate: '2023-03-20',
+    value: 4200.00
+  },
+  {
+    id: '3',
+    assetNumber: 'SRV-001',
+    description: 'Servidor HP ProLiant DL360',
+    brand: 'HP',
+    model: 'ProLiant DL360 Gen10',
+    specs: 'Intel Xeon Silver 4214, 32GB RAM, 2x 1TB SAS',
+    status: 'ativo',
+    location: 'Escritório Principal - Data Center',
+    responsible: 'Carlos Tech',
+    acquisitionDate: '2022-11-10',
+    value: 15000.00
+  },
+  {
+    id: '4',
+    assetNumber: 'TAB-001',
+    description: 'Tablet Samsung Galaxy Tab S8',
+    brand: 'Samsung',
+    model: 'Galaxy Tab S8',
+    specs: '11 polegadas, 128GB, WiFi + 4G',
+    status: 'manutenção',
+    location: 'Obra Norte - Campo',
+    responsible: 'Ana Oliveira',
+    acquisitionDate: '2023-06-05',
+    value: 2800.00
+  },
+  {
+    id: '5',
+    assetNumber: 'MON-001',
+    description: 'Monitor LG UltraWide 34"',
+    brand: 'LG',
+    model: '34WN80C-B',
+    specs: '34 polegadas, 3440x1440, USB-C',
+    status: 'ativo',
+    location: 'Escritório Principal - Design',
+    responsible: 'Pedro Costa',
+    acquisitionDate: '2023-02-28',
+    value: 1800.00
   }
-};
+];
+
+let mockHistory: HistoryEntry[] = [
+  {
+    id: 'h1',
+    equipmentId: '1',
+    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min atrás
+    user: 'João Silva',
+    changeType: 'criou'
+  },
+  {
+    id: 'h2',
+    equipmentId: '2',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2h atrás
+    user: 'Maria Santos',
+    changeType: 'editou',
+    field: 'location',
+    oldValue: 'Escritório Principal',
+    newValue: 'Obra Centro - Escritório'
+  },
+  {
+    id: 'h3',
+    equipmentId: '4',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(), // 6h atrás
+    user: 'Carlos Tech',
+    changeType: 'editou',
+    field: 'status',
+    oldValue: 'ativo',
+    newValue: 'manutenção'
+  },
+  {
+    id: 'h4',
+    equipmentId: '3',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 dia atrás
+    user: 'Administrador',
+    changeType: 'criou'
+  },
+  {
+    id: 'h5',
+    equipmentId: '5',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), // 2 dias atrás
+    user: 'Pedro Costa',
+    changeType: 'criou'
+  }
+];
+
+let mockAttachments: Attachment[] = [
+  {
+    id: 'att1',
+    equipmentId: '1',
+    name: 'nota_fiscal_dell.pdf',
+    size: 2048576, // 2MB
+    type: 'application/pdf',
+    url: '#',
+    uploadedBy: 'João Silva',
+    uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
+  },
+  {
+    id: 'att2',
+    equipmentId: '2',
+    name: 'manual_thinkpad.pdf',
+    size: 5242880, // 5MB
+    type: 'application/pdf',
+    url: '#',
+    uploadedBy: 'Maria Santos',
+    uploadedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString()
+  }
+];
+
+// Simular delay de rede
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const inventoryService = {
   // Obter todos os equipamentos
   getAllEquipment: async (): Promise<Equipment[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('equipment')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      return data?.map(convertEquipmentFromDB) || [];
-    } catch (error) {
-      console.error('Error fetching equipment:', error);
-      throw error;
-    }
+    await delay(300); // Simula delay da rede
+    console.log('📦 Carregando equipamentos (MOCK)');
+    return [...mockEquipment];
   },
 
   // Obter equipamento por ID
   getEquipmentById: async (id: string): Promise<Equipment | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('equipment')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') return null; // Not found
-        throw error;
-      }
-
-      return data ? convertEquipmentFromDB(data) : null;
-    } catch (error) {
-      console.error('Error fetching equipment by ID:', error);
-      throw error;
-    }
+    await delay(200);
+    console.log(`🔍 Buscando equipamento ${id} (MOCK)`);
+    return mockEquipment.find(eq => eq.id === id) || null;
   },
 
   // Criar novo equipamento
@@ -121,39 +161,27 @@ const inventoryService = {
     user: string, 
     attachmentFiles?: File[]
   ): Promise<Equipment> => {
-    try {
-      // Inserir equipamento
-      const { data, error } = await supabase
-        .from('equipment')
-        .insert(convertEquipmentToDB(equipmentData))
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const newEquipment = convertEquipmentFromDB(data);
-
-      // Adicionar entrada no histórico
-      await addHistoryEntry({
-        equipmentId: newEquipment.id,
-        user,
-        changeType: 'criou'
-      });
-
-      // Upload de anexos se fornecidos
-      if (attachmentFiles && attachmentFiles.length > 0) {
-        await Promise.all(
-          attachmentFiles.map(file => 
-            inventoryService.uploadAttachment(newEquipment.id, file, user)
-          )
-        );
-      }
-
-      return newEquipment;
-    } catch (error) {
-      console.error('Error creating equipment:', error);
-      throw error;
-    }
+    await delay(500);
+    
+    const newEquipment: Equipment = {
+      ...equipmentData,
+      id: Date.now().toString() // ID simples para mock
+    };
+    
+    mockEquipment.unshift(newEquipment);
+    
+    // Adicionar ao histórico
+    const historyEntry: HistoryEntry = {
+      id: `h${Date.now()}`,
+      equipmentId: newEquipment.id,
+      timestamp: new Date().toISOString(),
+      user,
+      changeType: 'criou'
+    };
+    mockHistory.unshift(historyEntry);
+    
+    console.log('✅ Equipamento criado (MOCK):', newEquipment.assetNumber);
+    return newEquipment;
   },
 
   // Atualizar equipamento
@@ -162,163 +190,91 @@ const inventoryService = {
     updates: Partial<Equipment>, 
     user: string
   ): Promise<Equipment> => {
-    try {
-      // Buscar dados atuais para comparação
-      const currentEquipment = await inventoryService.getEquipmentById(id);
-      if (!currentEquipment) {
-        throw new Error('Equipamento não encontrado');
-      }
-
-      // Preparar dados para atualização
-      const updateData: any = {};
-      let maintenanceNote: string | undefined;
-
-      Object.entries(updates).forEach(([key, value]) => {
-        if (key === 'id') return;
-        if (key === 'maintenanceNote') {
-          maintenanceNote = value as string;
-          return;
-        }
-        
-        // Converter nomes de campos
-        const dbFieldName = key === 'assetNumber' ? 'asset_number' :
-                           key === 'acquisitionDate' ? 'acquisition_date' :
-                           key === 'maintenanceDescription' ? 'maintenance_description' :
-                           key.replace(/([A-Z])/g, '_$1').toLowerCase();
-        
-        updateData[dbFieldName] = value;
-      });
-
-      // Atualizar no banco
-      const { data, error } = await supabase
-        .from('equipment')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const updatedEquipment = convertEquipmentFromDB(data);
-
-      // Criar entradas de histórico para cada campo alterado
-      for (const [key, newValue] of Object.entries(updates)) {
-        if (key === 'id' || key === 'maintenanceNote') continue;
-        
-        const oldValue = currentEquipment[key as keyof Equipment];
-        
-        if (oldValue !== newValue) {
-          await addHistoryEntry({
-            equipmentId: id,
-            user,
-            changeType: 'editou',
-            field: key,
-            oldValue: String(oldValue),
-            newValue: String(newValue)
-          });
-
-          // Se mudou para manutenção e há nota, adicionar entrada específica
-          if (key === 'status' && newValue === 'manutenção' && maintenanceNote) {
-            await addHistoryEntry({
-              equipmentId: id,
-              user,
-              changeType: 'manutenção',
-              field: 'Observações de Manutenção',
-              newValue: maintenanceNote
-            });
-          }
-        }
-      }
-
-      return updatedEquipment;
-    } catch (error) {
-      console.error('Error updating equipment:', error);
-      throw error;
+    await delay(400);
+    
+    const equipmentIndex = mockEquipment.findIndex(eq => eq.id === id);
+    if (equipmentIndex === -1) {
+      throw new Error('Equipamento não encontrado');
     }
+    
+    const currentEquipment = mockEquipment[equipmentIndex];
+    const updatedEquipment = { ...currentEquipment, ...updates };
+    mockEquipment[equipmentIndex] = updatedEquipment;
+    
+    // Adicionar entradas de histórico para cada campo alterado
+    Object.entries(updates).forEach(([key, newValue]) => {
+      if (key === 'id') return;
+      
+      const oldValue = currentEquipment[key as keyof Equipment];
+      if (oldValue !== newValue) {
+        const historyEntry: HistoryEntry = {
+          id: `h${Date.now()}_${key}`,
+          equipmentId: id,
+          timestamp: new Date().toISOString(),
+          user,
+          changeType: 'editou',
+          field: key,
+          oldValue: String(oldValue),
+          newValue: String(newValue)
+        };
+        mockHistory.unshift(historyEntry);
+      }
+    });
+    
+    console.log('📝 Equipamento atualizado (MOCK):', updatedEquipment.assetNumber);
+    return updatedEquipment;
   },
 
   // Excluir equipamento
   deleteEquipment: async (id: string, user: string): Promise<void> => {
-    try {
-      // Buscar equipamento para obter asset_number
-      const equipment = await inventoryService.getEquipmentById(id);
-      if (!equipment) {
-        throw new Error('Equipamento não encontrado');
-      }
-
-      // Adicionar entrada no histórico antes de excluir
-      await addHistoryEntry({
-        equipmentId: id,
-        user,
-        changeType: 'excluiu',
-        oldValue: equipment.assetNumber
-      });
-
-      // Excluir equipamento (cascata vai excluir histórico e anexos)
-      const { error } = await supabase
-        .from('equipment')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error deleting equipment:', error);
-      throw error;
+    await delay(300);
+    
+    const equipmentIndex = mockEquipment.findIndex(eq => eq.id === id);
+    if (equipmentIndex === -1) {
+      throw new Error('Equipamento não encontrado');
     }
+    
+    const equipment = mockEquipment[equipmentIndex];
+    
+    // Adicionar ao histórico antes de excluir
+    const historyEntry: HistoryEntry = {
+      id: `h${Date.now()}`,
+      equipmentId: id,
+      timestamp: new Date().toISOString(),
+      user,
+      changeType: 'excluiu',
+      oldValue: equipment.assetNumber
+    };
+    mockHistory.unshift(historyEntry);
+    
+    // Remover equipamento
+    mockEquipment.splice(equipmentIndex, 1);
+    
+    // Remover anexos relacionados
+    mockAttachments = mockAttachments.filter(att => att.equipmentId !== id);
+    
+    console.log('🗑️ Equipamento excluído (MOCK):', equipment.assetNumber);
   },
 
   // Obter atividades recentes
   getRecentActivities: async (limit: number = 10): Promise<HistoryEntry[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('history_entries')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-
-      return data?.map(convertHistoryFromDB) || [];
-    } catch (error) {
-      console.error('Error fetching recent activities:', error);
-      throw error;
-    }
+    await delay(200);
+    console.log('📊 Carregando atividades recentes (MOCK)');
+    return mockHistory.slice(0, limit);
   },
 
   // Obter histórico de um equipamento
   getEquipmentHistory: async (equipmentId: string): Promise<HistoryEntry[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('history_entries')
-        .select('*')
-        .eq('equipment_id', equipmentId)
-        .order('timestamp', { ascending: false });
-
-      if (error) throw error;
-
-      return data?.map(convertHistoryFromDB) || [];
-    } catch (error) {
-      console.error('Error fetching equipment history:', error);
-      throw error;
-    }
+    await delay(200);
+    console.log(`📋 Carregando histórico do equipamento ${equipmentId} (MOCK)`);
+    return mockHistory.filter(entry => entry.equipmentId === equipmentId);
   },
 
   // Obter anexos de um equipamento
   getEquipmentAttachments: async (equipmentId: string): Promise<Attachment[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('attachments')
-        .select('*')
-        .eq('equipment_id', equipmentId)
-        .order('uploaded_at', { ascending: false });
-
-      if (error) throw error;
-
-      return data?.map(convertAttachmentFromDB) || [];
-    } catch (error) {
-      console.error('Error fetching attachments:', error);
-      throw error;
-    }
+    await delay(200);
+    console.log(`📎 Carregando anexos do equipamento ${equipmentId} (MOCK)`);
+    return mockAttachments.filter(att => att.equipmentId === equipmentId);
   },
 
   // Upload de anexo
@@ -327,151 +283,83 @@ const inventoryService = {
     file: File, 
     user: string
   ): Promise<Attachment> => {
-    try {
-      // Upload do arquivo para o Storage do Supabase
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${equipmentId}/${Date.now()}.${fileExt}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('equipment-attachments')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      // Obter URL pública do arquivo
-      const { data: publicUrlData } = supabase.storage
-        .from('equipment-attachments')
-        .getPublicUrl(fileName);
-
-      // Salvar informações do anexo no banco
-      const { data, error } = await supabase
-        .from('attachments')
-        .insert({
-          equipment_id: equipmentId,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          url: publicUrlData.publicUrl,
-          uploaded_by: user
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const attachment = convertAttachmentFromDB(data);
-
-      // Adicionar entrada no histórico
-      await addHistoryEntry({
-        equipmentId,
-        user,
-        changeType: 'anexou arquivo',
-        newValue: file.name
-      });
-
-      return attachment;
-    } catch (error) {
-      console.error('Error uploading attachment:', error);
-      throw error;
-    }
+    await delay(800); // Simula upload mais lento
+    
+    const attachment: Attachment = {
+      id: Date.now().toString(),
+      equipmentId,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: `#${file.name}`, // URL simulada
+      uploadedBy: user,
+      uploadedAt: new Date().toISOString()
+    };
+    
+    mockAttachments.push(attachment);
+    
+    // Adicionar ao histórico
+    const historyEntry: HistoryEntry = {
+      id: `h${Date.now()}`,
+      equipmentId,
+      timestamp: new Date().toISOString(),
+      user,
+      changeType: 'anexou arquivo',
+      newValue: file.name
+    };
+    mockHistory.unshift(historyEntry);
+    
+    console.log('📤 Anexo enviado (MOCK):', file.name);
+    return attachment;
   },
 
   // Excluir anexo
   deleteAttachment: async (attachmentId: string, user: string): Promise<void> => {
-    try {
-      // Buscar anexo para obter informações
-      const { data: attachment, error: fetchError } = await supabase
-        .from('attachments')
-        .select('*')
-        .eq('id', attachmentId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Extrair nome do arquivo da URL para excluir do storage
-      const urlParts = attachment.url.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      const filePath = `${attachment.equipment_id}/${fileName}`;
-
-      // Excluir arquivo do storage
-      const { error: storageError } = await supabase.storage
-        .from('equipment-attachments')
-        .remove([filePath]);
-
-      if (storageError) {
-        console.warn('Warning: Could not delete file from storage:', storageError);
-      }
-
-      // Excluir registro do banco
-      const { error } = await supabase
-        .from('attachments')
-        .delete()
-        .eq('id', attachmentId);
-
-      if (error) throw error;
-
-      // Adicionar entrada no histórico
-      await addHistoryEntry({
-        equipmentId: attachment.equipment_id,
-        user,
-        changeType: 'removeu arquivo',
-        oldValue: attachment.name
-      });
-    } catch (error) {
-      console.error('Error deleting attachment:', error);
-      throw error;
+    await delay(200);
+    
+    const attachmentIndex = mockAttachments.findIndex(att => att.id === attachmentId);
+    if (attachmentIndex === -1) {
+      throw new Error('Anexo não encontrado');
     }
+    
+    const attachment = mockAttachments[attachmentIndex];
+    mockAttachments.splice(attachmentIndex, 1);
+    
+    // Adicionar ao histórico
+    const historyEntry: HistoryEntry = {
+      id: `h${Date.now()}`,
+      equipmentId: attachment.equipmentId,
+      timestamp: new Date().toISOString(),
+      user,
+      changeType: 'removeu arquivo',
+      oldValue: attachment.name
+    };
+    mockHistory.unshift(historyEntry);
+    
+    console.log('🗑️ Anexo excluído (MOCK):', attachment.name);
   },
 
   // Download de anexo
   downloadAttachment: async (attachment: Attachment): Promise<void> => {
-    try {
-      // Criar link de download
-      const link = document.createElement('a');
-      link.href = attachment.url;
-      link.download = attachment.name;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error downloading attachment:', error);
-      throw error;
-    }
+    await delay(100);
+    console.log('📥 Download simulado (MOCK):', attachment.name);
+    
+    // Simular download
+    const link = document.createElement('a');
+    link.href = 'data:text/plain,Este é um arquivo de exemplo simulado';
+    link.download = attachment.name;
+    link.click();
   },
 
-  // Popular com dados de exemplo (apenas se não houver dados)
+  // Popular com dados de exemplo
   populateSampleData: async (user: string): Promise<void> => {
-    try {
-      // Verificar se já existem equipamentos
-      const { count } = await supabase
-        .from('equipment')
-        .select('*', { count: 'exact', head: true });
-
-      if (count && count > 0) {
-        console.log('Database already has data, skipping sample data insertion');
-        return;
-      }
-
-      console.log('No data found, inserting sample data...');
-      
-      // Os dados de exemplo já estão no SQL, então apenas confirmamos
-      // que foram inseridos corretamente
-      const { data } = await supabase
-        .from('equipment')
-        .select('*')
-        .limit(1);
-
-      if (!data || data.length === 0) {
-        throw new Error('Sample data was not inserted correctly');
-      }
-
-      console.log('Sample data confirmed in database');
-    } catch (error) {
-      console.error('Error with sample data:', error);
-      throw error;
-    }
+    await delay(100);
+    console.log('📋 Dados de exemplo já carregados (MOCK)');
+    // Os dados já estão carregados no mock
   }
 };
+
+console.log('🚀 Inventory Service carregado em modo MOCK');
+console.log('📊 Equipamentos disponíveis:', mockEquipment.length);
 
 export default inventoryService;
