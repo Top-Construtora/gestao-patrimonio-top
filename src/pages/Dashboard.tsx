@@ -195,17 +195,42 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
                       </p>
                       {entry.field && entry.newValue && (
                         <p className="text-xs text-gray-500 mt-1">
-                          {entry.field === 'location' ? 'Localização' : 
-                           entry.field === 'responsible' ? 'Responsável' :
-                           entry.field === 'status' ? 'Status' :
-                           entry.field === 'description' ? 'Descrição' :
-                           entry.field === 'brand' ? 'Marca' :
-                           entry.field === 'model' ? 'Modelo' :
-                           entry.field === 'value' ? 'Valor' :
-                           entry.field === 'acquisitionDate' ? 'Data de Aquisição' :
-                           entry.field === 'assetNumber' ? 'Patrimônio' :
-                           entry.field === 'specs' ? 'Especificações' :
-                           entry.field}: {entry.oldValue || 'vazio'} → <span className="text-green-600 font-medium">{entry.newValue}</span>
+                          {(() => {
+                            const fieldName = entry.field === 'location' ? 'Localização' : 
+                                             entry.field === 'responsible' ? 'Responsável' :
+                                             entry.field === 'status' ? 'Status' :
+                                             entry.field === 'description' ? 'Descrição' :
+                                             entry.field === 'brand' ? 'Marca' :
+                                             entry.field === 'model' ? 'Modelo' :
+                                             entry.field === 'value' ? 'Valor' :
+                                             entry.field === 'acquisitionDate' ? 'Data de Aquisição' :
+                                             entry.field === 'assetNumber' ? 'Patrimônio' :
+                                             entry.field === 'specs' ? 'Especificações' :
+                                             entry.field === 'observacoes' ? 'Observações' :
+                                             entry.field;
+
+                            // Verificar se há valor anterior válido
+                            const hasValidOldValue = entry.oldValue && 
+                                                   entry.oldValue.trim() !== '' && 
+                                                   entry.oldValue.toLowerCase() !== 'undefined' &&
+                                                   entry.oldValue.toLowerCase() !== 'null';
+
+                            // Se não há valor anterior válido, mostrar apenas o novo valor
+                            if (!hasValidOldValue) {
+                              return (
+                                <>
+                                  {fieldName}: <span className="text-green-600 font-medium">{entry.newValue}</span>
+                                </>
+                              );
+                            }
+
+                            // Se há valor anterior válido, mostrar a transição
+                            return (
+                              <>
+                                {fieldName}: {entry.oldValue} → <span className="text-green-600 font-medium">{entry.newValue}</span>
+                              </>
+                            );
+                          })()}
                         </p>
                       )}
                     </div>

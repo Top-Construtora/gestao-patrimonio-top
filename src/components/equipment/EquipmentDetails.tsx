@@ -21,7 +21,9 @@ import {
   Upload,
   File,
   Image,
-  FileSpreadsheet
+  FileSpreadsheet,
+  X,
+  Eye
 } from 'lucide-react';
 
 interface EquipmentDetailsProps {
@@ -86,6 +88,8 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'excluiu':
         return 'bg-red-100 text-red-800 border-red-200';
+      case 'manutenção':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       default:
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     }
@@ -111,22 +115,6 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const translateFieldName = (field: string) => {
-    const translations: Record<string, string> = {
-      'location': 'Localização',
-      'responsible': 'Responsável',
-      'status': 'Status',
-      'description': 'Descrição',
-      'brand': 'Marca',
-      'model': 'Modelo',
-      'value': 'Valor',
-      'acquisitionDate': 'Data de Aquisição',
-      'assetNumber': 'Patrimônio',
-      'specs': 'Especificações'
-    };
-    return translations[field] || field;
   };
 
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -186,16 +174,18 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
 
   return (
     <div className="bg-white shadow-lg rounded-xl overflow-hidden transition-all duration-300">
-      {/* Header Simplificado */}
+      {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-100">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-              <Package className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{equipment.assetNumber}</h2>
-              <p className="text-sm text-gray-600 mt-0.5">{equipment.description}</p>
+          <div className="flex items-start lg:items-center flex-col lg:flex-row gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <Package className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{equipment.assetNumber}</h2>
+                <p className="text-sm text-gray-600 mt-0.5">{equipment.description}</p>
+              </div>
             </div>
             <Badge variante={equipment.status}>
               {equipment.status === 'ativo' ? 'Ativo' : 
@@ -290,75 +280,81 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
         {activeTab === 'details' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Informações Básicas */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <FileText className="h-5 w-5 text-blue-600" />
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <FileText size={16} className="text-blue-600" />
                 </div>
                 Informações Básicas
               </h3>
               
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-700">Localização</dt>
-                    <dd className="mt-1 text-sm text-gray-900 font-medium">{equipment.location}</dd>
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Localização</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">{equipment.location}</dd>
+                    </div>
+                    <MapPin className="h-4 w-4 text-gray-400" />
                   </div>
-                  <MapPin className="h-5 w-5 text-gray-400" />
                 </div>
                 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-700">Responsável</dt>
-                    <dd className="mt-1 text-sm text-gray-900 font-medium">{equipment.responsible}</dd>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">{equipment.responsible}</dd>
+                    </div>
+                    <User className="h-4 w-4 text-gray-400" />
                   </div>
-                  <User className="h-5 w-5 text-gray-400" />
                 </div>
                 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <dt className="text-sm font-medium text-gray-700">Data de Aquisição</dt>
-                    <dd className="mt-1 text-sm text-gray-900 font-medium">{formatDate(equipment.acquisitionDate)}</dd>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Aquisição</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">{formatDate(equipment.acquisitionDate)}</dd>
+                    </div>
+                    <Calendar className="h-4 w-4 text-gray-400" />
                   </div>
-                  <Calendar className="h-5 w-5 text-gray-400" />
                 </div>
                 
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-                  <div>
-                    <dt className="text-sm font-medium text-blue-700">Valor de Aquisição</dt>
-                    <dd className="mt-1 text-lg text-blue-900 font-bold">{formatCurrency(equipment.value)}</dd>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <dt className="text-xs font-medium text-blue-700 uppercase tracking-wider">Valor de Aquisição</dt>
+                      <dd className="mt-1 text-lg text-blue-900 font-bold">{formatCurrency(equipment.value)}</dd>
+                    </div>
+                    <DollarSign className="h-5 w-5 text-blue-600" />
                   </div>
-                  <DollarSign className="h-5 w-5 text-blue-600" />
                 </div>
               </div>
             </div>
             
             {/* Detalhes Técnicos */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-                <div className="p-2 bg-purple-50 rounded-lg">
-                  <Laptop className="h-5 w-5 text-purple-600" />
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                  <Laptop size={16} className="text-purple-600" />
                 </div>
                 Detalhes Técnicos
               </h3>
               
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <dt className="text-sm font-medium text-gray-700">Marca</dt>
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Marca</dt>
                   <dd className="mt-1 text-sm text-gray-900 font-medium">{equipment.brand}</dd>
                 </div>
                 
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <dt className="text-sm font-medium text-gray-700">Modelo</dt>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Modelo</dt>
                   <dd className="mt-1 text-sm text-gray-900 font-medium">{equipment.model}</dd>
                 </div>
                 
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <dt className="text-sm font-medium text-gray-700 mb-2">Especificações</dt>
-                  <dd className="text-sm text-gray-900 whitespace-pre-line">
-                    {equipment.specs || (
-                      <span className="text-gray-500 italic">Nenhuma especificação cadastrada</span>
-                    )}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Especificações</dt>
+                  <dd className="mt-2 text-sm text-gray-900 whitespace-pre-line">
+                    {equipment.specs || 'Nenhuma especificação cadastrada'}
                   </dd>
                 </div>
               </div>
@@ -383,7 +379,8 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
                             {entry.changeType === 'criou' ? 'Criação' : 
                              entry.changeType === 'editou' ? 'Edição' : 
                              entry.changeType === 'excluiu' ? 'Exclusão' : 
-                             'Alteração'}
+                             entry.changeType === 'manutenção' ? 'Manutenção' :
+                             'Alteração de Status'}
                           </span>
                           <span className="text-xs text-gray-500">
                             por <span className="font-medium text-gray-700">{entry.user}</span>
@@ -395,9 +392,19 @@ Gerado em: ${new Date().toLocaleString('pt-BR')}
                             <p>Equipamento cadastrado no sistema</p>
                           ) : entry.changeType === 'excluiu' ? (
                             <p>Equipamento removido do sistema</p>
+                          ) : entry.changeType === 'manutenção' ? (
+                            <div className="space-y-2">
+                              <p className="font-medium text-orange-800">🔧 Equipamento enviado para manutenção</p>
+                              {entry.newValue && (
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                  <p className="text-sm font-medium text-orange-800 mb-1">Observações:</p>
+                                  <p className="text-sm text-orange-700 whitespace-pre-line">{entry.newValue}</p>
+                                </div>
+                              )}
+                            </div>
                           ) : entry.field ? (
                             <div className="space-y-1">
-                              <p className="font-medium text-gray-900">{translateFieldName(entry.field)}</p>
+                              <p className="font-medium text-gray-900">{entry.field}</p>
                               <div className="flex items-center gap-2 text-xs">
                                 <span className="text-red-600 line-through">{entry.oldValue || 'Vazio'}</span>
                                 <ChevronRight className="h-3 w-3 text-gray-400" />

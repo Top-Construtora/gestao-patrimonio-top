@@ -132,10 +132,10 @@ const inventoryService = {
     });
   },
   
-  // Create new equipment with attachments
-  createEquipment: async (data: Omit<Equipment, 'id'>, user: string, attachmentFiles?: File[]): Promise<Equipment> => {
+  // Create new equipment
+  createEquipment: async (data: Omit<Equipment, 'id'>, user: string): Promise<Equipment> => {
     return new Promise((resolve) => {
-      setTimeout(async () => {
+      setTimeout(() => {
         const equipment = getStoredEquipment();
         const newEquipment: Equipment = {
           ...data,
@@ -145,45 +145,12 @@ const inventoryService = {
         const updatedEquipment = [...equipment, newEquipment];
         setStoredEquipment(updatedEquipment);
         
-        // Add history entry for equipment creation
+        // Add history entry
         addHistoryEntry({
           equipmentId: newEquipment.id,
           user,
           changeType: 'criou'
         });
-
-        // Process attachments if provided
-        if (attachmentFiles && attachmentFiles.length > 0) {
-          const attachments = getStoredAttachments();
-          
-          for (const file of attachmentFiles) {
-            // Create file URL (in a real app, this would upload to a server)
-            const fileUrl = URL.createObjectURL(file);
-            
-            const newAttachment: Attachment = {
-              id: uuidv4(),
-              equipmentId: newEquipment.id,
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              url: fileUrl,
-              uploadedBy: user,
-              uploadedAt: new Date().toISOString()
-            };
-            
-            attachments.push(newAttachment);
-            
-            // Add history entry for each attachment
-            addHistoryEntry({
-              equipmentId: newEquipment.id,
-              user,
-              changeType: 'anexou arquivo',
-              newValue: file.name
-            });
-          }
-          
-          setStoredAttachments(attachments);
-        }
         
         resolve(newEquipment);
       }, 500);
@@ -206,14 +173,18 @@ const inventoryService = {
           const existingEquipment = equipment[existingIndex];
           const updatedEquipment = { ...existingEquipment, ...data };
           
+          // Extrair observação de manutenção se existir
+          const maintenanceNote = (data as any).maintenanceNote;
+          
           // Create history entries for each changed field
           Object.keys(data).forEach(key => {
-            if (key === 'id') return; // Skip ID field
+            if (key === 'id' || key === 'maintenanceNote') return; // Skip ID field and maintenanceNote
             
             const oldValue = existingEquipment[key as keyof Equipment];
             const newValue = data[key as keyof Equipment];
             
             if (oldValue !== newValue) {
+              // Entrada de histórico padrão para alteração de campo
               addHistoryEntry({
                 equipmentId: id,
                 user,
@@ -222,6 +193,17 @@ const inventoryService = {
                 oldValue: String(oldValue),
                 newValue: String(newValue)
               });
+              
+              // Se mudou para manutenção, adicionar entrada específica com observações
+              if (key === 'status' && newValue === 'manutenção' && maintenanceNote) {
+                addHistoryEntry({
+                  equipmentId: id,
+                  user,
+                  changeType: 'manutenção',
+                  field: 'Observações de Manutenção',
+                  newValue: maintenanceNote
+                });
+              }
             }
           });
           
@@ -266,15 +248,6 @@ const inventoryService = {
           
           // Also remove all attachments for this equipment
           const attachments = getStoredAttachments();
-          const attachmentsToRemove = attachments.filter(a => a.equipmentId === id);
-          
-          // Revoke URLs for deleted attachments to free memory
-          attachmentsToRemove.forEach(attachment => {
-            if (attachment.url.startsWith('blob:')) {
-              URL.revokeObjectURL(attachment.url);
-            }
-          });
-          
           const remainingAttachments = attachments.filter(a => a.equipmentId !== id);
           setStoredAttachments(remainingAttachments);
           
@@ -307,6 +280,47 @@ const inventoryService = {
     });
   },
   
+  // Populate with sample data
+  populateSampleData: async (user: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const equipment = getStoredEquipment();
+        
+        // Only populate if empty
+        if (equipment.length === 0) {
+          const newEquipment = sampleEquipment.map(item => ({
+            ...item,
+            id: uuidv4()
+          }));
+          
+          setStoredEquipment(newEquipment);
+          
+          // Add history entries for each new equipment
+          newEquipment.forEach(item => {
+            addHistoryEntry({
+              equipmentId: item.id,
+              user,
+              changeType: 'criou'
+            });
+            
+            // Adicionar histórico específico para o projetor que já está em manutenção
+            if (item.assetNumber === 'PROJ-001') {
+              addHistoryEntry({
+                equipmentId: item.id,
+                user: 'Sistema',
+                changeType: 'manutenção',
+                field: 'Observações de Manutenção',
+                newValue: 'Equipamento com problema na lâmpada. Lâmpada queimada necessita substituição. Manutenção preventiva também será realizada durante o reparo.'
+              });
+            }
+          });
+        }
+        
+        resolve();
+      }, 500);
+    });
+  },
+
   // Get equipment attachments
   getEquipmentAttachments: async (equipmentId: string): Promise<Attachment[]> => {
     return new Promise((resolve) => {
@@ -320,7 +334,7 @@ const inventoryService = {
     });
   },
 
-  // Upload attachment (for existing equipment)
+  // Upload attachment
   uploadAttachment: async (equipmentId: string, file: File, user: string): Promise<Attachment> => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -410,36 +424,6 @@ const inventoryService = {
         
         resolve();
       }, 100);
-    });
-  },
-  
-  // Populate with sample data
-  populateSampleData: async (user: string): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const equipment = getStoredEquipment();
-        
-        // Only populate if empty
-        if (equipment.length === 0) {
-          const newEquipment = sampleEquipment.map(item => ({
-            ...item,
-            id: uuidv4()
-          }));
-          
-          setStoredEquipment(newEquipment);
-          
-          // Add history entries for each new equipment
-          newEquipment.forEach(item => {
-            addHistoryEntry({
-              equipmentId: item.id,
-              user,
-              changeType: 'criou'
-            });
-          });
-        }
-        
-        resolve();
-      }, 500);
     });
   }
 };

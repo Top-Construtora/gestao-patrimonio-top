@@ -10,6 +10,7 @@ export interface Equipment {
   responsible: string;
   acquisitionDate: string;
   value: number;
+  maintenanceDescription?: string; // Novo campo para descrição da manutenção
 }
 
 export interface HistoryEntry {
@@ -17,7 +18,7 @@ export interface HistoryEntry {
   equipmentId: string;
   timestamp: string;
   user: string;
-  changeType: 'criou' | 'editou' | 'excluiu' | 'alterou status' | 'anexou arquivo' | 'removeu arquivo';
+  changeType: 'criou' | 'editou' | 'excluiu' | 'manutenção' | 'alterou status' | 'anexou arquivo' | 'removeu arquivo';
   field?: string;
   oldValue?: string;
   newValue?: string;

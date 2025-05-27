@@ -16,7 +16,9 @@ import {
   AlertTriangle,
   Laptop,
   Edit,
-  RefreshCw
+  RefreshCw,
+  Settings,
+  Wrench
 } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 
@@ -37,6 +39,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [maintenanceDescription, setMaintenanceDescription] = useState('');
 
   useEffect(() => {
     const fetchEquipment = async () => {
@@ -48,6 +51,11 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         }
         setFormData(data);
         setOriginalData(data);
+        
+        // Se já está em manutenção, carrega a descrição existente se houver
+        if (data.status === 'manutenção' && data.maintenanceDescription) {
+          setMaintenanceDescription(data.maintenanceDescription);
+        }
       } catch (err) {
         console.error('Error loading equipment:', err);
         setError((err as Error).message || 'Erro ao carregar equipamento');
@@ -61,10 +69,20 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
 
   useEffect(() => {
     if (formData && originalData) {
-      const changed = JSON.stringify(formData) !== JSON.stringify(originalData);
+      const dataWithMaintenance = {
+        ...formData,
+        maintenanceDescription: formData.status === 'manutenção' ? maintenanceDescription : undefined
+      };
+      
+      const originalWithMaintenance = {
+        ...originalData,
+        maintenanceDescription: originalData?.maintenanceDescription || ''
+      };
+      
+      const changed = JSON.stringify(dataWithMaintenance) !== JSON.stringify(originalWithMaintenance);
       setHasChanges(changed);
     }
-  }, [formData, originalData]);
+  }, [formData, originalData, maintenanceDescription]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!formData) return;
@@ -80,6 +98,11 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
       ...prev!,
       [name]: parsedValue
     }));
+    
+    // Se mudou para status diferente de manutenção, limpa a descrição da manutenção
+    if (name === 'status' && value !== 'manutenção') {
+      setMaintenanceDescription('');
+    }
     
     if (errors[name]) {
       setErrors(prev => {
@@ -102,6 +125,19 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     }));
   };
 
+  const handleMaintenanceDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMaintenanceDescription(e.target.value);
+    
+    // Remove erro se existir
+    if (errors.maintenanceDescription) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.maintenanceDescription;
+        return newErrors;
+      });
+    }
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -122,6 +158,11 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     if (!formData.responsible.trim()) newErrors.responsible = 'Obrigatório';
     if (formData.value <= 0) newErrors.value = 'Valor inválido';
     
+    // Validação para manutenção
+    if (formData.status === 'manutenção' && !maintenanceDescription.trim()) {
+      newErrors.maintenanceDescription = 'Descreva o que será feito na manutenção';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -138,6 +179,11 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
           changedData[typedKey] = formData[typedKey] as any;
         }
       });
+      
+      // Inclui a descrição da manutenção se o status for manutenção
+      if (formData.status === 'manutenção') {
+        changedData.maintenanceDescription = maintenanceDescription;
+      }
       
       changedData.id = equipmentId;
       onSubmit(changedData);
@@ -309,6 +355,43 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             </div>
           </div>
         </Card>
+
+        {/* Campo de Manutenção - Aparece apenas quando status é "manutenção" */}
+        {formData.status === 'manutenção' && (
+          <Card 
+            title="Detalhes da Manutenção" 
+            subtitle="Descreva o que será feito no equipamento"
+            icon={<Wrench className="h-5 w-5 text-orange-600" />}
+            variant="elevated"
+            status="warning"
+            className="border-orange-200 bg-orange-50"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Settings className="inline h-4 w-4 mr-1" />
+                Descrição da Manutenção *
+              </label>
+              <textarea
+                value={maintenanceDescription}
+                onChange={handleMaintenanceDescriptionChange}
+                rows={4}
+                placeholder="Descreva detalhadamente o que será consertado, substituído ou melhorado no equipamento..."
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none ${
+                  errors.maintenanceDescription ? 'border-red-300 bg-red-50' : 'border-orange-300 hover:border-orange-400 bg-white'
+                }`}
+              />
+              {errors.maintenanceDescription && (
+                <div className="mt-2 flex items-center text-xs text-red-600">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.maintenanceDescription}
+                </div>
+              )}
+              <div className="mt-2 text-xs text-orange-700">
+                <strong>Exemplos:</strong> Troca de HD, Limpeza interna, Atualização de memória RAM, Reparo da fonte, etc.
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Localização e Responsável */}
         <Card 
@@ -506,6 +589,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             <ul className="space-y-1 list-disc list-inside text-xs">
               <li>Altere apenas os campos necessários</li>
               <li>Para equipamentos de obra, mantenha a localização atualizada</li>
+              <li>Ao selecionar "Em Manutenção", descreva detalhadamente o que será feito</li>
               <li>As alterações serão registradas no histórico do equipamento</li>
               <li>Todos os campos marcados com (*) são obrigatórios</li>
               <li>O sistema detecta automaticamente as mudanças realizadas</li>
