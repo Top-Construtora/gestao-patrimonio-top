@@ -10,7 +10,7 @@ export interface Equipment {
   responsible: string;
   acquisitionDate: string;
   value: number;
-  maintenanceDescription?: string; // Novo campo para descrição da manutenção
+  observacoesManutenção?: string; 
 }
 
 export interface HistoryEntry {

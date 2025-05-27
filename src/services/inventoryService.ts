@@ -54,7 +54,8 @@ const sampleEquipment: Omit<Equipment, 'id'>[] = [
     location: 'Sala de Conferências',
     responsible: 'Departamento de TI',
     acquisitionDate: '2022-08-12',
-    value: 3200
+    value: 3200,
+    observacoesManutenção: 'Equipamento com problema na lâmpada. Lâmpada queimada necessita substituição. Manutenção preventiva também será realizada durante o reparo.'
   },
   {
     assetNumber: 'PRINT-001',
@@ -173,12 +174,12 @@ const inventoryService = {
           const existingEquipment = equipment[existingIndex];
           const updatedEquipment = { ...existingEquipment, ...data };
           
-          // Extrair observação de manutenção se existir
-          const maintenanceNote = (data as any).maintenanceNote;
+          // Extrair observações de manutenção se existir
+          const observacoesManutenção = (data as any).observacoesManutenção;
           
           // Create history entries for each changed field
           Object.keys(data).forEach(key => {
-            if (key === 'id' || key === 'maintenanceNote') return; // Skip ID field and maintenanceNote
+            if (key === 'id' || key === 'observacoesManutenção') return; // Skip ID field and observacoesManutenção
             
             const oldValue = existingEquipment[key as keyof Equipment];
             const newValue = data[key as keyof Equipment];
@@ -195,13 +196,13 @@ const inventoryService = {
               });
               
               // Se mudou para manutenção, adicionar entrada específica com observações
-              if (key === 'status' && newValue === 'manutenção' && maintenanceNote) {
+              if (key === 'status' && newValue === 'manutenção' && observacoesManutenção) {
                 addHistoryEntry({
                   equipmentId: id,
                   user,
                   changeType: 'manutenção',
                   field: 'Observações de Manutenção',
-                  newValue: maintenanceNote
+                  newValue: observacoesManutenção
                 });
               }
             }

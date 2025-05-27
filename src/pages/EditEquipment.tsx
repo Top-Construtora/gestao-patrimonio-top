@@ -39,7 +39,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
-  const [maintenanceDescription, setMaintenanceDescription] = useState('');
+  const [observacoesManutenção, setObservacoesManutenção] = useState('');
 
   useEffect(() => {
     const fetchEquipment = async () => {
@@ -52,9 +52,9 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         setFormData(data);
         setOriginalData(data);
         
-        // Se já está em manutenção, carrega a descrição existente se houver
-        if (data.status === 'manutenção' && data.maintenanceDescription) {
-          setMaintenanceDescription(data.maintenanceDescription);
+        // Se já está em manutenção, carrega as observações existentes se houver
+        if (data.status === 'manutenção' && data.observacoesManutenção) {
+          setObservacoesManutenção(data.observacoesManutenção);
         }
       } catch (err) {
         console.error('Error loading equipment:', err);
@@ -71,18 +71,18 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     if (formData && originalData) {
       const dataWithMaintenance = {
         ...formData,
-        maintenanceDescription: formData.status === 'manutenção' ? maintenanceDescription : undefined
+        observacoesManutenção: formData.status === 'manutenção' ? observacoesManutenção : undefined
       };
       
       const originalWithMaintenance = {
         ...originalData,
-        maintenanceDescription: originalData?.maintenanceDescription || ''
+        observacoesManutenção: originalData?.observacoesManutenção || ''
       };
       
       const changed = JSON.stringify(dataWithMaintenance) !== JSON.stringify(originalWithMaintenance);
       setHasChanges(changed);
     }
-  }, [formData, originalData, maintenanceDescription]);
+  }, [formData, originalData, observacoesManutenção]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!formData) return;
@@ -99,9 +99,9 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
       [name]: parsedValue
     }));
     
-    // Se mudou para status diferente de manutenção, limpa a descrição da manutenção
+    // Se mudou para status diferente de manutenção, limpa as observações de manutenção
     if (name === 'status' && value !== 'manutenção') {
-      setMaintenanceDescription('');
+      setObservacoesManutenção('');
     }
     
     if (errors[name]) {
@@ -125,14 +125,14 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     }));
   };
 
-  const handleMaintenanceDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMaintenanceDescription(e.target.value);
+  const handleObservacoesManutenção = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setObservacoesManutenção(e.target.value);
     
     // Remove erro se existir
-    if (errors.maintenanceDescription) {
+    if (errors.observacoesManutenção) {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors.maintenanceDescription;
+        delete newErrors.observacoesManutenção;
         return newErrors;
       });
     }
@@ -159,8 +159,8 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     if (formData.value <= 0) newErrors.value = 'Valor inválido';
     
     // Validação para manutenção
-    if (formData.status === 'manutenção' && !maintenanceDescription.trim()) {
-      newErrors.maintenanceDescription = 'Descreva o que será feito na manutenção';
+    if (formData.status === 'manutenção' && !observacoesManutenção.trim()) {
+      newErrors.observacoesManutenção = 'Descreva o que será feito na manutenção';
     }
     
     setErrors(newErrors);
@@ -180,9 +180,9 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         }
       });
       
-      // Inclui a descrição da manutenção se o status for manutenção
+      // Inclui as observações de manutenção se o status for manutenção
       if (formData.status === 'manutenção') {
-        changedData.maintenanceDescription = maintenanceDescription;
+        changedData.observacoesManutenção = observacoesManutenção;
       }
       
       changedData.id = equipmentId;
@@ -359,7 +359,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         {/* Campo de Manutenção - Aparece apenas quando status é "manutenção" */}
         {formData.status === 'manutenção' && (
           <Card 
-            title="Detalhes da Manutenção" 
+            title="Observações de Manutenção" 
             subtitle="Descreva o que será feito no equipamento"
             icon={<Wrench className="h-5 w-5 text-orange-600" />}
             variant="elevated"
@@ -369,21 +369,21 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Settings className="inline h-4 w-4 mr-1" />
-                Descrição da Manutenção *
+                Observações de Manutenção *
               </label>
               <textarea
-                value={maintenanceDescription}
-                onChange={handleMaintenanceDescriptionChange}
+                value={observacoesManutenção}
+                onChange={handleObservacoesManutenção}
                 rows={4}
                 placeholder="Descreva detalhadamente o que será consertado, substituído ou melhorado no equipamento..."
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none ${
-                  errors.maintenanceDescription ? 'border-red-300 bg-red-50' : 'border-orange-300 hover:border-orange-400 bg-white'
+                  errors.observacoesManutenção ? 'border-red-300 bg-red-50' : 'border-orange-300 hover:border-orange-400 bg-white'
                 }`}
               />
-              {errors.maintenanceDescription && (
+              {errors.observacoesManutenção && (
                 <div className="mt-2 flex items-center text-xs text-red-600">
                   <AlertTriangle className="h-3 w-3 mr-1" />
-                  {errors.maintenanceDescription}
+                  {errors.observacoesManutenção}
                 </div>
               )}
               <div className="mt-2 text-xs text-orange-700">
