@@ -12,6 +12,9 @@ export interface Equipment {
   acquisitionDate: string;
   value: number;
   maintenanceDescription?: string;
+  observacoesManutenção?: string; // Para compatibilidade com EditEquipment
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface HistoryEntry {
@@ -60,7 +63,7 @@ export interface DatabaseHistoryEntry {
   id: string;
   equipment_id: string;
   timestamp: string;
-  user: string;
+  user_name: string;
   change_type: 'criou' | 'editou' | 'excluiu' | 'manutenção' | 'alterou status' | 'anexou arquivo' | 'removeu arquivo';
   field: string | null;
   old_value: string | null;
@@ -75,6 +78,7 @@ export interface DatabaseAttachment {
   size: number;
   type: string;
   url: string;
+  file_path: string; // Caminho do arquivo no bucket
   uploaded_by: string;
   uploaded_at: string;
   created_at: string;
