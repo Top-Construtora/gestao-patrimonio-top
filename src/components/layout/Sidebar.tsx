@@ -27,7 +27,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onClose }) => {
   const menuItems = [
     { 
-      name: 'Dashboard', 
+      name: 'Página Inicial', 
       icon: <Home size={20} />, 
       route: 'dashboard',
       description: 'Visão geral'
