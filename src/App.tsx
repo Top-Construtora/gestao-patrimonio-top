@@ -56,10 +56,19 @@ function App() {
     };
   }, [showSuccess, showError]);
 
-  // Carregar dados iniciais
+  // Carregar dados iniciais - CORRIGIDO
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        console.log('🔄 Carregando dados iniciais...');
+        
+        // Verificar conexão com o banco
+        const isConnected = await inventoryService.checkConnection();
+        if (!isConnected) {
+          throw new Error('Não foi possível conectar ao banco de dados');
+        }
+
+        // Carregar equipamentos e histórico
         const [equipmentData, recentActivities] = await Promise.all([
           inventoryService.getAllEquipment(),
           inventoryService.getRecentActivities(10)
@@ -68,30 +77,16 @@ function App() {
         setEquipment(equipmentData);
         setHistory(recentActivities);
         
-        // Popular com dados de exemplo se vazio
-        if (equipmentData.length === 0) {
-          await inventoryService.populateSampleData(currentUser);
-          
-          const [refreshedEquipment, refreshedActivities] = await Promise.all([
-            inventoryService.getAllEquipment(),
-            inventoryService.getRecentActivities(10)
-          ]);
-          
-          setEquipment(refreshedEquipment);
-          setHistory(refreshedActivities);
-          
-          showInfo('Sistema inicializado com dados de exemplo');
-        }
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        showError('Erro ao carregar dados do sistema');
+        console.error('❌ Erro ao carregar dados:', error);
+        showError('Erro ao conectar com o banco de dados. Verifique sua conexão.');
       } finally {
         setIsInitializing(false);
       }
     };
     
     loadInitialData();
-  }, [currentUser, showInfo, showError]);
+  }, [showInfo, showError, showSuccess]);
 
   // Funções de navegação
   const handleViewDetails = useCallback((id: string) => {
@@ -130,7 +125,7 @@ function App() {
       setEquipmentToDelete(null);
       setRoute('equipment');
     } catch (error) {
-      console.error('Erro ao excluir:', error);
+      console.error('❌ Erro ao excluir:', error);
       showError('Erro ao excluir equipamento');
     }
   }, [equipmentToDelete, currentUser, showSuccess, showError]);
@@ -155,7 +150,7 @@ function App() {
       showSuccess(`Equipamento cadastrado com sucesso${attachmentText}!`);
       setRoute('equipment');
     } catch (error) {
-      console.error('Erro ao adicionar:', error);
+      console.error('❌ Erro ao adicionar:', error);
       showError('Erro ao cadastrar equipamento');
     }
   }, [currentUser, showSuccess, showError]);
@@ -177,7 +172,7 @@ function App() {
       setSelectedEquipmentId(id);
       setRoute('equipment-details');
     } catch (error) {
-      console.error('Erro ao atualizar:', error);
+      console.error('❌ Erro ao atualizar:', error);
       showError('Erro ao atualizar equipamento');
     }
   }, [currentUser, showSuccess, showError]);
@@ -190,7 +185,7 @@ function App() {
           const equipmentHistory = await inventoryService.getEquipmentHistory(selectedEquipmentId);
           setHistory(equipmentHistory);
         } catch (error) {
-          console.error('Erro ao carregar histórico:', error);
+          console.error('❌ Erro ao carregar histórico:', error);
         }
       }
     };
@@ -265,18 +260,19 @@ function App() {
     handleUpdateEquipment
   ]);
 
-  // Mostrar loading inicial clean
+  // Loading inicial com melhor UX
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
             <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900">Carregando Sistema</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Conectando ao Sistema</h3>
+          <p className="text-sm text-gray-500">Carregando dados do banco...</p>
         </div>
       </div>
     );
@@ -284,7 +280,7 @@ function App() {
 
   return (
     <>
-      {/* Indicador de Conexão - Sutil e Clean */}
+      {/* Indicador de Conexão */}
       {!isOnline && (
         <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
           <WifiOff className="h-4 w-4" />

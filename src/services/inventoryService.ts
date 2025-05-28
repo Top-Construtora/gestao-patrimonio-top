@@ -1,4 +1,4 @@
-// src/services/inventoryService.ts - Versão Real com Supabase
+// src/services/inventoryService.ts - Versão Real com Supabase (Corrigida para banco vazio)
 import { supabase, STORAGE_BUCKET } from '../lib/supabase';
 import { Equipment, HistoryEntry, Attachment, DatabaseEquipment, DatabaseHistoryEntry, DatabaseAttachment } from '../types';
 
@@ -70,10 +70,18 @@ const inventoryService = {
   // Verificar conexão
   checkConnection: async (): Promise<boolean> => {
     try {
+      console.log('🔍 Verificando conexão com o banco...');
       const { error } = await supabase.from('equipments').select('count').limit(1);
-      return !error;
+      
+      if (error) {
+        console.error('❌ Erro na verificação de conexão:', error);
+        return false;
+      }
+      
+      console.log('✅ Conexão com banco verificada');
+      return true;
     } catch (error) {
-      console.error('❌ Erro de conexão:', error);
+      console.error('❌ Erro crítico de conexão:', error);
       return false;
     }
   },
@@ -85,7 +93,7 @@ const inventoryService = {
   // Obter todos os equipamentos
   getAllEquipment: async (): Promise<Equipment[]> => {
     try {
-      console.log('📦 Carregando equipamentos...');
+      console.log('📦 Carregando equipamentos do banco...');
       
       const { data, error } = await supabase
         .from('equipments')
@@ -97,8 +105,14 @@ const inventoryService = {
         throw new Error(`Erro ao carregar equipamentos: ${error.message}`);
       }
 
-      const equipment = data?.map(transformEquipment) || [];
-      console.log(`✅ ${equipment.length} equipamentos carregados`);
+      // Se data for null, retorna array vazio
+      const equipment = data ? data.map(transformEquipment) : [];
+      
+      console.log(`✅ ${equipment.length} equipamento(s) carregado(s) do banco`);
+      if (equipment.length === 0) {
+        console.log('📝 Banco de equipamentos está vazio - Sistema pronto para novos cadastros');
+      }
+      
       return equipment;
     } catch (error) {
       console.error('❌ Erro no getAllEquipment:', error);
@@ -124,6 +138,11 @@ const inventoryService = {
         }
         console.error('❌ Erro ao buscar equipamento:', error);
         throw new Error(`Erro ao buscar equipamento: ${error.message}`);
+      }
+
+      if (!data) {
+        console.log('⚠️ Equipamento não encontrado (data null)');
+        return null;
       }
 
       const equipment = transformEquipment(data);
@@ -156,23 +175,36 @@ const inventoryService = {
         throw new Error(`Erro ao criar equipamento: ${error.message}`);
       }
 
+      if (!data) {
+        throw new Error('Erro: Equipamento não foi criado corretamente');
+      }
+
       const newEquipment = transformEquipment(data);
 
       // Registrar no histórico
-      await supabase.from('history_entries').insert({
+      const { error: historyError } = await supabase.from('history_entries').insert({
         equipment_id: newEquipment.id,
         user_name: user,
         change_type: 'criou'
       });
 
+      if (historyError) {
+        console.warn('⚠️ Erro ao registrar histórico:', historyError);
+      }
+
       // Upload de anexos se houver
       if (attachmentFiles && attachmentFiles.length > 0) {
+        console.log(`📎 Processando ${attachmentFiles.length} anexo(s)...`);
         for (const file of attachmentFiles) {
-          await inventoryService.uploadAttachment(newEquipment.id, file, user);
+          try {
+            await inventoryService.uploadAttachment(newEquipment.id, file, user);
+          } catch (attachError) {
+            console.warn('⚠️ Erro no upload de anexo:', attachError);
+          }
         }
       }
 
-      console.log('✅ Equipamento criado:', newEquipment.assetNumber);
+      console.log('✅ Equipamento criado com sucesso:', newEquipment.assetNumber);
       return newEquipment;
     } catch (error) {
       console.error('❌ Erro no createEquipment:', error);
@@ -224,22 +256,11 @@ const inventoryService = {
         throw new Error(`Erro ao atualizar equipamento: ${error.message}`);
       }
 
-      // Registrar mudanças no histórico
-      const fieldMap: Record<string, string> = {
-        assetNumber: 'asset_number',
-        description: 'description',
-        brand: 'brand',
-        model: 'model',
-        specs: 'specs',
-        status: 'status',
-        location: 'location',
-        responsible: 'responsible',
-        acquisitionDate: 'acquisition_date',
-        value: 'value',
-        maintenanceDescription: 'maintenance_description',
-        observacoesManutenção: 'maintenance_description'
-      };
+      if (!data) {
+        throw new Error('Erro: Equipamento não foi atualizado corretamente');
+      }
 
+      // Registrar mudanças no histórico
       for (const [key, value] of Object.entries(updates)) {
         if (key === 'id') continue;
         
@@ -287,12 +308,19 @@ const inventoryService = {
       }
 
       // Excluir anexos do storage
-      const attachments = await inventoryService.getEquipmentAttachments(id);
-      for (const attachment of attachments) {
-        const filePath = attachment.url.split('/').pop();
-        if (filePath) {
-          await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+      try {
+        const attachments = await inventoryService.getEquipmentAttachments(id);
+        if (attachments.length > 0) {
+          console.log(`🗑️ Removendo ${attachments.length} anexo(s)...`);
+          for (const attachment of attachments) {
+            const filePath = attachment.url.split('/').pop();
+            if (filePath) {
+              await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+            }
+          }
         }
+      } catch (attachError) {
+        console.warn('⚠️ Erro ao remover anexos:', attachError);
       }
 
       // Registrar exclusão no histórico antes de excluir
@@ -341,8 +369,14 @@ const inventoryService = {
         throw new Error(`Erro ao carregar atividades: ${error.message}`);
       }
 
-      const activities = data?.map(transformHistoryEntry) || [];
-      console.log(`✅ ${activities.length} atividades carregadas`);
+      // Se data for null, retorna array vazio
+      const activities = data ? data.map(transformHistoryEntry) : [];
+      
+      console.log(`✅ ${activities.length} atividade(s) carregada(s)`);
+      if (activities.length === 0) {
+        console.log('📝 Nenhuma atividade encontrada no histórico');
+      }
+      
       return activities;
     } catch (error) {
       console.error('❌ Erro no getRecentActivities:', error);
@@ -366,8 +400,10 @@ const inventoryService = {
         throw new Error(`Erro ao carregar histórico: ${error.message}`);
       }
 
-      const history = data?.map(transformHistoryEntry) || [];
-      console.log(`✅ ${history.length} entradas de histórico carregadas`);
+      // Se data for null, retorna array vazio
+      const history = data ? data.map(transformHistoryEntry) : [];
+      
+      console.log(`✅ ${history.length} entrada(s) de histórico carregada(s)`);
       return history;
     } catch (error) {
       console.error('❌ Erro no getEquipmentHistory:', error);
@@ -395,8 +431,10 @@ const inventoryService = {
         throw new Error(`Erro ao carregar anexos: ${error.message}`);
       }
 
-      const attachments = data?.map(transformAttachment) || [];
-      console.log(`✅ ${attachments.length} anexos carregados`);
+      // Se data for null, retorna array vazio
+      const attachments = data ? data.map(transformAttachment) : [];
+      
+      console.log(`✅ ${attachments.length} anexo(s) carregado(s)`);
       return attachments;
     } catch (error) {
       console.error('❌ Erro no getEquipmentAttachments:', error);
@@ -447,6 +485,10 @@ const inventoryService = {
         // Tentar remover arquivo do storage se falhou salvar no banco
         await supabase.storage.from(STORAGE_BUCKET).remove([fileName]);
         throw new Error(`Erro ao salvar anexo: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('Erro: Anexo não foi salvo corretamente');
       }
 
       // Registrar no histórico
@@ -530,12 +572,6 @@ const inventoryService = {
       console.error('❌ Erro no downloadAttachment:', error);
       throw error;
     }
-  },
-
-  // Popular com dados de exemplo (não necessário com dados já no banco)
-  populateSampleData: async (user: string): Promise<void> => {
-    console.log('📋 Dados de exemplo já disponíveis no banco');
-    // Dados já foram inseridos via SQL
   }
 };
 
@@ -543,7 +579,7 @@ const inventoryService = {
 // INICIALIZAÇÃO
 // ================================
 
-console.log('🚀 Inventory Service Real carregado');
+console.log('🚀 Inventory Service carregado');
 console.log('🔗 Conectado ao Supabase');
 
 // Verificar conexão na inicialização
