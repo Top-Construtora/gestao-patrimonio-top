@@ -83,7 +83,7 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Página Inicial</h1>
         <p className="text-gray-600 mt-2">Visão geral dos equipamentos em operação</p>
       </div>
 

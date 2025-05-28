@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
   }, []);
 
   const routeLabels: Record<string, string> = {
-  dashboard: 'Dashboard',
+  dashboard: 'Página Inicial',
   equipment: 'Equipamentos',
   'equipment-details': 'Detalhes do Equipamento',
   'add-equipment': 'Adicionar Equipamento',
