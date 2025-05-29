@@ -52,14 +52,16 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
-  };
+  if (!dateString) return 'N/A';
+  const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  const date = new Date(year, month - 1, day); 
+  return new Intl.DateTimeFormat('pt-BR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+};
 
   const formatDateTime = (dateTimeString: string) => {
     if (!dateTimeString) return 'N/A';

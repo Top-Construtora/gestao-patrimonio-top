@@ -134,18 +134,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
     }
   };
 
-  // Calculate age for display
-  const calculateAge = () => {
-    if (!equipment?.acquisitionDate) return 'N/A';
-    const years = Math.floor((Date.now() - new Date(equipment.acquisitionDate).getTime()) / (1000 * 60 * 60 * 24 * 365));
-    const months = Math.floor((Date.now() - new Date(equipment.acquisitionDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) % 12;
-    
-    if (years === 0) {
-      return `${months} ${months === 1 ? 'mês' : 'meses'}`;
-    }
-    return `${years} ${years === 1 ? 'ano' : 'anos'}`;
-  };
-
   if (loading) {
     return <LoadingOverlay message="Carregando equipamento..." submessage="Por favor, aguarde" />;
   }

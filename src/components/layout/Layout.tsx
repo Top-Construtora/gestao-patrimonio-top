@@ -121,7 +121,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
           <nav className="flex items-center text-sm">
             <span className="text-gray-500">Sistema</span>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-primary font-medium">{routeLabels[activeRoute] || activeRoute}</span>
+            <span className="text-blue-500 bold font-medium">{routeLabels[activeRoute] || activeRoute}</span>
           </nav>
         </div>
         
@@ -139,18 +139,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
           <div className="px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex flex-col sm:flex-row items-center justify-between">
               <div className="text-sm text-gray-500 mb-2 sm:mb-0">
-                Sistema de Controle de Patrimônio TI © {new Date().getFullYear()}
+                GIO - SIstema de Controle de Patrimônio © {new Date().getFullYear()}
               </div>
               <div className="flex items-center space-x-4 text-sm">
-                <span className="text-gray-500">Versão 2.0.1</span>
-                <span className="text-gray-300">|</span>
-                <a href="#" className="text-blue-500 hover:text-blue-600 transition-colors">
-                  Suporte
-                </a>
-                <span className="text-gray-300">|</span>
-                <a href="#" className="text-blue-500 hover:text-blue-600 transition-colors">
-                  Documentação
-                </a>
+                <span className="text-gray-500">Versão 1.0</span>
               </div>
             </div>
           </div>

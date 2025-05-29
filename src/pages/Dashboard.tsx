@@ -89,7 +89,7 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
 
       {/* Métricas Principais - Apenas Ativos e Manutenção */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total de Equipamentos em Operação */}
+        {/* Total de Equipamentos eDm Operação */}
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>

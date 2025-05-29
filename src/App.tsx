@@ -59,9 +59,7 @@ function App() {
   // Carregar dados iniciais - CORRIGIDO
   useEffect(() => {
     const loadInitialData = async () => {
-      try {
-        console.log('🔄 Carregando dados iniciais...');
-        
+      try {        
         // Verificar conexão com o banco
         const isConnected = await inventoryService.checkConnection();
         if (!isConnected) {

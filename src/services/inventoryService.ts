@@ -70,7 +70,6 @@ const inventoryService = {
   // Verificar conexão
   checkConnection: async (): Promise<boolean> => {
     try {
-      console.log('🔍 Verificando conexão com o banco...');
       const { error } = await supabase.from('equipments').select('count').limit(1);
       
       if (error) {
@@ -78,7 +77,6 @@ const inventoryService = {
         return false;
       }
       
-      console.log('✅ Conexão com banco verificada');
       return true;
     } catch (error) {
       console.error('❌ Erro crítico de conexão:', error);
@@ -86,15 +84,8 @@ const inventoryService = {
     }
   },
 
-  // ================================
-  // OPERAÇÕES DE EQUIPAMENTOS
-  // ================================
-
-  // Obter todos os equipamentos
   getAllEquipment: async (): Promise<Equipment[]> => {
     try {
-      console.log('📦 Carregando equipamentos do banco...');
-      
       const { data, error } = await supabase
         .from('equipments')
         .select('*')
@@ -108,7 +99,6 @@ const inventoryService = {
       // Se data for null, retorna array vazio
       const equipment = data ? data.map(transformEquipment) : [];
       
-      console.log(`✅ ${equipment.length} equipamento(s) carregado(s) do banco`);
       if (equipment.length === 0) {
         console.log('📝 Banco de equipamentos está vazio - Sistema pronto para novos cadastros');
       }
@@ -349,15 +339,8 @@ const inventoryService = {
     }
   },
 
-  // ================================
-  // OPERAÇÕES DE HISTÓRICO
-  // ================================
-
-  // Obter atividades recentes
   getRecentActivities: async (limit: number = 10): Promise<HistoryEntry[]> => {
-    try {
-      console.log(`📊 Carregando ${limit} atividades recentes...`);
-      
+    try {      
       const { data, error } = await supabase
         .from('history_entries')
         .select('*')
@@ -369,10 +352,8 @@ const inventoryService = {
         throw new Error(`Erro ao carregar atividades: ${error.message}`);
       }
 
-      // Se data for null, retorna array vazio
       const activities = data ? data.map(transformHistoryEntry) : [];
       
-      console.log(`✅ ${activities.length} atividade(s) carregada(s)`);
       if (activities.length === 0) {
         console.log('📝 Nenhuma atividade encontrada no histórico');
       }
