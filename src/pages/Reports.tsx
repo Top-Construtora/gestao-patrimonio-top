@@ -7,7 +7,6 @@ import {
   Download, 
   Filter, 
   PieChart, 
-  BarChart, 
   TrendingUp, 
   Package, 
   DollarSign,
@@ -30,7 +29,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
 
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  const [chartView, setChartView] = useState<'status' | 'location'>('status');
+  const [chartView, setChartView] = useState<'status'>('status');
   const [showFilters, setShowFilters] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -58,13 +57,6 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
     maintenance: filteredEquipment.filter(item => item.status === 'manutenção').length,
     inactive: filteredEquipment.filter(item => item.status === 'desativado').length
   };
-
-  const locationData = locations.map(location => ({
-    location,
-    count: filteredEquipment.filter(item => item.location === location).length,
-    value: filteredEquipment.filter(item => item.location === location)
-      .reduce((sum, item) => sum + item.value, 0)
-  }));
 
   const handleExport = () => {
     const headers = [
@@ -267,7 +259,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
       </Card>
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between p-4 sm:p-6">
             <div className="flex-1 min-w-0">
@@ -299,21 +291,6 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
             </div>
           </div>
         </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 sm:col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between p-4 sm:p-6">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-purple-600">Média por Equipamento</p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1 sm:mt-2 truncate">
-                {formatCurrency(filteredEquipment.length > 0 ? totalValue / filteredEquipment.length : 0)}
-              </p>
-              <p className="text-xs text-gray-600 mt-1">Valor médio</p>
-            </div>
-            <div className="p-2 sm:p-3 bg-white bg-opacity-60 rounded-full ml-3 flex-shrink-0">
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
-            </div>
-          </div>
-        </Card>
       </div>
 
       {/* Visualizações */}
@@ -332,126 +309,76 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
                 onClick={() => setChartView('status')}
               >
                 <PieChart size={14} className="inline mr-1.5 sm:mr-2" />
-                Por Status
-              </button>
-              <button
-                type="button"
-                className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 ${
-                  chartView === 'location'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                onClick={() => setChartView('location')}
-              >
-                <BarChart size={14} className="inline mr-1.5 sm:mr-2" />
-                Por Local
+                Distribuição por Status
               </button>
             </div>
           </div>
 
-          {chartView === 'status' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    <p className="text-xs sm:text-sm font-medium text-gray-700">Ativos</p>
-                    <span className="text-xl sm:text-2xl font-bold text-green-700">{statusData.active}</span>
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                    {filteredEquipment.length > 0 
-                      ? `${Math.round((statusData.active / filteredEquipment.length) * 100)}% do total` 
-                      : '0%'}
-                  </div>
-                  <div className="w-full bg-green-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-green-400 to-green-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${filteredEquipment.length > 0 ? (statusData.active / filteredEquipment.length) * 100 : 0}%` }}
-                    />
-                  </div>
+          {/* Distribuição por Status */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-700">Ativos</p>
+                  <span className="text-xl sm:text-2xl font-bold text-green-700">{statusData.active}</span>
                 </div>
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-green-200 rounded-full opacity-20" />
-              </div>
-
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    <p className="text-xs sm:text-sm font-medium text-gray-700">Manutenção</p>
-                    <span className="text-xl sm:text-2xl font-bold text-yellow-700">{statusData.maintenance}</span>
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                    {filteredEquipment.length > 0 
-                      ? `${Math.round((statusData.maintenance / filteredEquipment.length) * 100)}% do total` 
-                      : '0%'}
-                  </div>
-                  <div className="w-full bg-yellow-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${filteredEquipment.length > 0 ? (statusData.maintenance / filteredEquipment.length) * 100 : 0}%` }}
-                    />
-                  </div>
+                <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
+                  {filteredEquipment.length > 0 
+                    ? `${Math.round((statusData.active / filteredEquipment.length) * 100)}% do total` 
+                    : '0%'}
                 </div>
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-yellow-200 rounded-full opacity-20" />
-              </div>
-
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    <p className="text-xs sm:text-sm font-medium text-gray-700">Desativados</p>
-                    <span className="text-xl sm:text-2xl font-bold text-red-700">{statusData.inactive}</span>
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                    {filteredEquipment.length > 0 
-                      ? `${Math.round((statusData.inactive / filteredEquipment.length) * 100)}% do total` 
-                      : '0%'}
-                  </div>
-                  <div className="w-full bg-red-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-red-400 to-red-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${filteredEquipment.length > 0 ? (statusData.inactive / filteredEquipment.length) * 100 : 0}%` }}
-                    />
-                  </div>
+                <div className="w-full bg-green-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-green-400 to-green-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${filteredEquipment.length > 0 ? (statusData.active / filteredEquipment.length) * 100 : 0}%` }}
+                  />
                 </div>
-                <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-red-200 rounded-full opacity-20" />
               </div>
+              <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-green-200 rounded-full opacity-20" />
             </div>
-          ) : (
-            <div className="space-y-3 sm:space-y-4">
-              {locationData.length > 0 ? (
-                locationData.map((item, index) => {
-                  const maxCount = Math.max(...locationData.map(l => l.count));
-                  const percentage = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
-                  
-                  return (
-                    <div key={item.location} className="relative overflow-hidden rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4">
-                        <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-0">{item.location}</h4>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
-                          <span className="text-gray-600">{item.count} equipamentos</span>
-                          <span className="font-medium text-blue-600">{formatCurrency(item.value)}</span>
-                        </div>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden">
-                        <div 
-                          className="bg-gradient-to-r from-blue-400 to-blue-600 h-3 sm:h-4 rounded-full transition-all duration-700 ease-out"
-                          style={{ 
-                            width: `${percentage}%`,
-                            animationDelay: `${index * 100}ms`
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8 sm:py-12">
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full mb-3 sm:mb-4">
-                    <BarChart size={20} className="text-gray-400 sm:w-6 sm:h-6" />
-                  </div>
-                  <p className="text-sm sm:text-base text-gray-500">Nenhum dado disponível</p>
+
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-700">Manutenção</p>
+                  <span className="text-xl sm:text-2xl font-bold text-yellow-700">{statusData.maintenance}</span>
                 </div>
-              )}
+                <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
+                  {filteredEquipment.length > 0 
+                    ? `${Math.round((statusData.maintenance / filteredEquipment.length) * 100)}% do total` 
+                    : '0%'}
+                </div>
+                <div className="w-full bg-yellow-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${filteredEquipment.length > 0 ? (statusData.maintenance / filteredEquipment.length) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+              <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-yellow-200 rounded-full opacity-20" />
             </div>
-          )}
+
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <p className="text-xs sm:text-sm font-medium text-gray-700">Desativados</p>
+                  <span className="text-xl sm:text-2xl font-bold text-red-700">{statusData.inactive}</span>
+                </div>
+                <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
+                  {filteredEquipment.length > 0 
+                    ? `${Math.round((statusData.inactive / filteredEquipment.length) * 100)}% do total` 
+                    : '0%'}
+                </div>
+                <div className="w-full bg-red-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-red-400 to-red-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${filteredEquipment.length > 0 ? (statusData.inactive / filteredEquipment.length) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+              <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-red-200 rounded-full opacity-20" />
+            </div>
+          </div>
         </div>
       </Card>
 

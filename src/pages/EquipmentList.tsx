@@ -276,134 +276,143 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
             )}
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th 
-                    scope="col" 
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('assetNumber')}
-                  >
-                    <div className="flex items-center">
-                      <Package size={14} className="mr-1 text-gray-500" />
-                      <span>Patrimônio</span>
-                      {renderSortIndicator('assetNumber')}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="hidden sm:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('description')}
-                  >
-                    <div className="flex items-center">
-                      <Laptop size={14} className="mr-1 text-gray-500" />
-                      <span>Descrição</span>
-                      {renderSortIndicator('description')}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="hidden md:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('location')}
-                  >
-                    <div className="flex items-center">
-                      <MapPin size={14} className="mr-1 text-gray-500" />
-                      <span>Localização</span>
-                      {renderSortIndicator('location')}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('status')}
-                  >
-                    <div className="flex items-center">
-                      <span>Status</span>
-                      {renderSortIndicator('status')}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="hidden lg:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('value')}
-                  >
-                    <div className="flex items-center">
-                      <BarChart3 size={14} className="mr-1 text-gray-500" />
-                      <span>Valor</span>
-                      {renderSortIndicator('value')}
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {sortedEquipment.length > 0 ? (
-                  sortedEquipment.map((item, index) => (
-                    <tr 
-                      key={item.id} 
-                      className="hover:bg-gray-50 cursor-pointer transition-all duration-150 group"
-                      onClick={() => onViewDetails(item.id)}
-                      style={{ animationDelay: `${index * 30}ms` }}
+          {/* Table Container with Vertical Scroll */}
+          <div className="overflow-hidden rounded-lg border border-gray-200">
+            {/* Fixed Header */}
+            <div className="overflow-x-auto bg-gray-50">
+              <table className="min-w-full">
+                <thead>
+                  <tr>
+                    <th 
+                      scope="col" 
+                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('assetNumber')}
                     >
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-blue-600 group-hover:text-blue-700">
-                            {item.assetNumber}
-                          </span>
-                          <span className="text-xs text-gray-500 sm:hidden mt-1">
-                            {item.description}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="hidden sm:table-cell px-6 py-4">
-                        <div className="flex flex-col">
+                      <div className="flex items-center">
+                        <Package size={14} className="mr-1 text-gray-500" />
+                        <span>Patrimônio</span>
+                        {renderSortIndicator('assetNumber')}
+                      </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="hidden sm:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('description')}
+                    >
+                      <div className="flex items-center">
+                        <Laptop size={14} className="mr-1 text-gray-500" />
+                        <span>Descrição</span>
+                        {renderSortIndicator('description')}
+                      </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="hidden md:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('location')}
+                    >
+                      <div className="flex items-center">
+                        <MapPin size={14} className="mr-1 text-gray-500" />
+                        <span>Localização</span>
+                        {renderSortIndicator('location')}
+                      </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center">
+                        <span>Status</span>
+                        {renderSortIndicator('status')}
+                      </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="hidden lg:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('value')}
+                    >
+                      <div className="flex items-center">
+                        <BarChart3 size={14} className="mr-1 text-gray-500" />
+                        <span>Valor</span>
+                        {renderSortIndicator('value')}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="overflow-x-auto overflow-y-auto max-h-96 bg-white">
+              <table className="min-w-full">
+                <tbody className="divide-y divide-gray-100">
+                  {sortedEquipment.length > 0 ? (
+                    sortedEquipment.map((item, index) => (
+                      <tr 
+                        key={item.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-all duration-150 group"
+                        onClick={() => onViewDetails(item.id)}
+                        style={{ animationDelay: `${index * 30}ms` }}
+                      >
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-blue-600 group-hover:text-blue-700">
+                              {item.assetNumber}
+                            </span>
+                            <span className="text-xs text-gray-500 sm:hidden mt-1">
+                              {item.description}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="hidden sm:table-cell px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">
+                              {item.description}
+                            </span>
+                            <span className="text-xs text-gray-500 mt-0.5">
+                              {item.brand} {item.model}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center text-sm text-gray-700">
+                            <MapPin size={14} className="mr-1.5 text-gray-400" />
+                            {item.location}
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                          <Badge 
+                            variante={item.status}
+                            size="sm"
+                            pulse={item.status === 'manutenção'}
+                          >
+                            {item.status === 'ativo' ? 'Ativo' : 
+                             item.status === 'manutenção' ? 'Manutenção' : 'Inativo'}
+                          </Badge>
+                        </td>
+                        <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-medium text-gray-900">
-                            {item.description}
+                            {formatCurrency(item.value)}
                           </span>
-                          <span className="text-xs text-gray-500 mt-0.5">
-                            {item.brand} {item.model}
-                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center">
+                          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                            <Package size={24} className="text-gray-400" />
+                          </div>
+                          <p className="text-gray-500 font-medium">Nenhum equipamento encontrado</p>
+                          <p className="text-sm text-gray-400 mt-1">Tente ajustar os filtros de busca</p>
                         </div>
-                      </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-700">
-                          <MapPin size={14} className="mr-1.5 text-gray-400" />
-                          {item.location}
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <Badge 
-                          variante={item.status}
-                          size="sm"
-                          pulse={item.status === 'manutenção'}
-                        >
-                          {item.status === 'ativo' ? 'Ativo' : 
-                           item.status === 'manutenção' ? 'Manutenção' : 'Inativo'}
-                        </Badge>
-                      </td>
-                      <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-900">
-                          {formatCurrency(item.value)}
-                        </span>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                          <Package size={24} className="text-gray-400" />
-                        </div>
-                        <p className="text-gray-500 font-medium">Nenhum equipamento encontrado</p>
-                        <p className="text-sm text-gray-400 mt-1">Tente ajustar os filtros de busca</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </Card>
