@@ -1,10 +1,5 @@
-// src/services/inventoryService.ts - Versão Real com Supabase (Corrigida para banco vazio)
 import { supabase, STORAGE_BUCKET } from '../lib/supabase';
 import { Equipment, HistoryEntry, Attachment, DatabaseEquipment, DatabaseHistoryEntry, DatabaseAttachment } from '../types';
-
-// ================================
-// TRANSFORMADORES DE DADOS
-// ================================
 
 // Converter dados do banco para interface da aplicação
 const transformEquipment = (dbEquipment: DatabaseEquipment): Equipment => ({
@@ -18,6 +13,7 @@ const transformEquipment = (dbEquipment: DatabaseEquipment): Equipment => ({
   location: dbEquipment.location,
   responsible: dbEquipment.responsible,
   acquisitionDate: dbEquipment.acquisition_date,
+  invoiceDate: dbEquipment.invoice_date || undefined, // NOVO CAMPO
   value: dbEquipment.value,
   maintenanceDescription: dbEquipment.maintenance_description || undefined,
   observacoesManutenção: dbEquipment.maintenance_description || undefined,
@@ -58,6 +54,7 @@ const transformToDatabase = (equipment: Omit<Equipment, 'id'>): Omit<DatabaseEqu
   location: equipment.location,
   responsible: equipment.responsible,
   acquisition_date: equipment.acquisitionDate,
+  invoice_date: equipment.invoiceDate || null, // NOVO CAMPO
   value: equipment.value,
   maintenance_description: equipment.maintenanceDescription || equipment.observacoesManutenção || null
 });
@@ -229,6 +226,7 @@ const inventoryService = {
       if (updates.location !== undefined) updateData.location = updates.location;
       if (updates.responsible !== undefined) updateData.responsible = updates.responsible;
       if (updates.acquisitionDate !== undefined) updateData.acquisition_date = updates.acquisitionDate;
+      if (updates.invoiceDate !== undefined) updateData.invoice_date = updates.invoiceDate || null; // NOVO CAMPO
       if (updates.value !== undefined) updateData.value = updates.value;
       if (updates.maintenanceDescription !== undefined) updateData.maintenance_description = updates.maintenanceDescription || null;
       if (updates.observacoesManutenção !== undefined) updateData.maintenance_description = updates.observacoesManutenção || null;
@@ -298,30 +296,26 @@ const inventoryService = {
       }
 
       // Excluir anexos do storage
-      try {
-        const attachments = await inventoryService.getEquipmentAttachments(id);
-        if (attachments.length > 0) {
-          console.log(`🗑️ Removendo ${attachments.length} anexo(s)...`);
-          for (const attachment of attachments) {
-            const filePath = attachment.url.split('/').pop();
-            if (filePath) {
-              await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
-            }
-          }
+      const attachments = await inventoryService.getEquipmentAttachments(id);
+      if (attachments.length > 0) {
+        const filePaths = attachments.map(att => att.url.split('/').pop()!);
+        const { error: storageError } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .remove(filePaths);
+        
+        if (storageError) {
+          console.warn('⚠️ Erro ao excluir arquivos do storage:', storageError);
         }
-      } catch (attachError) {
-        console.warn('⚠️ Erro ao remover anexos:', attachError);
       }
 
-      // Registrar exclusão no histórico antes de excluir
+      // Registrar no histórico antes de excluir
       await supabase.from('history_entries').insert({
         equipment_id: id,
         user_name: user,
-        change_type: 'excluiu',
-        old_value: equipment.assetNumber
+        change_type: 'excluiu'
       });
 
-      // Excluir equipamento (cascata remove histórico e anexos)
+      // Excluir equipamento (cascade deleta anexos e histórico)
       const { error } = await supabase
         .from('equipments')
         .delete()
@@ -339,8 +333,15 @@ const inventoryService = {
     }
   },
 
+  // ================================
+  // CONSULTAS DE HISTÓRICO
+  // ================================
+
+  // Obter atividades recentes
   getRecentActivities: async (limit: number = 10): Promise<HistoryEntry[]> => {
-    try {      
+    try {
+      console.log('🕐 Carregando atividades recentes...');
+      
       const { data, error } = await supabase
         .from('history_entries')
         .select('*')
@@ -352,13 +353,10 @@ const inventoryService = {
         throw new Error(`Erro ao carregar atividades: ${error.message}`);
       }
 
-      const activities = data ? data.map(transformHistoryEntry) : [];
+      const history = data ? data.map(transformHistoryEntry) : [];
       
-      if (activities.length === 0) {
-        console.log('📝 Nenhuma atividade encontrada no histórico');
-      }
-      
-      return activities;
+      console.log(`✅ ${history.length} atividade(s) carregada(s)`);
+      return history;
     } catch (error) {
       console.error('❌ Erro no getRecentActivities:', error);
       throw error;
@@ -368,7 +366,7 @@ const inventoryService = {
   // Obter histórico de um equipamento
   getEquipmentHistory: async (equipmentId: string): Promise<HistoryEntry[]> => {
     try {
-      console.log(`📋 Carregando histórico do equipamento ${equipmentId}...`);
+      console.log(`🕐 Carregando histórico do equipamento ${equipmentId}...`);
       
       const { data, error } = await supabase
         .from('history_entries')
@@ -381,7 +379,6 @@ const inventoryService = {
         throw new Error(`Erro ao carregar histórico: ${error.message}`);
       }
 
-      // Se data for null, retorna array vazio
       const history = data ? data.map(transformHistoryEntry) : [];
       
       console.log(`✅ ${history.length} entrada(s) de histórico carregada(s)`);
@@ -481,7 +478,7 @@ const inventoryService = {
       });
 
       const attachment = transformAttachment(data);
-      console.log('✅ Anexo enviado:', file.name);
+      console.log('✅ Anexo salvo:', attachment.name);
       return attachment;
     } catch (error) {
       console.error('❌ Erro no uploadAttachment:', error);
@@ -489,32 +486,43 @@ const inventoryService = {
     }
   },
 
-  // Excluir anexo
-  deleteAttachment: async (attachmentId: string, user: string): Promise<void> => {
+  // Deletar anexo
+  deleteAttachment: async (
+    attachmentId: string, 
+    user: string
+  ): Promise<void> => {
     try {
-      console.log(`🗑️ Excluindo anexo: ${attachmentId}...`);
+      console.log('🗑️ Excluindo anexo:', attachmentId);
       
       // Buscar anexo para obter informações
-      const { data: attachment, error: fetchError } = await supabase
+      const { data: attachmentData, error: fetchError } = await supabase
         .from('attachments')
         .select('*')
         .eq('id', attachmentId)
         .single();
 
-      if (fetchError || !attachment) {
+      if (fetchError || !attachmentData) {
         throw new Error('Anexo não encontrado');
       }
 
-      // Remover arquivo do storage
+      // Excluir do storage
       const { error: storageError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .remove([attachment.file_path]);
+        .remove([attachmentData.file_path]);
 
       if (storageError) {
-        console.warn('⚠️ Erro ao remover arquivo do storage:', storageError);
+        console.warn('⚠️ Erro ao excluir arquivo do storage:', storageError);
       }
 
-      // Remover do banco
+      // Registrar no histórico
+      await supabase.from('history_entries').insert({
+        equipment_id: attachmentData.equipment_id,
+        user_name: user,
+        change_type: 'removeu arquivo',
+        old_value: attachmentData.name
+      });
+
+      // Excluir do banco
       const { error } = await supabase
         .from('attachments')
         .delete()
@@ -525,51 +533,54 @@ const inventoryService = {
         throw new Error(`Erro ao excluir anexo: ${error.message}`);
       }
 
-      // Registrar no histórico
-      await supabase.from('history_entries').insert({
-        equipment_id: attachment.equipment_id,
-        user_name: user,
-        change_type: 'removeu arquivo',
-        old_value: attachment.name
-      });
-
-      console.log('✅ Anexo excluído:', attachment.name);
+      console.log('✅ Anexo excluído:', attachmentData.name);
     } catch (error) {
       console.error('❌ Erro no deleteAttachment:', error);
       throw error;
     }
   },
 
-  // Download de anexo
+  // Fazer download do anexo
   downloadAttachment: async (attachment: Attachment): Promise<void> => {
     try {
       console.log('📥 Baixando anexo:', attachment.name);
       
-      // Abrir URL do anexo em nova aba
-      window.open(attachment.url, '_blank');
+      // Buscar o arquivo
+      const response = await fetch(attachment.url);
+      if (!response.ok) {
+        throw new Error('Erro ao baixar arquivo');
+      }
       
-      console.log('✅ Download iniciado:', attachment.name);
+      // Converter para blob
+      const blob = await response.blob();
+      
+      // Criar URL temporária
+      const url = window.URL.createObjectURL(blob);
+      
+      // Criar elemento <a> para download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = attachment.name;
+      link.style.display = 'none';
+      
+      // Adicionar ao DOM, clicar e remover
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Limpar URL temporária após pequeno delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      console.log('✅ Download concluído:', attachment.name);
     } catch (error) {
-      console.error('❌ Erro no downloadAttachment:', error);
-      throw error;
+      console.error('❌ Erro no download:', error);
+      // Fallback: tentar abrir em nova aba
+      console.log('🔄 Tentando método alternativo...');
+      window.open(attachment.url, '_blank');
     }
   }
 };
-
-// ================================
-// INICIALIZAÇÃO
-// ================================
-
-console.log('🚀 Inventory Service carregado');
-console.log('🔗 Conectado ao Supabase');
-
-// Verificar conexão na inicialização
-inventoryService.checkConnection().then(connected => {
-  if (connected) {
-    console.log('✅ Conexão com banco de dados estabelecida');
-  } else {
-    console.error('❌ Falha na conexão com banco de dados');
-  }
-});
 
 export default inventoryService;

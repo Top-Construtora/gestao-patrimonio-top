@@ -19,7 +19,6 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
-  // Filtrar apenas equipamentos ativos e em manutenção
   const activeEquipment = equipment.filter(item => 
     item.status === 'ativo' || item.status === 'manutenção'
   );
@@ -343,19 +342,6 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
                     ({stats.total > 0 ? Math.round(maintenancePercentage) : 0}%)
                   </span>
                 </div>
-              </div>
-            </div>
-
-            {/* Card de Valor Médio */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-blue-600">Valor Médio</p>
-                  <p className="text-lg font-bold text-gray-900 mt-1">
-                    {formatCurrency(stats.averageValue)}
-                  </p>
-                </div>
-                <TrendingUp className="h-5 w-5 text-blue-600" />
               </div>
             </div>
           </div>

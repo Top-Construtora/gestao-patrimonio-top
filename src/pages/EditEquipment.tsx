@@ -18,7 +18,8 @@ import {
   Edit,
   RefreshCw,
   Settings,
-  Wrench
+  Wrench,
+  Receipt // NOVO ÍCONE
 } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 
@@ -230,22 +231,13 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             <p className="text-gray-500">
               Não foi possível carregar os detalhes deste equipamento.
             </p>
-            <div className="flex gap-3 justify-center">
-              <Button 
-                onClick={() => window.location.reload()} 
-                icon={<RefreshCw size={16} />} 
-                variant="primary"
-              >
-                Tentar Novamente
-              </Button>
-              <Button 
-                onClick={onBack} 
-                icon={<ArrowLeft size={16} />} 
-                variant="outline"
-              >
-                Voltar
-              </Button>
-            </div>
+            <Button
+              variant="primary"
+              onClick={onBack}
+              icon={<ArrowLeft className="h-4 w-4" />}
+            >
+              Voltar para a lista
+            </Button>
           </div>
         </Card>
       </div>
@@ -264,25 +256,18 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </button>
-          
+
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Editar Equipamento</h1>
-            <p className="text-gray-600 mt-2">Atualize as informações do equipamento {formData.assetNumber}</p>
+            <p className="text-gray-600 mt-2">Atualize as informações do equipamento</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {hasChanges && (
-            <div className="flex items-center text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg border border-amber-200">
-              <Info className="h-4 w-4 mr-2" />
-              Alterações não salvas
-            </div>
-          )}
-          
-          <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-            <Edit className="h-4 w-4" />
-            <span className="text-sm font-medium">Edição</span>
-          </div>
+        <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+          <Edit className="h-4 w-4" />
+          <span className="text-sm font-medium">
+            {formData.assetNumber}
+          </span>
         </div>
       </div>
 
@@ -356,26 +341,22 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
           </div>
         </Card>
 
-        {/* Campo de Manutenção - Aparece apenas quando status é "manutenção" */}
+        {/* Status de Manutenção */}
         {formData.status === 'manutenção' && (
           <Card 
-            title="Observações de Manutenção" 
-            subtitle="Descreva o que será feito no equipamento"
-            icon={<Wrench className="h-5 w-5 text-orange-600" />}
-            variant="elevated"
             status="warning"
+            icon={<Wrench className="h-5 w-5 text-orange-600" />}
             className="border-orange-200 bg-orange-50"
           >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Settings className="inline h-4 w-4 mr-1" />
-                Observações de Manutenção *
+              <label className="block text-sm font-medium text-orange-800 mb-2">
+                Observações sobre a Manutenção *
               </label>
               <textarea
                 value={observacoesManutenção}
                 onChange={handleObservacoesManutenção}
                 rows={4}
-                placeholder="Descreva detalhadamente o que será consertado, substituído ou melhorado no equipamento..."
+                placeholder="Descreva o que será feito na manutenção, problemas identificados, peças necessárias, etc."
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none ${
                   errors.observacoesManutenção ? 'border-red-300 bg-red-50' : 'border-orange-300 hover:border-orange-400 bg-white'
                 }`}
@@ -386,89 +367,37 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   {errors.observacoesManutenção}
                 </div>
               )}
-              <div className="mt-2 text-xs text-orange-700">
-                <strong>Exemplos:</strong> Troca de HD, Limpeza interna, Atualização de memória RAM, Reparo da fonte, etc.
-              </div>
+              <p className="mt-2 text-xs text-orange-700">
+                Estas informações serão registradas no histórico do equipamento
+              </p>
             </div>
           </Card>
         )}
-
-        {/* Localização e Responsável */}
-        <Card 
-          title="Localização e Responsável" 
-          subtitle="Onde está e quem é responsável"
-          icon={<MapPin className="h-5 w-5 text-purple-600" />}
-          variant="elevated"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="inline h-4 w-4 mr-1" />
-                Localização *
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.location ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              />
-              {errors.location && (
-                <div className="mt-2 flex items-center text-xs text-red-600">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  {errors.location}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <User className="inline h-4 w-4 mr-1" />
-                Responsável *
-              </label>
-              <input
-                type="text"
-                name="responsible"
-                value={formData.responsible}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.responsible ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              />
-              {errors.responsible && (
-                <div className="mt-2 flex items-center text-xs text-red-600">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  {errors.responsible}
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
 
         {/* Informações Técnicas */}
         <Card 
           title="Informações Técnicas" 
           subtitle="Detalhes técnicos do equipamento"
-          icon={<Laptop className="h-5 w-5 text-green-600" />}
+          icon={<Settings className="h-5 w-5 text-blue-600" />}
           variant="elevated"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Package className="inline h-4 w-4 mr-1" />
                 Marca *
               </label>
-              <input
-                type="text"
-                name="brand"
-                value={formData.brand}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                  errors.brand ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              />
+              <div className="relative">
+                <Laptop className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="brand"
+                  value={formData.brand}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                    errors.brand ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                />
+              </div>
               {errors.brand && (
                 <div className="mt-2 flex items-center text-xs text-red-600">
                   <AlertTriangle className="h-3 w-3 mr-1" />
@@ -500,56 +429,142 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Especificações
+                Especificações Técnicas
               </label>
               <textarea
                 name="specs"
                 value={formData.specs || ''}
                 onChange={handleChange}
-                rows={3}
-                placeholder="Processador, memória, armazenamento... (opcional)"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400 resize-none"
+                rows={4}
+                placeholder="Processador, memória, armazenamento, etc."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none hover:border-gray-400"
               />
             </div>
           </div>
         </Card>
 
-        {/* Informações Financeiras */}
+        {/* Localização e Responsável */}
         <Card 
-          title="Informações Financeiras" 
-          subtitle="Valor e data de aquisição"
-          icon={<DollarSign className="h-5 w-5 text-yellow-600" />}
+          title="Localização e Responsável" 
+          subtitle="Onde está e quem cuida do equipamento"
+          icon={<MapPin className="h-5 w-5 text-blue-600" />}
           variant="elevated"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar className="inline h-4 w-4 mr-1" />
-                Data de Aquisição
+                Localização *
               </label>
-              <input
-                type="date"
-                name="acquisitionDate"
-                value={formData.acquisitionDate.split('T')[0]}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
-              />
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                    errors.location ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                />
+              </div>
+              {errors.location && (
+                <div className="mt-2 flex items-center text-xs text-red-600">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.location}
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <DollarSign className="inline h-4 w-4 mr-1" />
-                Valor *
+                Responsável *
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
+                <User className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="responsible"
+                  value={formData.responsible}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                    errors.responsible ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                />
+              </div>
+              {errors.responsible && (
+                <div className="mt-2 flex items-center text-xs text-red-600">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.responsible}
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Datas e Valores */}
+        <Card 
+          title="Datas e Valores" 
+          subtitle="Informações financeiras e temporais"
+          icon={<DollarSign className="h-5 w-5 text-blue-600" />}
+          variant="elevated"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Data de Aquisição *
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="date"
+                  name="acquisitionDate"
+                  value={formData.acquisitionDate}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                    errors.acquisitionDate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                />
+              </div>
+              {errors.acquisitionDate && (
+                <div className="mt-2 flex items-center text-xs text-red-600">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.acquisitionDate}
+                </div>
+              )}
+            </div>
+
+            {/* NOVO CAMPO - Data da Nota Fiscal */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Data da Nota Fiscal
+              </label>
+              <div className="relative">
+                <Receipt className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="date"
+                  name="invoiceDate"
+                  value={formData.invoiceDate || ''}
+                  onChange={handleChange}
+                  className="w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all border-gray-300 hover:border-gray-400"
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Data de emissão da nota fiscal (opcional)
+              </p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Valor do Equipamento (R$) *
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   name="value"
-                  value={formatCurrency(formData.value).replace('R$', '').trim()}
+                  value={formatCurrency(formData.value)}
                   onChange={handleValueChange}
-                  placeholder="0,00"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                     errors.value ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                   }`}
                 />

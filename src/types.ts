@@ -1,4 +1,3 @@
-// src/types.ts
 export interface Equipment {
   id: string;
   assetNumber: string;
@@ -10,9 +9,10 @@ export interface Equipment {
   location: string;
   responsible: string;
   acquisitionDate: string;
+  invoiceDate?: string;
   value: number;
   maintenanceDescription?: string;
-  observacoesManutenção?: string; // Para compatibilidade com EditEquipment
+  observacoesManutenção?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -41,7 +41,6 @@ export interface Attachment {
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'loading';
 
-// Tipos adicionais para o Supabase
 export interface DatabaseEquipment {
   id: string;
   asset_number: string;
@@ -53,6 +52,7 @@ export interface DatabaseEquipment {
   location: string;
   responsible: string;
   acquisition_date: string;
+  invoice_date: string | null;
   value: number;
   maintenance_description: string | null;
   created_at: string;

@@ -21,7 +21,8 @@ import {
   Trash,
   Paperclip,
   Info,
-  Laptop
+  Laptop,
+  Receipt
 } from 'lucide-react';
 
 interface AddEquipmentProps {
@@ -49,6 +50,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
     location: '',
     responsible: '',
     acquisitionDate: new Date().toISOString().split('T')[0],
+    invoiceDate: '', 
     value: 0
   });
 
@@ -460,6 +462,26 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-gray-400" />
+                Data de Emissão da Nota Fiscal
+              </label>
+              <div>
+                <input
+                  type="date"
+                  name="invoiceDate"
+                  value={formData.invoiceDate || ''}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
+                  placeholder="Data opcional"
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                (opcional)
+              </p>
             </div>
 
             <div>

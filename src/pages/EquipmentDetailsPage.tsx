@@ -130,7 +130,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
       await inventoryService.downloadAttachment(attachment);
     } catch (err) {
       console.error('Error downloading attachment:', err);
-      throw err;
     }
   };
 
