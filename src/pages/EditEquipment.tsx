@@ -19,8 +19,7 @@ import {
   RefreshCw,
   Settings,
   Wrench,
-  Receipt,
-  X
+  Receipt
 } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 
@@ -42,7 +41,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [observacoesManutenção, setObservacoesManutenção] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchEquipment = async () => {
@@ -55,7 +53,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         setFormData(data);
         setOriginalData(data);
         
-        // Se já está em manutenção, carrega as observações existentes se houver
         if (data.status === 'manutenção' && data.observacoesManutenção) {
           setObservacoesManutenção(data.observacoesManutenção);
         }
@@ -102,7 +99,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
       [name]: parsedValue
     }));
     
-    // Se mudou para status diferente de manutenção, limpa as observações de manutenção
     if (name === 'status' && value !== 'manutenção') {
       setObservacoesManutenção('');
     }
@@ -131,7 +127,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   const handleObservacoesManutenção = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setObservacoesManutenção(e.target.value);
     
-    // Remove erro se existir
     if (errors.observacoesManutenção) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -161,7 +156,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     if (!formData.responsible.trim()) newErrors.responsible = 'Obrigatório';
     if (formData.value <= 0) newErrors.value = 'Valor inválido';
     
-    // Validação para manutenção
     if (formData.status === 'manutenção' && !observacoesManutenção.trim()) {
       newErrors.observacoesManutenção = 'Descreva o que será feito na manutenção';
     }
@@ -170,11 +164,10 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!formData) return;
     
     if (validate()) {
-      setSubmitting(true);
       const changedData: Partial<Equipment> = {};
       
       Object.keys(formData).forEach(key => {
@@ -184,7 +177,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         }
       });
       
-      // Inclui as observações de manutenção se o status for manutenção
       if (formData.status === 'manutenção') {
         changedData.observacoesManutenção = observacoesManutenção;
       }
@@ -432,45 +424,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Número de Série
-              </label>
-              <input
-                type="text"
-                name="serialNumber"
-                value={formData.serialNumber || ''}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
-                placeholder="SN123456789"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de Equipamento
-              </label>
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
-              >
-                <option value="computador">Computador</option>
-                <option value="notebook">Notebook</option>
-                <option value="impressora">Impressora</option>
-                <option value="monitor">Monitor</option>
-                <option value="servidor">Servidor</option>
-                <option value="roteador">Roteador</option>
-                <option value="switch">Switch</option>
-                <option value="projetor">Projetor</option>
-                <option value="telefone">Telefone</option>
-                <option value="tablet">Tablet</option>
-                <option value="scanner">Scanner</option>
-                <option value="outros">Outros</option>
-              </select>
-            </div>
-
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Especificações Técnicas
@@ -619,20 +572,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                 </div>
               )}
             </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Observações Gerais
-              </label>
-              <textarea
-                name="notes"
-                value={formData.notes || ''}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none hover:border-gray-400"
-                rows={4}
-                placeholder="Informações adicionais sobre o equipamento..."
-              />
-            </div>
           </div>
         </Card>
 
@@ -675,8 +614,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             variant="outline"
             onClick={handleCancel}
             className="w-full sm:w-auto"
-            icon={<X size={16} />}
-            disabled={submitting}
           >
             Cancelar
           </Button>
@@ -684,21 +621,12 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             variant="primary"
             onClick={handleSubmit}
             icon={<Save className="h-4 w-4" />}
-            disabled={!hasChanges || Object.keys(errors).length > 0 || submitting}
-            loading={submitting}
+            disabled={!hasChanges || Object.keys(errors).length > 0}
             className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
-            {submitting ? 'Salvando...' : 'Salvar Alterações'}
+            Salvar Alterações
           </Button>
         </div>
-
-        {/* Status de alterações */}
-        {hasChanges && (
-          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-slide-up">
-            <AlertTriangle size={16} />
-            <span className="text-sm font-medium">Existem alterações não salvas</span>
-          </div>
-        )}
       </div>
     </div>
   );
