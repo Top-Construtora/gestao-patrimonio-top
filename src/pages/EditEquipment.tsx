@@ -19,7 +19,8 @@ import {
   RefreshCw,
   Settings,
   Wrench,
-  Receipt // NOVO ÍCONE
+  Receipt,
+  X
 } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 
@@ -41,6 +42,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [observacoesManutenção, setObservacoesManutenção] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchEquipment = async () => {
@@ -168,10 +170,11 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData) return;
     
     if (validate()) {
+      setSubmitting(true);
       const changedData: Partial<Equipment> = {};
       
       Object.keys(formData).forEach(key => {
@@ -204,19 +207,20 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   if (error || !formData) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center gap-4">
+        {/* Botão Voltar */}
+        <div className="mb-4">
           <button
             onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors group"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-1.5 transition-transform group-hover:-translate-x-1" />
             Voltar
           </button>
+        </div>
 
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Editar Equipamento</h1>
-            <p className="text-gray-600 mt-2">Erro ao carregar equipamento</p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Editar Equipamento</h1>
+          <p className="text-gray-600 mt-2">Erro ao carregar equipamento</p>
         </div>
 
         <Card 
@@ -246,21 +250,22 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Botão Voltar */}
+      <div className="mb-4">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors group"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1.5 transition-transform group-hover:-translate-x-1" />
+          Voltar para detalhes
+        </button>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onBack}
-            className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </button>
-
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Editar Equipamento</h1>
-            <p className="text-gray-600 mt-2">Atualize as informações do equipamento</p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Editar Equipamento</h1>
+          <p className="text-gray-600 mt-2">Atualize as informações do equipamento</p>
         </div>
 
         <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
@@ -427,6 +432,45 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
               )}
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Número de Série
+              </label>
+              <input
+                type="text"
+                name="serialNumber"
+                value={formData.serialNumber || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
+                placeholder="SN123456789"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tipo de Equipamento
+              </label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
+              >
+                <option value="computador">Computador</option>
+                <option value="notebook">Notebook</option>
+                <option value="impressora">Impressora</option>
+                <option value="monitor">Monitor</option>
+                <option value="servidor">Servidor</option>
+                <option value="roteador">Roteador</option>
+                <option value="switch">Switch</option>
+                <option value="projetor">Projetor</option>
+                <option value="telefone">Telefone</option>
+                <option value="tablet">Tablet</option>
+                <option value="scanner">Scanner</option>
+                <option value="outros">Outros</option>
+              </select>
+            </div>
+
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Especificações Técnicas
@@ -533,7 +577,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
               )}
             </div>
 
-            {/* NOVO CAMPO - Data da Nota Fiscal */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Data da Nota Fiscal
@@ -575,6 +618,20 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   {errors.value}
                 </div>
               )}
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Observações Gerais
+              </label>
+              <textarea
+                name="notes"
+                value={formData.notes || ''}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none hover:border-gray-400"
+                rows={4}
+                placeholder="Informações adicionais sobre o equipamento..."
+              />
             </div>
           </div>
         </Card>
@@ -618,6 +675,8 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             variant="outline"
             onClick={handleCancel}
             className="w-full sm:w-auto"
+            icon={<X size={16} />}
+            disabled={submitting}
           >
             Cancelar
           </Button>
@@ -625,12 +684,21 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             variant="primary"
             onClick={handleSubmit}
             icon={<Save className="h-4 w-4" />}
-            disabled={!hasChanges || Object.keys(errors).length > 0}
+            disabled={!hasChanges || Object.keys(errors).length > 0 || submitting}
+            loading={submitting}
             className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
-            Salvar Alterações
+            {submitting ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
         </div>
+
+        {/* Status de alterações */}
+        {hasChanges && (
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-slide-up">
+            <AlertTriangle size={16} />
+            <span className="text-sm font-medium">Existem alterações não salvas</span>
+          </div>
+        )}
       </div>
     </div>
   );

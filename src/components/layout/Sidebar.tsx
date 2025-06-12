@@ -57,11 +57,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
       <div
         className={`fixed inset-y-0 left-0 z-30 w-72 bg-gray-800 transform transition-transform duration-300 ease-in-out shadow-xl ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static`}
+        } lg:relative lg:translate-x-0 flex flex-col h-screen`}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between h-20 border-b border-gray-700 bg-gray-800/95 backdrop-blur-sm">
+          {/* Header - FIXO */}
+          <div className="flex items-center justify-between h-20 border-b border-gray-700 bg-gray-800/95 backdrop-blur-sm flex-shrink-0">
             <div className="flex items-center -ml-4">
               <img src={logo} alt="Logo" className="w-auto" style={{height: '120px'}}/>
               <span className="ml-2 text-lg font-semibold text-white"></span>
@@ -74,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
             </button>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation - SCROLLÁVEL */}
           <nav className="flex-1 overflow-y-auto px-4 py-6">
             <div className="space-y-1">
               {menuItems.map((item, index) => (
@@ -118,7 +118,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                 </div>
               ))}
             </div>
-            </nav>
 
             {/* Support Section */}
             <div className="mt-8 pt-6 border-t border-gray-700">
@@ -135,10 +134,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                 </button>
               </div>
             </div>
+          </nav>
 
-          {/* User Profile */}
-          <div className="p-4 border-t border-gray-700 bg-gray-700/30">
-
+          {/* User Profile - FIXO */}
+          <div className="p-4 border-t border-gray-700 bg-gray-700/30 flex-shrink-0">
             <div className="flex items-center space-x-3 mb-4 p-3 rounded-lg bg-gray-700/50">
               <div className="relative">
                 <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center">

@@ -173,20 +173,21 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header Simplificado */}
-      <div className="flex items-center gap-4">
+      {/* Botão Voltar */}
+      <div className="mb-4">
         <button
           onClick={onBack}
-          className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors group"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
+          <ArrowLeft className="h-4 w-4 mr-1.5 transition-transform group-hover:-translate-x-1" />
+          Voltar para a lista
         </button>
-        
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Detalhes do Equipamento</h1>
-          <p className="text-gray-600 mt-1">Visualize e gerencie informações, histórico e anexos</p>
-        </div>
+      </div>
+
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Detalhes do Equipamento</h1>
+        <p className="text-gray-600 mt-1">Visualize e gerencie informações, histórico e anexos</p>
       </div>
 
       {/* Componente de Detalhes */}

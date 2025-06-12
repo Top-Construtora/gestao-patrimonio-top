@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from  './Sidebar';
-import { Menu, Bell, Calendar, Clock } from 'lucide-react';
+import { Menu, Calendar } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,33 +19,19 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
     setSidebarOpen(false);
   };
 
-  // Obter data e hora atual
+  // Obter data atual
   const getCurrentDate = () => {
     const date = new Date();
-    return date.toLocaleDateString('pt-BR', { 
+    const options: Intl.DateTimeFormatOptions = { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
-    });
+    };
+    const dateStr = date.toLocaleDateString('pt-BR', options);
+    // Capitalizar o dia da semana
+    return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
   };
-
-  const getCurrentTime = () => {
-    return new Date().toLocaleTimeString('pt-BR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
-  const [currentTime, setCurrentTime] = useState(getCurrentTime());
-
-  // Atualizar hora a cada minuto
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(getCurrentTime());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   const routeLabels: Record<string, string> = {
   dashboard: 'Página Inicial',
@@ -60,7 +46,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
 
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen flex overflow-hidden bg-gray-50">
       <Sidebar 
         isOpen={sidebarOpen} 
         activeRoute={activeRoute} 
@@ -68,65 +54,52 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
         onClose={closeSidebar}
       />
       
-      <div className="flex-1 flex flex-col">
-        {/* Header Aprimorado */}
-        <header className="bg-white shadow-sm z-10 border-b border-gray-100">
-          <div className="px-4 sm:px-6 lg:px-8 py-4">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Header - FIXO */}
+        <header className="bg-white shadow-sm z-10 border-b border-gray-200 flex-shrink-0">
+          <div className="px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
-              {/* Menu Mobile e Busca */}
-              <div className="flex items-center flex-1">
+              {/* Lado Esquerdo - Título e Data */}
+              <div className="flex items-center">
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center p-2.5 rounded-lg text-secondary hover:text-secondary-dark hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary lg:hidden"
+                  className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors mr-3"
                   onClick={toggleSidebar}
                 >
-                  <span className="sr-only">Abrir menu</span>
-                  <Menu className="h-6 w-6" />
+                  <Menu className="h-5 w-5" />
                 </button>
                 
-              </div>
-
-              {/* Informações e Ações */}
-              <div className="flex items-center space-x-4">
-                {/* Data e Hora */}
-                <div className="hidden lg:flex items-center space-x-4 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1 text-blue-500" />
-                    <span className="capitalize">{getCurrentDate()}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1 text-blue-500" />
-                    <span>{currentTime}</span>
+                <div>
+                  <h1 className="text-lg font-semibold text-gray-900">Sistema de Controle de Equipamentos</h1>
+                  <div className="flex items-center text-sm text-gray-500 mt-0.5">
+                    <Calendar className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    <span>{getCurrentDate()}</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Badge do Usuário */}
-                <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full pl-4 pr-5 py-2">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">A</span>
-                  </div>
-                  <div className="hidden sm:block">
-                    <p className="text-sm font-semibold text-gray-800">Administrador</p>
-                  </div>
+              {/* Lado Direito - Usuário */}
+              <div className="flex items-center">
+                <span className="text-sm font-bold text-gray-600 mr-3 hidden sm:block">Administrador do Sistema</span>
+                <div className="h-10 w-10 rounded-full bg-teal-500 flex items-center justify-center text-white font-semibold">
+                  A
                 </div>
               </div>
             </div>
-
-            
           </div>
         </header>
         
-        {/* Breadcrumb */}
-        <div className="bg-gray-50 px-4 sm:px-6 lg:px-8 py-3 border-b border-gray-200">
+        {/* Breadcrumb - FIXO */}
+        <div className="bg-gray-50 px-4 sm:px-6 lg:px-8 py-2.5 border-b border-gray-200 flex-shrink-0">
           <nav className="flex items-center text-sm">
             <span className="text-gray-500">Sistema</span>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-blue-500 bold font-medium">{routeLabels[activeRoute] || activeRoute}</span>
+            <span className="text-blue-600 font-medium">{routeLabels[activeRoute] || activeRoute}</span>
           </nav>
         </div>
         
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gray-50">
+        {/* Main Content - SCROLLÁVEL */}
+        <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="py-6 px-4 sm:px-6 lg:px-8">
             <div className="animate-fadeIn">
               {children}
@@ -134,16 +107,12 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
           </div>
         </main>
         
-        {/* Footer Aprimorado */}
-        <footer className="bg-white border-t border-gray-200">
-          <div className="px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between">
-              <div className="text-sm text-gray-500 mb-2 sm:mb-0">
-                GIO - SIstema de Controle de Patrimônio © {new Date().getFullYear()}
-              </div>
-              <div className="flex items-center space-x-4 text-sm">
-                <span className="text-gray-500">Versão 1.0</span>
-              </div>
+        {/* Footer - FIXO */}
+        <footer className="bg-white border-t border-gray-200 flex-shrink-0">
+          <div className="px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
+              <span>GIO - Sistema de Controle de Patrimônio © {new Date().getFullYear()}</span>
+              <span className="mt-1 sm:mt-0">Versão 1.0</span>
             </div>
           </div>
         </footer>
