@@ -56,7 +56,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
   const filteredPurchases = purchases.filter(item => {
     const matchesSearch = 
       item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.justification.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.requestedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()));
 

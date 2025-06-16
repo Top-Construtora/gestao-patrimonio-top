@@ -30,7 +30,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
   
   const [formData, setFormData] = useState({
     description: '',
-    justification: '',
     category: '',
     estimatedQuantity: 1,
     estimatedUnitValue: 0,
@@ -64,19 +63,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
     'Outros'
   ];
 
-  // Calcular valor total automaticamente
-  useEffect(() => {
-    const total = formData.estimatedQuantity * formData.estimatedUnitValue;
-    setFormData(prev => ({ ...prev, estimatedTotalValue: total }));
-  }, [formData.estimatedQuantity, formData.estimatedUnitValue]);
-
-  // Mostrar dica sobre urgência crítica
-  useEffect(() => {
-    if (formData.urgency === 'crítica') {
-      showInfo('Solicitações críticas são priorizadas para análise imediata');
-    }
-  }, [formData.urgency]); // Remover showInfo das dependências para evitar loop
-
   // Validação do formulário
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -87,22 +73,12 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
       newErrors.description = 'Descrição deve ter pelo menos 5 caracteres';
     }
     
-    if (!formData.justification.trim()) {
-      newErrors.justification = 'Justificativa é obrigatória';
-    } else if (formData.justification.trim().length < 20) {
-      newErrors.justification = 'Justificativa deve ter pelo menos 20 caracteres';
-    }
-    
     if (!formData.category) {
       newErrors.category = 'Categoria é obrigatória';
     }
     
-    if (formData.estimatedQuantity <= 0) {
-      newErrors.estimatedQuantity = 'Quantidade deve ser maior que zero';
-    }
-    
     if (formData.estimatedUnitValue <= 0) {
-      newErrors.estimatedUnitValue = 'Valor unitário deve ser maior que zero';
+      newErrors.estimatedUnitValue = 'Valor deve ser maior que zero';
     }
     
     if (formData.expectedDate) {
@@ -159,7 +135,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
         
       case 'estimatedUnitValue':
         if (value <= 0) {
-          newErrors.estimatedUnitValue = 'Valor unitário deve ser maior que zero';
+          newErrors.estimatedUnitValue = 'Valor deve ser maior que zero';
         } else {
           delete newErrors.estimatedUnitValue;
         }
@@ -382,37 +358,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
               )}
             </div>
 
-            {/* Justificativa */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Justificativa da Compra *
-              </label>
-              <textarea
-                name="justification"
-                value={formData.justification}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                rows={4}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
-                  errors.justification && touched.justification ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Explique a necessidade e o impacto desta aquisição para a empresa..."
-              />
-              <div className="flex items-center justify-between mt-1">
-                {errors.justification && touched.justification ? (
-                  <p className="text-sm text-red-600 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.justification}
-                  </p>
-                ) : (
-                  <span></span>
-                )}
-                <span className="text-xs text-gray-500">
-                  {formData.justification.length} caracteres
-                </span>
-              </div>
-            </div>
-
             {/* Urgência */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -448,43 +393,12 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
             <div className="space-y-6">
               <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
                 <Calculator className="h-5 w-5 text-green-600" />
-                Valores e Quantidades
+                Informações Financeiras
               </div>
 
-              {/* Quantidade */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantidade *
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Hash className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="number"
-                    name="estimatedQuantity"
-                    value={formData.estimatedQuantity}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    min="1"
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      errors.estimatedQuantity && touched.estimatedQuantity ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="1"
-                  />
-                </div>
-                {errors.estimatedQuantity && touched.estimatedQuantity && (
-                  <p className="mt-1 text-sm text-red-600 flex items-center">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.estimatedQuantity}
-                  </p>
-                )}
-              </div>
-
-              {/* Valor Unitário */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valor Unitário Estimado *
+                  Valor Estimado *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -510,23 +424,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                     {errors.estimatedUnitValue}
                   </p>
                 )}
-              </div>
-
-              {/* Valor Total */}
-              <div className="pt-4 border-t">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">Valor Total Estimado:</span>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      {formatCurrency(formData.estimatedTotalValue)}
-                    </span>
-                  </div>
-                  {formData.estimatedTotalValue > 10000 && (
-                    <p className="text-xs text-gray-600 mt-2">
-                      Valores acima de R$ 10.000,00 podem requerer aprovação especial
-                    </p>
-                  )}
-                </div>
               </div>
             </div>
           </Card>
@@ -608,14 +505,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   Inclua especificações técnicas, referências ou qualquer outra informação importante
                 </p>
               </div>
-
-              {/* Solicitante */}
-              <div className="pt-4 border-t">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <User className="h-4 w-4" />
-                  <span>Solicitado por: <strong>{formData.requestedBy}</strong></span>
-                </div>
-              </div>
             </div>
           </Card>
         </div>
@@ -642,22 +531,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
           Criar Solicitação
         </Button>
       </div>
-
-      {/* Dica de preenchimento */}
-      <Card className="bg-blue-50 border-blue-200">
-        <div className="flex items-start gap-3">
-          <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Dicas para uma solicitação eficaz:</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-700">
-              <li>Seja específico na descrição do equipamento desejado</li>
-              <li>Justifique claramente o impacto e benefícios da aquisição</li>
-              <li>Inclua estimativas realistas de valores baseadas em pesquisas</li>
-              <li>Defina prazos adequados considerando processos de compra</li>
-            </ul>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 };

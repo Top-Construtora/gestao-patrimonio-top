@@ -8,7 +8,6 @@ import inventoryService from './inventoryService';
 const transformPurchase = (dbPurchase: DatabaseEquipmentPurchase): EquipmentPurchase => ({
   id: dbPurchase.id,
   description: dbPurchase.description,
-  justification: dbPurchase.justification,
   category: dbPurchase.category,
   estimatedQuantity: dbPurchase.estimated_quantity,
   estimatedUnitValue: dbPurchase.estimated_unit_value,
@@ -29,7 +28,6 @@ const transformToDatabase = (
   purchase: Omit<EquipmentPurchase, 'id' | 'createdAt' | 'updatedAt'>
 ): Omit<DatabaseEquipmentPurchase, 'id' | 'created_at' | 'updated_at'> => ({
   description: purchase.description,
-  justification: purchase.justification,
   category: purchase.category,
   estimated_quantity: purchase.estimatedQuantity,
   estimated_unit_value: purchase.estimatedUnitValue,
@@ -154,7 +152,6 @@ const purchaseService = {
       const updateData: any = {};
       
       if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.justification !== undefined) updateData.justification = updates.justification;
       if (updates.category !== undefined) updateData.category = updates.category;
       if (updates.estimatedQuantity !== undefined) updateData.estimated_quantity = updates.estimatedQuantity;
       if (updates.estimatedUnitValue !== undefined) updateData.estimated_unit_value = updates.estimatedUnitValue;

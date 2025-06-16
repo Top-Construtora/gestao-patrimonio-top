@@ -4,7 +4,6 @@ export type PurchaseStatus = 'pendente' | 'aprovado' | 'rejeitado' | 'adquirido'
 export interface EquipmentPurchase {
   id: string;
   description: string;
-  justification: string;
   category: string;
   estimatedQuantity: number;
   estimatedUnitValue: number;
@@ -26,7 +25,7 @@ export interface EquipmentPurchase {
 export interface DatabaseEquipmentPurchase {
   id: string;
   description: string;
-  justification: string;
+  // justification: string; // REMOVIDO
   category: string;
   estimated_quantity: number;
   estimated_unit_value: number;
