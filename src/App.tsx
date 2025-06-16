@@ -56,9 +56,13 @@ function App() {
     };
   }, [showSuccess, showError]);
 
-  // Carregar dados iniciais - CORRIGIDO
+  // Carregar dados iniciais - CORRIGIDO (ÚNICA MUDANÇA NECESSÁRIA)
   useEffect(() => {
+    let isMounted = true;
+    
     const loadInitialData = async () => {
+      if (!isMounted) return;
+      
       try {        
         // Verificar conexão com o banco
         const isConnected = await inventoryService.checkConnection();
@@ -67,24 +71,36 @@ function App() {
         }
 
         // Carregar equipamentos e histórico
-        const [equipmentData, recentActivities] = await Promise.all([
-          inventoryService.getAllEquipment(),
-          inventoryService.getRecentActivities(10)
-        ]);
-        
-        setEquipment(equipmentData);
-        setHistory(recentActivities);
+        if (isMounted) {
+          const [equipmentData, recentActivities] = await Promise.all([
+            inventoryService.getAllEquipment(),
+            inventoryService.getRecentActivities(10)
+          ]);
+          
+          if (isMounted) {
+            setEquipment(equipmentData);
+            setHistory(recentActivities);
+          }
+        }
         
       } catch (error) {
         console.error('❌ Erro ao carregar dados:', error);
-        showError('Erro ao conectar com o banco de dados. Verifique sua conexão.');
+        if (isMounted) {
+          showError('Erro ao conectar com o banco de dados. Verifique sua conexão.');
+        }
       } finally {
-        setIsInitializing(false);
+        if (isMounted) {
+          setIsInitializing(false);
+        }
       }
     };
     
     loadInitialData();
-  }, [showInfo, showError, showSuccess]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // MUDANÇA CRÍTICA: Array vazio para executar apenas uma vez
 
   // Funções de navegação
   const handleViewDetails = useCallback((id: string) => {
@@ -219,98 +235,91 @@ function App() {
       'edit-equipment': (
         <EditEquipment 
           equipmentId={selectedEquipmentId || ''}
-          onBack={() => {
-            setSelectedEquipmentId(selectedEquipmentId);
-            setRoute('equipment-details');
-          }}
+          onBack={() => setRoute('equipment-details')}
           onSubmit={(data) => handleUpdateEquipment(selectedEquipmentId!, data)}
         />
       ),
       reports: <Reports equipment={equipment} />,
       inventory: (
-        <div className="flex items-center justify-center h-96">
+        <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <h3 className="text-2xl font-semibold text-gray-700 mb-2">Controle de Patrimônio</h3>
-            <p className="text-gray-500">Esta funcionalidade está em desenvolvimento</p>
+            <p className="text-gray-500">Página de Inventário em Construção</p>
           </div>
         </div>
       ),
       construction: (
-        <div className="flex items-center justify-center h-96">
+        <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <h3 className="text-2xl font-semibold text-gray-700 mb-2">Equipamentos em Obras</h3>
-            <p className="text-gray-500">Esta funcionalidade está em desenvolvimento</p>
+            <p className="text-gray-500">Página em Construção</p>
           </div>
         </div>
       )
     };
 
     return routes[route] || routes.dashboard;
-  }, [
-    route, 
-    equipment, 
-    history, 
-    selectedEquipmentId, 
-    handleViewDetails, 
-    handleEditEquipment, 
-    handleStartDelete, 
-    handleAddEquipment, 
-    handleUpdateEquipment
-  ]);
+  }, [route, equipment, history, selectedEquipmentId, handleViewDetails, handleEditEquipment, handleStartDelete, handleAddEquipment, handleUpdateEquipment]);
 
-  // Loading inicial com melhor UX
+  // Indicador de status
+  const StatusIndicator = () => {
+    if (!isOnline) {
+      return (
+        <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50">
+          <WifiOff className="h-4 w-4" />
+          <span className="text-sm">Sem conexão</span>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Mostrar loading na inicialização
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+        <div className="text-center">
+          <div className="flex justify-center space-x-2 mb-4">
+            <div className="h-3 w-3 bg-blue-600 rounded-full animate-bounce"></div>
+            <div className="h-3 w-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="h-3 w-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Conectando ao Sistema</h3>
-          <p className="text-sm text-gray-500">Carregando dados do banco...</p>
+          <p className="text-gray-600">Carregando sistema...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      {/* Indicador de Conexão */}
-      {!isOnline && (
-        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2">
-          <WifiOff className="h-4 w-4" />
-          <span className="text-sm font-medium">Sem conexão</span>
-        </div>
-      )}
-
-      {/* Layout Principal */}
-      <Layout activeRoute={route} onNavigate={(routeName: string) => setRoute(routeName as RouteType)}>
-        <div className="animate-fadeIn">
-          {currentRouteContent}
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <Layout 
+        activeRoute={route}
+        onNavigate={(newRoute: string) => setRoute(newRoute as RouteType)}
+      >
+        {currentRouteContent}
       </Layout>
+      <StatusIndicator />
       
-      {/* Modal de Exclusão */}
-      <DeleteConfirmationModal
-        isOpen={showDeleteModal}
-        title="Confirmar Exclusão"
-        message="Tem certeza que deseja excluir este equipamento? Esta ação não pode ser desfeita e todos os anexos também serão removidos."
-        itemName={equipment.find(item => item.id === equipmentToDelete)?.assetNumber || ''}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => {
-          setShowDeleteModal(false);
-          setEquipmentToDelete(null);
-        }}
-      />
+      {/* Toasts */}
+      <div className="fixed bottom-4 right-4 z-50 space-y-2">
+        {toasts.map((toast) => (
+          <Toast key={toast.id} {...toast} />
+        ))}
+      </div>
       
-      {/* Sistema de Toasts */}
-      {toasts.map(toast => (
-        <Toast key={toast.id} {...toast} />
-      ))}
-    </>
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => {
+            setShowDeleteModal(false);
+            setEquipmentToDelete(null);
+          }}
+          itemName={equipment.find(e => e.id === equipmentToDelete)?.description || ''}
+          title="Confirmar Exclusão"
+          message="Tem certeza que deseja excluir este equipamento? Esta ação não pode ser desfeita."
+        />
+      )}
+    </div>
   );
 }
 

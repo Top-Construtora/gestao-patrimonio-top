@@ -83,9 +83,7 @@ const inventoryService = {
 
   // NOVA FUNÇÃO: Obter próximo número de patrimônio
   getNextAssetNumber: async (): Promise<string> => {
-    try {
-      console.log('🔢 Buscando próximo número de patrimônio...');
-      
+    try {      
       // Buscar TODOS os equipamentos para análise completa
       const { data: allEquipment, error } = await supabase
         .from('equipments')
@@ -107,7 +105,6 @@ const inventoryService = {
           if (match) {
             const num = parseInt(match[1], 10);
             topNumbers.push(num);
-            console.log(`   Encontrado: ${item.asset_number} -> Número: ${num}`);
           }
         });
       }
@@ -117,26 +114,17 @@ const inventoryService = {
       if (topNumbers.length === 0) {
         // Se não há nenhum equipamento TOP, começar do 1
         nextNumber = 1;
-        console.log('📝 Nenhum equipamento TOP encontrado, iniciando em TOP-0001');
       } else {
         // Encontrar o maior número atual
         const maxNumber = Math.max(...topNumbers);
         nextNumber = maxNumber + 1;
-        
-        console.log(`📊 Análise dos números TOP:`);
-        console.log(`   - Total de equipamentos no banco: ${allEquipment?.length || 0}`);
-        console.log(`   - Total de equipamentos TOP encontrados: ${topNumbers.length}`);
-        console.log(`   - Maior número atual: ${maxNumber}`);
-        console.log(`   - Últimos números: ${topNumbers.sort((a, b) => b - a).slice(0, 5).join(', ')}`);
       }
 
       // Formatar com 4 dígitos (sem espaços)
       const nextAssetNumber = `TOP-${nextNumber.toString().padStart(4, '0')}`;
       
-      console.log(`✅ Próximo número disponível: ${nextAssetNumber}`);
       return nextAssetNumber;
     } catch (error) {
-      console.error('❌ Erro no getNextAssetNumber:', error);
       throw error;
     }
   },
@@ -144,7 +132,6 @@ const inventoryService = {
   // Função para padronizar números de patrimônio existentes
   standardizeAssetNumbers: async (): Promise<{ updated: number; errors: number }> => {
     try {
-      console.log('🔧 Iniciando padronização dos números de patrimônio...');
       
       // Buscar todos os equipamentos
       const { data: equipment, error } = await supabase
@@ -156,7 +143,6 @@ const inventoryService = {
       }
 
       if (!equipment || equipment.length === 0) {
-        console.log('Nenhum equipamento encontrado');
         return { updated: 0, errors: 0 };
       }
 
@@ -173,9 +159,7 @@ const inventoryService = {
           const standardized = `TOP-${number.padStart(4, '0')}`;
           
           // Se é diferente do formato padrão, atualizar
-          if (item.asset_number !== standardized) {
-            console.log(`   Atualizando: "${item.asset_number}" → "${standardized}"`);
-            
+          if (item.asset_number !== standardized) {            
             const { error: updateError } = await supabase
               .from('equipments')
               .update({ asset_number: standardized })
@@ -190,10 +174,6 @@ const inventoryService = {
           }
         }
       }
-
-      console.log(`✅ Padronização concluída:`);
-      console.log(`   - Equipamentos atualizados: ${updated}`);
-      console.log(`   - Erros encontrados: ${errors}`);
       
       return { updated, errors };
     } catch (error) {
@@ -269,7 +249,6 @@ const inventoryService = {
       const equipment = data ? data.map(transformEquipment) : [];
       
       if (equipment.length === 0) {
-        console.log('📝 Banco de equipamentos está vazio - Sistema pronto para novos cadastros');
       }
       
       return equipment;
@@ -281,9 +260,7 @@ const inventoryService = {
 
   // Obter equipamento por ID
   getEquipmentById: async (id: string): Promise<Equipment | null> => {
-    try {
-      console.log(`🔍 Buscando equipamento ${id}...`);
-      
+    try {      
       const { data, error } = await supabase
         .from('equipments')
         .select('*')
@@ -292,7 +269,6 @@ const inventoryService = {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          console.log('⚠️ Equipamento não encontrado');
           return null;
         }
         console.error('❌ Erro ao buscar equipamento:', error);
@@ -300,12 +276,10 @@ const inventoryService = {
       }
 
       if (!data) {
-        console.log('⚠️ Equipamento não encontrado (data null)');
         return null;
       }
 
       const equipment = transformEquipment(data);
-      console.log(`✅ Equipamento encontrado: ${equipment.assetNumber}`);
       return equipment;
     } catch (error) {
       console.error('❌ Erro no getEquipmentById:', error);
@@ -319,9 +293,7 @@ const inventoryService = {
     user: string, 
     attachmentFiles?: File[]
   ): Promise<Equipment> => {
-    try {
-      console.log('➕ Criando equipamento:', equipmentData.assetNumber);
-      
+    try {      
       // Inserir equipamento
       const { data, error } = await supabase
         .from('equipments')
@@ -353,7 +325,6 @@ const inventoryService = {
 
       // Upload de anexos se houver
       if (attachmentFiles && attachmentFiles.length > 0) {
-        console.log(`📎 Processando ${attachmentFiles.length} anexo(s)...`);
         for (const file of attachmentFiles) {
           try {
             await inventoryService.uploadAttachment(newEquipment.id, file, user);
@@ -363,7 +334,6 @@ const inventoryService = {
         }
       }
 
-      console.log('✅ Equipamento criado com sucesso:', newEquipment.assetNumber);
       return newEquipment;
     } catch (error) {
       console.error('❌ Erro no createEquipment:', error);
@@ -377,9 +347,7 @@ const inventoryService = {
     updates: Partial<Equipment>, 
     user: string
   ): Promise<Equipment> => {
-    try {
-      console.log('📝 Atualizando equipamento:', id);
-      
+    try {      
       // Buscar dados atuais para comparação
       const currentEquipment = await inventoryService.getEquipmentById(id);
       if (!currentEquipment) {
@@ -448,19 +416,15 @@ const inventoryService = {
       }
 
       const updatedEquipment = transformEquipment(data);
-      console.log('✅ Equipamento atualizado:', updatedEquipment.assetNumber);
       return updatedEquipment;
     } catch (error) {
-      console.error('❌ Erro no updateEquipment:', error);
       throw error;
     }
   },
 
   // Excluir equipamento
   deleteEquipment: async (id: string, user: string): Promise<void> => {
-    try {
-      console.log('🗑️ Excluindo equipamento:', id);
-      
+    try {      
       // Buscar equipamento para obter informações
       const equipment = await inventoryService.getEquipmentById(id);
       if (!equipment) {
@@ -502,7 +466,6 @@ const inventoryService = {
         throw new Error(`Erro ao excluir equipamento: ${error.message}`);
       }
 
-      console.log('✅ Equipamento excluído:', equipment.assetNumber);
     } catch (error) {
       console.error('❌ Erro no deleteEquipment:', error);
       throw error;
@@ -556,7 +519,6 @@ const inventoryService = {
         }
       }
 
-      console.log('📊 Estatísticas dos números de patrimônio:', stats);
       return stats;
     } catch (error) {
       console.error('Erro ao obter estatísticas:', error);
@@ -571,7 +533,6 @@ const inventoryService = {
   // Obter atividades recentes
   getRecentActivities: async (limit: number = 10): Promise<HistoryEntry[]> => {
     try {
-      console.log(`📊 Carregando ${limit} atividades recentes...`);
       
       const { data, error } = await supabase
         .from('history_entries')
@@ -587,7 +548,6 @@ const inventoryService = {
       // Se data for null, retorna array vazio
       const activities = data ? data.map(transformHistoryEntry) : [];
       
-      console.log(`✅ ${activities.length} atividade(s) carregada(s)`);
       return activities;
     } catch (error) {
       console.error('❌ Erro no getRecentActivities:', error);
@@ -598,7 +558,6 @@ const inventoryService = {
   // Obter histórico de um equipamento
   getEquipmentHistory: async (equipmentId: string): Promise<HistoryEntry[]> => {
     try {
-      console.log(`📜 Carregando histórico do equipamento ${equipmentId}...`);
       
       const { data, error } = await supabase
         .from('history_entries')
@@ -614,10 +573,8 @@ const inventoryService = {
       // Se data for null, retorna array vazio
       const history = data ? data.map(transformHistoryEntry) : [];
       
-      console.log(`✅ ${history.length} entrada(s) de histórico carregada(s)`);
       return history;
     } catch (error) {
-      console.error('❌ Erro no getEquipmentHistory:', error);
       throw error;
     }
   },
@@ -628,9 +585,7 @@ const inventoryService = {
 
   // Obter anexos de um equipamento
   getEquipmentAttachments: async (equipmentId: string): Promise<Attachment[]> => {
-    try {
-      console.log(`📎 Carregando anexos do equipamento ${equipmentId}...`);
-      
+    try {      
       const { data, error } = await supabase
         .from('attachments')
         .select('*')
@@ -645,10 +600,8 @@ const inventoryService = {
       // Se data for null, retorna array vazio
       const attachments = data ? data.map(transformAttachment) : [];
       
-      console.log(`✅ ${attachments.length} anexo(s) carregado(s)`);
       return attachments;
     } catch (error) {
-      console.error('❌ Erro no getEquipmentAttachments:', error);
       throw error;
     }
   },
@@ -659,9 +612,7 @@ const inventoryService = {
     file: File, 
     user: string
   ): Promise<Attachment> => {
-    try {
-      console.log(`📤 Enviando anexo: ${file.name}...`);
-      
+    try {      
       // Gerar nome único para o arquivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${equipmentId}/${Date.now()}.${fileExt}`;
@@ -706,19 +657,15 @@ const inventoryService = {
       });
 
       const attachment = transformAttachment(data);
-      console.log('✅ Anexo enviado:', file.name);
       return attachment;
     } catch (error) {
-      console.error('❌ Erro no uploadAttachment:', error);
       throw error;
     }
   },
 
   // Excluir anexo
   deleteAttachment: async (attachmentId: string, user: string): Promise<void> => {
-    try {
-      console.log('🗑️ Excluindo anexo:', attachmentId);
-      
+    try {      
       // Buscar anexo para obter informações
       const { data: attachment, error: fetchError } = await supabase
         .from('attachments')
@@ -754,22 +701,17 @@ const inventoryService = {
         .eq('id', attachmentId);
 
       if (error) {
-        console.error('❌ Erro ao excluir anexo:', error);
         throw new Error(`Erro ao excluir anexo: ${error.message}`);
       }
 
-      console.log('✅ Anexo excluído:', attachment.name);
     } catch (error) {
-      console.error('❌ Erro no deleteAttachment:', error);
       throw error;
     }
   },
 
   // Download de anexo
   downloadAttachment: async (attachment: Attachment): Promise<void> => {
-    try {
-      console.log('📥 Baixando anexo:', attachment.name);
-      
+    try {      
       // Criar link temporário e clicar
       const link = document.createElement('a');
       link.href = attachment.url;
@@ -778,9 +720,7 @@ const inventoryService = {
       link.click();
       document.body.removeChild(link);
       
-      console.log('✅ Download iniciado:', attachment.name);
     } catch (error) {
-      console.error('❌ Erro no downloadAttachment:', error);
       throw error;
     }
   }
