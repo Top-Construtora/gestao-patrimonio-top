@@ -12,7 +12,8 @@ import {
   BarChart3,
   Package,
   Building2,
-  ChevronRight
+  ChevronRight,
+  ShoppingCart
 } from 'lucide-react';
 import logo from '/assets/images/logo.png';
 
@@ -43,6 +44,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
       icon: <PlusCircle size={20} />, 
       route: 'add-equipment',
       description: 'Cadastrar equipamento'
+    },
+    {
+      name: 'Compras',
+      icon: <ShoppingCart size={20} />,
+      route: 'purchases',
+      description: 'Equipamentos para compra'
+
     },
     { 
       name: 'Relatórios', 

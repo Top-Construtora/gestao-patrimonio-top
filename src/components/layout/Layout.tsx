@@ -34,16 +34,19 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
   };
 
   const routeLabels: Record<string, string> = {
-  dashboard: 'Página Inicial',
-  equipment: 'Equipamentos',
-  'equipment-details': 'Detalhes do Equipamento',
-  'add-equipment': 'Adicionar Equipamento',
-  'edit-equipment': 'Editar Equipamento',
-  reports: 'Relatórios',
-  inventory: 'Patrimônio',
-  construction: 'Obras'
-};
-
+    dashboard: 'Página Inicial',
+    equipment: 'Equipamentos',
+    'equipment-details': 'Detalhes do Equipamento',
+    'add-equipment': 'Adicionar Equipamento',
+    'edit-equipment': 'Editar Equipamento',
+    reports: 'Relatórios',
+    inventory: 'Patrimônio',
+    construction: 'Obras',
+    purchases: 'Equipamentos a Adquirir',
+    'add-purchase': 'Nova Solicitação de Compra',
+    'edit-purchase': 'Editar Solicitação',
+    'purchase-details': 'Detalhes da Solicitação'
+  };
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
