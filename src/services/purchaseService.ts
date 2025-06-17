@@ -1,48 +1,59 @@
 // services/purchaseService.ts
 import { supabase } from '../lib/supabase';
-import { EquipmentPurchase, DatabaseEquipmentPurchase } from '../types/purchaseTypes';
+import { 
+  EquipmentPurchase, 
+  DatabaseEquipmentPurchase, 
+  PurchaseStatus 
+} from '../types/purchaseTypes';
 import { Equipment } from '../types';
 import inventoryService from './inventoryService';
 
-// Converter dados do banco para interface da aplicação
-const transformPurchase = (dbPurchase: DatabaseEquipmentPurchase): EquipmentPurchase => ({
-  id: dbPurchase.id,
-  description: dbPurchase.description,
-  category: dbPurchase.category,
-  estimatedQuantity: dbPurchase.estimated_quantity,
-  estimatedUnitValue: dbPurchase.estimated_unit_value,
-  estimatedTotalValue: dbPurchase.estimated_total_value,
-  urgency: dbPurchase.urgency,
-  status: dbPurchase.status,
-  requestedBy: dbPurchase.requested_by,
-  requestDate: dbPurchase.request_date,
-  expectedDate: dbPurchase.expected_date || undefined,
-  supplier: dbPurchase.supplier || undefined,
-  observations: dbPurchase.observations || undefined,
-  createdAt: dbPurchase.created_at,
-  updatedAt: dbPurchase.updated_at
-});
+// Função para transformar dados do banco para o formato da aplicação
+const transformPurchase = (dbPurchase: DatabaseEquipmentPurchase): EquipmentPurchase => {
+  return {
+    id: dbPurchase.id,
+    description: dbPurchase.description,
+    brand: dbPurchase.brand || undefined,
+    model: dbPurchase.model || undefined,
+    specifications: dbPurchase.specifications || undefined,
+    location: dbPurchase.location || undefined,
+    urgency: dbPurchase.urgency,
+    status: dbPurchase.status,
+    requestedBy: dbPurchase.requested_by,
+    requestDate: dbPurchase.request_date,
+    expectedDate: dbPurchase.expected_date || undefined,
+    supplier: dbPurchase.supplier || undefined,
+    observations: dbPurchase.observations || undefined,
+    approvedBy: dbPurchase.approved_by || undefined,
+    approvalDate: dbPurchase.approval_date || undefined,
+    rejectionReason: dbPurchase.rejection_reason || undefined,
+    createdAt: dbPurchase.created_at,
+    updatedAt: dbPurchase.updated_at
+  };
+};
 
-// Converter dados da aplicação para o banco
-const transformToDatabase = (
-  purchase: Omit<EquipmentPurchase, 'id' | 'createdAt' | 'updatedAt'>
-): Omit<DatabaseEquipmentPurchase, 'id' | 'created_at' | 'updated_at'> => ({
-  description: purchase.description,
-  category: purchase.category,
-  estimated_quantity: purchase.estimatedQuantity,
-  estimated_unit_value: purchase.estimatedUnitValue,
-  estimated_total_value: purchase.estimatedTotalValue,
-  urgency: purchase.urgency,
-  status: purchase.status,
-  requested_by: purchase.requestedBy,
-  request_date: purchase.requestDate,
-  expected_date: purchase.expectedDate || null,
-  supplier: purchase.supplier || null,
-  observations: purchase.observations || null,
-  approved_by: purchase.approvedBy || null,
-  approval_date: purchase.approvalDate || null,
-  rejection_reason: purchase.rejectionReason || null
-});
+// Função para transformar dados da aplicação para o formato do banco
+const transformToDatabase = (purchase: Partial<EquipmentPurchase>): Partial<DatabaseEquipmentPurchase> => {
+  const dbPurchase: Partial<DatabaseEquipmentPurchase> = {};
+  
+  if (purchase.description !== undefined) dbPurchase.description = purchase.description;
+  if (purchase.brand !== undefined) dbPurchase.brand = purchase.brand || null;
+  if (purchase.model !== undefined) dbPurchase.model = purchase.model || null;
+  if (purchase.specifications !== undefined) dbPurchase.specifications = purchase.specifications || null;
+  if (purchase.location !== undefined) dbPurchase.location = purchase.location || null;
+  if (purchase.urgency !== undefined) dbPurchase.urgency = purchase.urgency;
+  if (purchase.status !== undefined) dbPurchase.status = purchase.status;
+  if (purchase.requestedBy !== undefined) dbPurchase.requested_by = purchase.requestedBy;
+  if (purchase.requestDate !== undefined) dbPurchase.request_date = purchase.requestDate;
+  if (purchase.expectedDate !== undefined) dbPurchase.expected_date = purchase.expectedDate || null;
+  if (purchase.supplier !== undefined) dbPurchase.supplier = purchase.supplier || null;
+  if (purchase.observations !== undefined) dbPurchase.observations = purchase.observations || null;
+  if (purchase.approvedBy !== undefined) dbPurchase.approved_by = purchase.approvedBy || null;
+  if (purchase.approvalDate !== undefined) dbPurchase.approval_date = purchase.approvalDate || null;
+  if (purchase.rejectionReason !== undefined) dbPurchase.rejection_reason = purchase.rejectionReason || null;
+  
+  return dbPurchase;
+};
 
 const purchaseService = {
   // Verificar conexão
@@ -56,7 +67,7 @@ const purchaseService = {
     }
   },
 
-  // Obter todas as solicitações de compra
+  // Obter todas as solicitações
   getAllPurchases: async (): Promise<EquipmentPurchase[]> => {
     try {
       const { data, error } = await supabase
@@ -65,8 +76,7 @@ const purchaseService = {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Erro ao carregar solicitações:', error);
-        throw new Error(`Erro ao carregar solicitações: ${error.message}`);
+        throw new Error(`Erro ao buscar solicitações: ${error.message}`);
       }
 
       return data ? data.map(transformPurchase) : [];
@@ -101,7 +111,7 @@ const purchaseService = {
 
   // Criar nova solicitação
   createPurchase: async (
-    purchaseData: Omit<EquipmentPurchase, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
+    purchaseData: Omit<EquipmentPurchase, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'approvedBy' | 'approvalDate' | 'rejectionReason'>,
     user: string
   ): Promise<EquipmentPurchase> => {
     try {
@@ -122,13 +132,7 @@ const purchaseService = {
         throw new Error(`Erro ao criar solicitação: ${error.message}`);
       }
 
-      // Registrar no histórico geral
-      await supabase.from('history_entries').insert({
-        equipment_id: data.id,
-        user_name: user,
-        change_type: 'criou',
-        new_value: 'Solicitação de compra criada'
-      });
+      // REMOVIDO: Registro no histórico para evitar conflito com foreign key
 
       return transformPurchase(data);
     } catch (error) {
@@ -149,18 +153,7 @@ const purchaseService = {
         throw new Error('Solicitação não encontrada');
       }
 
-      const updateData: any = {};
-      
-      if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.category !== undefined) updateData.category = updates.category;
-      if (updates.estimatedQuantity !== undefined) updateData.estimated_quantity = updates.estimatedQuantity;
-      if (updates.estimatedUnitValue !== undefined) updateData.estimated_unit_value = updates.estimatedUnitValue;
-      if (updates.estimatedTotalValue !== undefined) updateData.estimated_total_value = updates.estimatedTotalValue;
-      if (updates.urgency !== undefined) updateData.urgency = updates.urgency;
-      if (updates.status !== undefined) updateData.status = updates.status;
-      if (updates.expectedDate !== undefined) updateData.expected_date = updates.expectedDate || null;
-      if (updates.supplier !== undefined) updateData.supplier = updates.supplier || null;
-      if (updates.observations !== undefined) updateData.observations = updates.observations || null;
+      const updateData = transformToDatabase(updates);
 
       const { data, error } = await supabase
         .from('equipment_purchases')
@@ -173,22 +166,7 @@ const purchaseService = {
         throw new Error(`Erro ao atualizar solicitação: ${error.message}`);
       }
 
-      // Registrar mudanças no histórico
-      for (const [key, value] of Object.entries(updates)) {
-        if (key === 'id') continue;
-        
-        const currentValue = currentPurchase[key as keyof EquipmentPurchase];
-        if (currentValue !== value) {
-          await supabase.from('history_entries').insert({
-            equipment_id: id,
-            user_name: user,
-            change_type: 'editou',
-            field: key,
-            old_value: String(currentValue || ''),
-            new_value: String(value || '')
-          });
-        }
-      }
+      // REMOVIDO: Registro no histórico para evitar conflito com foreign key
 
       return transformPurchase(data);
     } catch (error) {
@@ -197,9 +175,34 @@ const purchaseService = {
     }
   },
 
+  // Aprovar solicitação
+  approvePurchase: async (id: string, user: string): Promise<void> => {
+    await purchaseService.updatePurchase(
+      id,
+      {
+        status: 'aprovado',
+        approvedBy: user,
+        approvalDate: new Date().toISOString()
+      },
+      user
+    );
+  },
+
+  // Rejeitar solicitação
+  rejectPurchase: async (id: string, reason: string, user: string): Promise<void> => {
+    await purchaseService.updatePurchase(
+      id,
+      {
+        status: 'rejeitado',
+        rejectionReason: reason
+      },
+      user
+    );
+  },
+
   // Marcar como adquirido
-  markAsAcquired: async (id: string, user: string): Promise<EquipmentPurchase> => {
-    return purchaseService.updatePurchase(
+  markAsAcquired: async (id: string, user: string): Promise<void> => {
+    await purchaseService.updatePurchase(
       id,
       {
         status: 'adquirido'
@@ -211,13 +214,7 @@ const purchaseService = {
   // Excluir solicitação
   deletePurchase: async (id: string, user: string): Promise<void> => {
     try {
-      // Registrar no histórico antes de excluir
-      await supabase.from('history_entries').insert({
-        equipment_id: id,
-        user_name: user,
-        change_type: 'excluiu',
-        old_value: 'Solicitação de compra excluída'
-      });
+      // REMOVIDO: Registro no histórico para evitar conflito com foreign key
 
       const { error } = await supabase
         .from('equipment_purchases')
@@ -245,8 +242,9 @@ const purchaseService = {
       const stats = {
         total: purchases.length,
         pending: purchases.filter(p => p.status === 'pendente').length,
+        approved: purchases.filter(p => p.status === 'aprovado').length,
+        rejected: purchases.filter(p => p.status === 'rejeitado').length,
         acquired: purchases.filter(p => p.status === 'adquirido').length,
-        totalValue: purchases.reduce((sum, p) => sum + (p.estimated_total_value || 0), 0),
         byUrgency: {
           baixa: purchases.filter(p => p.urgency === 'baixa').length,
           média: purchases.filter(p => p.urgency === 'média').length,
@@ -275,7 +273,7 @@ const purchaseService = {
       // 2. Marcar a solicitação como adquirida
       await purchaseService.markAsAcquired(purchaseId, user);
       
-      // 3. Adicionar entrada no histórico
+      // 3. Adicionar entrada no histórico DO EQUIPAMENTO (não da purchase)
       await supabase.from('history_entries').insert({
         equipment_id: newEquipment.id,
         user_name: user,

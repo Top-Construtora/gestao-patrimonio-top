@@ -16,7 +16,10 @@ import {
   Tag,
   Wrench,
   ShoppingCart,
-  ArrowRight
+  ArrowRight,
+  Building2,
+  Monitor,
+  Cpu
 } from 'lucide-react';
 import inventoryService from '../../services/inventoryService';
 import { useToast } from '../common/Toast';
@@ -49,8 +52,6 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
   onSuccess
 }) => {
   const { showError, showSuccess } = useToast();
-  const [loadingAssetNumber, setLoadingAssetNumber] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState<ConversionFormData>({
     assetNumber: '',
@@ -65,59 +66,75 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     status: 'ativo',
     maintenanceDescription: ''
   });
+  
+  const [errors, setErrors] = useState<Partial<Record<keyof ConversionFormData, string>>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Preencher dados automaticamente quando o modal abrir
+  // Preencher campos automaticamente quando a solicitação mudar
   useEffect(() => {
-    if (isOpen && purchase) {
-      // Preencher com dados da solicitação
+    if (purchase) {
       setFormData(prev => ({
         ...prev,
-        value: purchase.estimatedTotalValue,
-        responsible: purchase.requestedBy,
-        acquisitionDate: new Date().toISOString().split('T')[0]
+        brand: purchase.brand || extractFromObservations('Marca', purchase.observations) || '',
+        model: purchase.model || extractFromObservations('Modelo', purchase.observations) || '',
+        specs: purchase.specifications || extractFromObservations('Especificações', purchase.observations) || '',
+        location: purchase.location || extractFromObservations('Localização', purchase.observations) || '',
+        value: 0, // Valor deve ser inserido manualmente
+        acquisitionDate: purchase.expectedDate ? purchase.expectedDate.split('T')[0] : new Date().toISOString().split('T')[0]
       }));
-
-      // Gerar número de patrimônio automaticamente
-      loadAssetNumber();
     }
-  }, [isOpen, purchase]);
+  }, [purchase]);
 
-  const loadAssetNumber = async () => {
-    try {
-      setLoadingAssetNumber(true);
-      const nextNumber = await inventoryService.getNextAssetNumber();
-      setFormData(prev => ({ ...prev, assetNumber: nextNumber }));
-    } catch (error) {
-      console.error('Erro ao gerar número de patrimônio:', error);
-      showError('Erro ao gerar número de patrimônio automático');
-    } finally {
-      setLoadingAssetNumber(false);
+  // Função auxiliar para extrair informações do campo observations
+  const extractFromObservations = (field: string, observations?: string): string => {
+    if (!observations) return '';
+    
+    const lines = observations.split('\n');
+    const line = lines.find(l => l.startsWith(`${field}:`));
+    
+    if (line) {
+      return line.replace(`${field}:`, '').trim();
     }
+    
+    return '';
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Partial<Record<keyof ConversionFormData, string>> = {};
     
     if (!formData.assetNumber.trim()) {
-      newErrors.assetNumber = 'Número de patrimônio é obrigatório';
+      newErrors.assetNumber = 'Número do patrimônio é obrigatório';
+    } else if (!formData.assetNumber.match(/^TOP-\d{4}$/)) {
+      newErrors.assetNumber = 'Formato inválido. Use TOP-0000';
     }
+    
     if (!formData.brand.trim()) {
       newErrors.brand = 'Marca é obrigatória';
     }
+    
     if (!formData.model.trim()) {
       newErrors.model = 'Modelo é obrigatório';
     }
+    
     if (!formData.location.trim()) {
       newErrors.location = 'Localização é obrigatória';
     }
+    
     if (!formData.responsible.trim()) {
       newErrors.responsible = 'Responsável é obrigatório';
     }
+    
     if (formData.value <= 0) {
       newErrors.value = 'Valor deve ser maior que zero';
     }
+    
     if (formData.status === 'manutenção' && !formData.maintenanceDescription?.trim()) {
       newErrors.maintenanceDescription = 'Descrição da manutenção é obrigatória';
     }
@@ -135,10 +152,10 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     }));
     
     // Limpar erro do campo
-    if (errors[name]) {
+    if (errors[name as keyof ConversionFormData]) {
       setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[name];
+        delete newErrors[name as keyof ConversionFormData];
         return newErrors;
       });
     }
@@ -154,13 +171,6 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     }));
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
   const handleSubmit = async () => {
     if (!purchase) return;
     
@@ -172,6 +182,14 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     setIsSubmitting(true);
     
     try {
+      // Verificar se o número do patrimônio já existe
+      const validation = await inventoryService.validateAssetNumber(formData.assetNumber);
+      if (!validation.valid) {
+        setErrors({ assetNumber: validation.message || 'Número já existe' });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Criar objeto Equipment com os dados do formulário
       const newEquipment: Omit<Equipment, 'id'> = {
         assetNumber: formData.assetNumber,
@@ -252,56 +270,60 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900">{purchase.description}</h3>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
+                {purchase.brand && (
+                  <span className="flex items-center gap-1">
+                    <Building2 className="h-4 w-4" />
+                    {purchase.brand}
+                  </span>
+                )}
+                {purchase.model && (
+                  <span className="flex items-center gap-1">
+                    <Monitor className="h-4 w-4" />
+                    {purchase.model}
+                  </span>
+                )}
                 <span className="flex items-center gap-1">
                   <Tag className="h-4 w-4" />
-                  {purchase.category}
-                </span>
-                <span className="flex items-center gap-1">
-                  <DollarSign className="h-4 w-4" />
-                  {formatCurrency(purchase.estimatedTotalValue)}
+                  Equipamento de TI
                 </span>
                 <span className="flex items-center gap-1">
                   <User className="h-4 w-4" />
-                  Solicitado por {purchase.requestedBy}
+                  {purchase.requestedBy}
                 </span>
               </div>
+              {purchase.specifications && (
+                <div className="mt-2 p-2 bg-white rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                    <Cpu className="h-3 w-3" />
+                    Especificações:
+                  </p>
+                  <p className="text-sm text-gray-700">{purchase.specifications}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Formulário */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 300px)' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Coluna Esquerda */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Tag className="h-5 w-5 text-gray-600" />
-                Identificação do Equipamento
-              </h3>
-              
-              {/* Número de Patrimônio */}
+              {/* Número do Patrimônio */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Número do Patrimônio *
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="assetNumber"
-                    value={formData.assetNumber}
-                    onChange={handleChange}
-                    disabled={loadingAssetNumber}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.assetNumber ? 'border-red-500' : 'border-gray-300'
-                    } ${loadingAssetNumber ? 'bg-gray-100' : ''}`}
-                    placeholder="TOP-0000"
-                  />
-                  {loadingAssetNumber && (
-                    <div className="absolute right-3 top-2.5">
-                      <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                    </div>
-                  )}
-                </div>
+                <input
+                  type="text"
+                  name="assetNumber"
+                  value={formData.assetNumber}
+                  onChange={handleChange}
+                  placeholder="TOP-0000"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.assetNumber ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
                 {errors.assetNumber && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
@@ -323,7 +345,6 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.brand ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Ex: Dell, HP, Lenovo"
                 />
                 {errors.brand && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -346,7 +367,6 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.model ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Ex: Latitude 5420"
                 />
                 {errors.model && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -367,38 +387,26 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   onChange={handleChange}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  placeholder="Ex: Intel Core i5, 8GB RAM, 256GB SSD..."
                 />
               </div>
             </div>
 
             {/* Coluna Direita */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-gray-600" />
-                Informações de Aquisição
-              </h3>
-
               {/* Localização */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Localização *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.location ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Ex: Sala de TI, Escritório Central"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.location ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
                 {errors.location && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
@@ -412,21 +420,15 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Responsável *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="responsible"
-                    value={formData.responsible}
-                    onChange={handleChange}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.responsible ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Nome do responsável"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="responsible"
+                  value={formData.responsible}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.responsible ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
                 {errors.responsible && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
@@ -451,7 +453,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Data da Nota Fiscal
+                    Data da NF
                   </label>
                   <input
                     type="date"
@@ -466,22 +468,16 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
               {/* Valor */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valor Final *
+                  Valor *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <DollarSign className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={formatCurrency(formData.value)}
-                    onChange={handleValueChange}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.value ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="R$ 0,00"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={formatCurrency(formData.value)}
+                  onChange={handleValueChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.value ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
                 {errors.value && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
@@ -493,7 +489,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
               {/* Status */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status do Equipamento *
+                  Status *
                 </label>
                 <select
                   name="status"
@@ -507,16 +503,14 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                 </select>
               </div>
 
-              {/* Descrição de Manutenção */}
+              {/* Descrição da Manutenção */}
               {formData.status === 'manutenção' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Descrição da Manutenção *
                   </label>
                   <div className="relative">
-                    <div className="absolute top-3 left-3">
-                      <Wrench className="h-5 w-5 text-gray-400" />
-                    </div>
+                    <Wrench className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <textarea
                       name="maintenanceDescription"
                       value={formData.maintenanceDescription}

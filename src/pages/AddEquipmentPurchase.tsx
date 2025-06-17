@@ -8,15 +8,14 @@ import {
   Save, 
   AlertCircle,
   Calendar,
-  DollarSign,
-  Info,
-  Package,
+  MapPin,
+  Building2,
   FileText,
   AlertTriangle,
   Briefcase,
-  Calculator,
-  Hash,
-  User
+  Package,
+  Monitor,
+  Cpu
 } from 'lucide-react';
 import { useToast } from '../components/common/Toast';
 
@@ -30,62 +29,46 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
   
   const [formData, setFormData] = useState({
     description: '',
-    category: '',
-    estimatedQuantity: 1,
-    estimatedUnitValue: 0,
-    estimatedTotalValue: 0,
+    brand: '',
+    model: '',
+    specifications: '',
+    location: '',
+    expectedMonthYear: '',
+    supplier: '',
+    observations: '',
     urgency: 'média' as PurchaseUrgency,
     requestedBy: 'Administrador',
-    requestDate: new Date().toISOString().split('T')[0],
-    expectedDate: '',
-    supplier: '',
-    observations: ''
+    requestDate: new Date().toISOString().split('T')[0]
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Categorias predefinidas
-  const categories = [
-    'Computadores',
-    'Notebooks',
-    'Monitores',
-    'Impressoras',
-    'Periféricos',
-    'Rede e Conectividade',
-    'Servidores',
-    'Armazenamento',
-    'Software',
-    'Licenças',
-    'Acessórios',
-    'Mobiliário de TI',
-    'Outros'
-  ];
-
   // Validação do formulário
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.description.trim()) {
-      newErrors.description = 'Descrição é obrigatória';
-    } else if (formData.description.trim().length < 5) {
-      newErrors.description = 'Descrição deve ter pelo menos 5 caracteres';
+    if (!formData.brand.trim()) {
+      newErrors.brand = 'Marca é obrigatória';
     }
     
-    if (!formData.category) {
-      newErrors.category = 'Categoria é obrigatória';
+    if (!formData.model.trim()) {
+      newErrors.model = 'Modelo é obrigatório';
     }
     
-    if (formData.estimatedUnitValue <= 0) {
-      newErrors.estimatedUnitValue = 'Valor deve ser maior que zero';
+    if (!formData.specifications.trim()) {
+      newErrors.specifications = 'Especificações técnicas são obrigatórias';
+    } else if (formData.specifications.trim().length < 10) {
+      newErrors.specifications = 'Especificações devem ter pelo menos 10 caracteres';
     }
     
-    if (formData.expectedDate) {
-      const today = new Date().toISOString().split('T')[0];
-      if (formData.expectedDate < today) {
-        newErrors.expectedDate = 'Data esperada não pode ser no passado';
-      }
+    if (!formData.location.trim()) {
+      newErrors.location = 'Localização é obrigatória';
+    }
+    
+    if (!formData.expectedMonthYear) {
+      newErrors.expectedMonthYear = 'Mês/ano esperado é obrigatório';
     }
     
     setErrors(newErrors);
@@ -97,60 +80,45 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
     const newErrors = { ...errors };
     
     switch (name) {
-      case 'description':
+      case 'brand':
         if (!value.trim()) {
-          newErrors.description = 'Descrição é obrigatória';
-        } else if (value.trim().length < 5) {
-          newErrors.description = 'Descrição deve ter pelo menos 5 caracteres';
+          newErrors.brand = 'Marca é obrigatória';
         } else {
-          delete newErrors.description;
+          delete newErrors.brand;
         }
         break;
         
-      case 'justification':
+      case 'model':
         if (!value.trim()) {
-          newErrors.justification = 'Justificativa é obrigatória';
-        } else if (value.trim().length < 20) {
-          newErrors.justification = 'Justificativa deve ter pelo menos 20 caracteres';
+          newErrors.model = 'Modelo é obrigatório';
         } else {
-          delete newErrors.justification;
+          delete newErrors.model;
         }
         break;
         
-      case 'category':
+      case 'specifications':
+        if (!value.trim()) {
+          newErrors.specifications = 'Especificações técnicas são obrigatórias';
+        } else if (value.trim().length < 10) {
+          newErrors.specifications = 'Especificações devem ter pelo menos 10 caracteres';
+        } else {
+          delete newErrors.specifications;
+        }
+        break;
+        
+      case 'location':
+        if (!value.trim()) {
+          newErrors.location = 'Localização é obrigatória';
+        } else {
+          delete newErrors.location;
+        }
+        break;
+        
+      case 'expectedMonthYear':
         if (!value) {
-          newErrors.category = 'Categoria é obrigatória';
+          newErrors.expectedMonthYear = 'Mês/ano esperado é obrigatório';
         } else {
-          delete newErrors.category;
-        }
-        break;
-        
-      case 'estimatedQuantity':
-        if (value <= 0) {
-          newErrors.estimatedQuantity = 'Quantidade deve ser maior que zero';
-        } else {
-          delete newErrors.estimatedQuantity;
-        }
-        break;
-        
-      case 'estimatedUnitValue':
-        if (value <= 0) {
-          newErrors.estimatedUnitValue = 'Valor deve ser maior que zero';
-        } else {
-          delete newErrors.estimatedUnitValue;
-        }
-        break;
-        
-      case 'expectedDate':
-        if (value) {
-          const today = new Date().toISOString().split('T')[0];
-          if (value < today) {
-            newErrors.expectedDate = 'Data esperada não pode ser no passado';
-          } else {
-            delete newErrors.expectedDate;
-          }
-        } else {
-          delete newErrors.expectedDate;
+          delete newErrors.expectedMonthYear;
         }
         break;
     }
@@ -229,7 +197,22 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
     setIsSubmitting(true);
     
     try {
-      await onSubmit(formData);
+      // Preparar dados para envio
+      const submitData = {
+        description: `${formData.brand} ${formData.model}`,
+        brand: formData.brand,
+        model: formData.model,
+        specifications: formData.specifications,
+        location: formData.location,
+        urgency: formData.urgency,
+        requestedBy: formData.requestedBy,
+        requestDate: formData.requestDate,
+        expectedDate: formData.expectedMonthYear ? `${formData.expectedMonthYear}-01` : undefined,
+        supplier: formData.supplier || undefined,
+        observations: formData.observations || undefined
+      };
+      
+      await onSubmit(submitData);
     } catch (error) {
       console.error('Erro ao criar solicitação:', error);
       showError('Erro ao criar solicitação. Tente novamente.');
@@ -243,9 +226,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
     const hasChanges = Object.values(formData).some(value => {
       if (typeof value === 'string') {
         return value !== '' && value !== 'média' && value !== 'Administrador' && value !== new Date().toISOString().split('T')[0];
-      }
-      if (typeof value === 'number') {
-        return value !== 0 && value !== 1;
       }
       return false;
     });
@@ -299,170 +279,156 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
 
       {/* Formulário */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Coluna Esquerda - Informações Básicas */}
-        <Card>
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-              <Package className="h-5 w-5 text-blue-600" />
-              Informações do Equipamento
-            </div>
-
-            {/* Descrição */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descrição do Equipamento *
-              </label>
-              <input
-                type="text"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                  errors.description && touched.description ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Ex: Notebook Dell Latitude 5420"
-              />
-              {errors.description && touched.description && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.description}
-                </p>
-              )}
-            </div>
-
-            {/* Categoria */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoria *
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                  errors.category && touched.category ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Selecione uma categoria</option>
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-              {errors.category && touched.category && (
-                <p className="mt-1 text-sm text-red-600 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.category}
-                </p>
-              )}
-            </div>
-
-            {/* Urgência */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nível de Urgência *
-              </label>
-              <select
-                name="urgency"
-                value={formData.urgency}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              >
-                <option value="baixa">Baixa - Pode aguardar</option>
-                <option value="média">Média - Prazo regular</option>
-                <option value="alta">Alta - Necessário em breve</option>
-                <option value="crítica">Crítica - Urgente</option>
-              </select>
-              {formData.urgency === 'crítica' && (
-                <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <p className="text-sm text-orange-800 flex items-start">
-                    <AlertTriangle className="h-4 w-4 mr-1.5 mt-0.5 flex-shrink-0" />
-                    Solicitações críticas requerem justificativa detalhada e são analisadas com prioridade máxima.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Coluna Direita - Valores e Datas */}
+        {/* Coluna Esquerda - Informações do Equipamento */}
         <div className="space-y-6">
-          {/* Card de Valores */}
+          {/* Card de Informações Básicas */}
           <Card>
             <div className="space-y-6">
               <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                <Calculator className="h-5 w-5 text-green-600" />
-                Informações Financeiras
+                <Package className="h-5 w-5 text-primary-dark" />
+                Informações do Equipamento
               </div>
 
+              {/* Marca */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Valor Estimado *
+                  Marca *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <DollarSign className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={formatCurrency(formData.estimatedUnitValue)}
-                    onChange={handleValueChange('estimatedUnitValue')}
-                    onBlur={() => {
-                      setTouched(prev => ({ ...prev, estimatedUnitValue: true }));
-                      validateField('estimatedUnitValue', formData.estimatedUnitValue);
-                    }}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      errors.estimatedUnitValue && touched.estimatedUnitValue ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="R$ 0,00"
-                  />
-                </div>
-                {errors.estimatedUnitValue && touched.estimatedUnitValue && (
+                <input
+                  type="text"
+                  name="brand"
+                  value={formData.brand}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    errors.brand && touched.brand ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Ex: Dell, HP, Lenovo"
+                />
+                {errors.brand && touched.brand && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.estimatedUnitValue}
+                    {errors.brand}
+                  </p>
+                )}
+              </div>
+
+              {/* Modelo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Modelo *
+                </label>
+                <input
+                  type="text"
+                  name="model"
+                  value={formData.model}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    errors.model && touched.model ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Ex: Latitude 5420, EliteBook 840"
+                />
+                {errors.model && touched.model && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.model}
+                  </p>
+                )}
+              </div>
+
+              {/* Especificações Técnicas */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Especificações Técnicas *
+                </label>
+                <textarea
+                  name="specifications"
+                  value={formData.specifications}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  rows={4}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
+                    errors.specifications && touched.specifications ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Ex: Intel Core i5-1135G7, 8GB RAM, SSD 256GB, Tela 14 Full HD"
+                />
+                {errors.specifications && touched.specifications && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.specifications}
                   </p>
                 )}
               </div>
             </div>
           </Card>
 
-          {/* Card de Informações Adicionais */}
+          {/* Card de Localização e Prazo */}
           <Card>
             <div className="space-y-6">
               <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                <FileText className="h-5 w-5 text-purple-600" />
-                Informações Adicionais
+                <MapPin className="h-5 w-5 text-accent-dark" />
+                Localização e Prazo
               </div>
 
-              {/* Data Esperada */}
+              {/* Localização */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Data Esperada de Aquisição
+                  Localização *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="date"
-                    name="expectedDate"
-                    value={formData.expectedDate}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    min={new Date().toISOString().split('T')[0]}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      errors.expectedDate && touched.expectedDate ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                </div>
-                {errors.expectedDate && touched.expectedDate && (
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    errors.location && touched.location ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Ex: Sala de TI, Recepção, Diretoria"
+                />
+                {errors.location && touched.location && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.expectedDate}
+                    {errors.location}
                   </p>
                 )}
+              </div>
+
+              {/* Mês/Ano Esperado */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mês e Ano Esperado de Aquisição *
+                </label>
+                <input
+                  type="month"
+                  name="expectedMonthYear"
+                  value={formData.expectedMonthYear}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    errors.expectedMonthYear && touched.expectedMonthYear ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.expectedMonthYear && touched.expectedMonthYear && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.expectedMonthYear}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Coluna Direita - Fornecedor e Urgência */}
+        <div className="space-y-6">
+          {/* Card de Fornecedor e Observações */}
+          <Card>
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                <Briefcase className="h-5 w-5 text-secondary" />
+                Fornecedor e Observações
               </div>
 
               {/* Fornecedor Sugerido */}
@@ -470,19 +436,14 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Fornecedor Sugerido
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Briefcase className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    name="supplier"
-                    value={formData.supplier}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Nome do fornecedor (opcional)"
-                  />
-                </div>
+                <input
+                  type="text"
+                  name="supplier"
+                  value={formData.supplier}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Nome do fornecedor (opcional)"
+                />
                 <p className="mt-1 text-xs text-gray-500">
                   Informe se houver preferência ou cotação prévia
                 </p>
@@ -497,13 +458,41 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   name="observations"
                   value={formData.observations}
                   onChange={handleChange}
-                  rows={3}
+                  rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
                   placeholder="Informações adicionais relevantes para a análise..."
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Inclua especificações técnicas, referências ou qualquer outra informação importante
+                  Qualquer informação adicional que julgar importante
                 </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Card de Urgência */}
+          <Card>
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                <AlertTriangle className="h-5 w-5 text-orange-400" />
+                Nível de Urgência
+              </div>
+
+              {/* Urgência */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Selecione o Nível de Urgência *
+                </label>
+                <select
+                  name="urgency"
+                  value={formData.urgency}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                >
+                  <option value="baixa">Baixa - Pode aguardar</option>
+                  <option value="média">Média - Prazo regular</option>
+                  <option value="alta">Alta - Necessário em breve</option>
+                  <option value="crítica">Crítica - Urgente</option>
+                </select>
               </div>
             </div>
           </Card>
@@ -535,4 +524,4 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
   );
 };
 
-export default AddEquipmentPurchase;    
+export default AddEquipmentPurchase;
