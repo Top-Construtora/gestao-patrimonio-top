@@ -19,7 +19,14 @@ import {
   ArrowRight,
   Building2,
   Monitor,
-  Cpu
+  Cpu,
+  Upload,
+  File,
+  Trash2,
+  Paperclip,
+  FileSpreadsheet,
+  Receipt,
+  BookOpen
 } from 'lucide-react';
 import inventoryService from '../../services/inventoryService';
 import { useToast } from '../common/Toast';
@@ -28,7 +35,7 @@ interface PurchaseToEquipmentModalProps {
   isOpen: boolean;
   purchase: EquipmentPurchase | null;
   onClose: () => void;
-  onSuccess: (equipmentData: Omit<Equipment, 'id'>) => void;
+  onSuccess: (equipmentData: Omit<Equipment, 'id'>, attachments: FileAttachment[]) => void;
 }
 
 interface ConversionFormData {
@@ -43,6 +50,15 @@ interface ConversionFormData {
   value: number;
   status: 'ativo' | 'manutenção' | 'desativado';
   maintenanceDescription?: string;
+}
+
+interface FileAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  file: File;
+  category: 'invoice' | 'purchase_order' | 'manual' | 'other';
 }
 
 const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
@@ -69,6 +85,38 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
   
   const [errors, setErrors] = useState<Partial<Record<keyof ConversionFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingAssetNumber, setIsGeneratingAssetNumber] = useState(false);
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+
+  // Gerar número de patrimônio automaticamente
+  useEffect(() => {
+    const generateAssetNumber = async () => {
+      if (!purchase || formData.assetNumber) return;
+      
+      setIsGeneratingAssetNumber(true);
+      try {
+        // Buscar o próximo número disponível
+        const nextNumber = await inventoryService.getNextAssetNumber();
+        setFormData(prev => ({
+          ...prev,
+          assetNumber: nextNumber
+        }));
+      } catch (error) {
+        console.error('Erro ao gerar número de patrimônio:', error);
+        // Em caso de erro, gerar um número temporário
+        const tempNumber = `TOP-${String(Date.now()).slice(-4)}`;
+        setFormData(prev => ({
+          ...prev,
+          assetNumber: tempNumber
+        }));
+      } finally {
+        setIsGeneratingAssetNumber(false);
+      }
+    };
+
+    generateAssetNumber();
+  }, [purchase]);
 
   // Preencher campos automaticamente quando a solicitação mudar
   useEffect(() => {
@@ -171,6 +219,121 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     }));
   };
 
+  // Funções para gerenciar arquivos anexados
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const handleFiles = (files: FileList) => {
+    const newAttachments: FileAttachment[] = [];
+    
+    Array.from(files).forEach(file => {
+      // Verificar tamanho do arquivo (máximo 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        showError(`Arquivo ${file.name} excede o tamanho máximo de 10MB`);
+        return;
+      }
+
+      // Verificar se o arquivo já foi adicionado
+      if (attachments.some(att => att.name === file.name && att.size === file.size)) {
+        showError(`Arquivo ${file.name} já foi adicionado`);
+        return;
+      }
+
+      const fileType = determineFileCategory(file);
+      
+      newAttachments.push({
+        id: `${Date.now()}-${Math.random()}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file: file,
+        category: fileType
+      });
+    });
+
+    if (newAttachments.length > 0) {
+      setAttachments(prev => [...prev, ...newAttachments]);
+      showSuccess(`${newAttachments.length} arquivo(s) adicionado(s)`);
+    }
+  };
+
+  const determineFileCategory = (file: File): 'invoice' | 'purchase_order' | 'manual' | 'other' => {
+    const fileName = file.name.toLowerCase();
+    
+    if (fileName.includes('nf') || fileName.includes('nota') || fileName.includes('fiscal')) {
+      return 'invoice';
+    }
+    if (fileName.includes('pedido') || fileName.includes('ordem') || fileName.includes('compra')) {
+      return 'purchase_order';
+    }
+    if (fileName.includes('manual') || file.type === 'application/pdf') {
+      return 'manual';
+    }
+    
+    return 'other';
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(att => att.id !== id));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (category: FileAttachment['category']) => {
+    switch (category) {
+      case 'invoice':
+        return <Receipt className="h-4 w-4" />;
+      case 'purchase_order':
+        return <FileSpreadsheet className="h-4 w-4" />;
+      case 'manual':
+        return <BookOpen className="h-4 w-4" />;
+      default:
+        return <File className="h-4 w-4" />;
+    }
+  };
+
+  const getCategoryLabel = (category: FileAttachment['category']) => {
+    switch (category) {
+      case 'invoice':
+        return 'Nota Fiscal';
+      case 'purchase_order':
+        return 'Pedido de Compra';
+      case 'manual':
+        return 'Manual';
+      default:
+        return 'Outro';
+    }
+  };
+
   const handleSubmit = async () => {
     if (!purchase) return;
     
@@ -206,8 +369,8 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
         maintenanceDescription: formData.status === 'manutenção' ? formData.maintenanceDescription : undefined
       };
 
-      // Chamar a função de sucesso com os dados do equipamento
-      onSuccess(newEquipment);
+      // Chamar a função de sucesso com os dados do equipamento e anexos
+      onSuccess(newEquipment, attachments);
       
       showSuccess('Dados preenchidos com sucesso!');
     } catch (error) {
@@ -234,6 +397,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
         maintenanceDescription: ''
       });
       setErrors({});
+      setAttachments([]);
       onClose();
     }
   };
@@ -263,47 +427,6 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
           </button>
         </div>
 
-        {/* Informações da Solicitação */}
-        <div className="bg-blue-50 px-6 py-4 border-b">
-          <div className="flex items-start gap-3">
-            <Package className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">{purchase.description}</h3>
-              <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
-                {purchase.brand && (
-                  <span className="flex items-center gap-1">
-                    <Building2 className="h-4 w-4" />
-                    {purchase.brand}
-                  </span>
-                )}
-                {purchase.model && (
-                  <span className="flex items-center gap-1">
-                    <Monitor className="h-4 w-4" />
-                    {purchase.model}
-                  </span>
-                )}
-                <span className="flex items-center gap-1">
-                  <Tag className="h-4 w-4" />
-                  Equipamento de TI
-                </span>
-                <span className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  {purchase.requestedBy}
-                </span>
-              </div>
-              {purchase.specifications && (
-                <div className="mt-2 p-2 bg-white rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                    <Cpu className="h-3 w-3" />
-                    Especificações:
-                  </p>
-                  <p className="text-sm text-gray-700">{purchase.specifications}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* Formulário */}
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 300px)' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -314,22 +437,35 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Número do Patrimônio *
                 </label>
-                <input
-                  type="text"
-                  name="assetNumber"
-                  value={formData.assetNumber}
-                  onChange={handleChange}
-                  placeholder="TOP-0000"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.assetNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="assetNumber"
+                    value={formData.assetNumber}
+                    onChange={handleChange}
+                    disabled={isGeneratingAssetNumber}
+                    placeholder={isGeneratingAssetNumber ? "Gerando..." : "TOP-0000"}
+                    className={`w-full px-3 py-2 border rounded-lg ${
+                      isGeneratingAssetNumber ? 'bg-gray-100' : 'bg-gray-50'
+                    } focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.assetNumber ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {isGeneratingAssetNumber && (
+                    <div className="absolute right-3 top-2.5">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
+                </div>
                 {errors.assetNumber && (
                   <p className="mt-1 text-sm text-red-600 flex items-center">
                     <AlertCircle className="h-4 w-4 mr-1" />
                     {errors.assetNumber}
                   </p>
                 )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Número gerado automaticamente
+                </p>
               </div>
 
               {/* Marca */}
@@ -530,6 +666,99 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   )}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Seção de Anexos */}
+          <div className="mt-6 pt-6 border-t">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Paperclip className="h-5 w-5" />
+              Anexar Documentos
+            </h3>
+            
+            {/* Área de Upload */}
+            <div
+              className={`relative border-2 border-dashed rounded-lg p-6 text-center ${
+                dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                id="file-upload"
+                className="hidden"
+                multiple
+                onChange={handleFileInput}
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+              />
+              
+              <label
+                htmlFor="file-upload"
+                className="cursor-pointer"
+              >
+                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                <p className="mt-2 text-sm text-gray-600">
+                  <span className="font-semibold text-blue-600 hover:text-blue-700">
+                    Clique para escolher arquivos
+                  </span>
+                  {' '}ou arraste até aqui
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  PDF, JPG, PNG, DOC, XLS até 10MB
+                </p>
+              </label>
+            </div>
+
+            {/* Lista de Arquivos Anexados */}
+            {attachments.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium text-gray-700">
+                  Arquivos anexados ({attachments.length})
+                </p>
+                <div className="space-y-2">
+                  {attachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          attachment.category === 'invoice' ? 'bg-green-100 text-green-600' :
+                          attachment.category === 'purchase_order' ? 'bg-blue-100 text-blue-600' :
+                          attachment.category === 'manual' ? 'bg-purple-100 text-purple-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {getFileIcon(attachment.category)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {attachment.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {getCategoryLabel(attachment.category)} • {formatFileSize(attachment.size)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeAttachment(attachment.id)}
+                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Dica:</strong> Anexe a nota fiscal, pedido de compra, manuais e outros documentos relevantes 
+                para manter o registro completo do equipamento.
+              </p>
             </div>
           </div>
         </div>

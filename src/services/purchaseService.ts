@@ -267,19 +267,13 @@ const purchaseService = {
     user: string
   ): Promise<void> => {
     try {
-      // 1. Criar o equipamento
+      // 1. Criar o equipamento (já registra no histórico automaticamente)
       const newEquipment = await inventoryService.createEquipment(equipmentData, user);
       
       // 2. Marcar a solicitação como adquirida
       await purchaseService.markAsAcquired(purchaseId, user);
       
-      // 3. Adicionar entrada no histórico DO EQUIPAMENTO (não da purchase)
-      await supabase.from('history_entries').insert({
-        equipment_id: newEquipment.id,
-        user_name: user,
-        change_type: 'criou',
-        new_value: `Convertido da solicitação de compra #${purchaseId.substring(0, 8)}`
-      });
+      // 3. NÃO registrar no histórico novamente - o createEquipment já fez isso
       
       console.log('✅ Solicitação convertida em equipamento com sucesso');
     } catch (error) {

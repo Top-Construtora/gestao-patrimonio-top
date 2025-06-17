@@ -16,13 +16,10 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
-  User,
-  Eye,
   Edit,
   Trash,
-  Building2,
-  Monitor,
-  MapPin
+  Briefcase,
+  Receipt
 } from 'lucide-react';
 
 interface EquipmentPurchaseListProps {
@@ -127,10 +124,13 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     }
   };
 
-  // Formatar data
-  const formatDate = (dateString: string) => {
+  // Formatar data mês/ano
+  const formatMonthYear = (dateString?: string) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
+    const month = date.toLocaleDateString('pt-BR', { month: 'short' });
+    const year = date.getFullYear();
+    return `${month}/${year}`;
   };
 
   // Renderizar indicador de ordenação
@@ -160,7 +160,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
       </div>
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-secondary to-secondary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
@@ -185,14 +185,26 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
           </div>
         </Card>
 
+        <Card className="bg-gradient-to-br from-primary-light to-primary-light border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-secondary">Aprovadas</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.approved}</p>
+            </div>
+            <div className="p-2 bg-primary-light bg-opacity-60 rounded-lg">
+              <CheckCircle size={20} className="text-secondary" />
+            </div>
+          </div>
+        </Card>
+
         <Card className="bg-gradient-to-br from-gray-900 to-gray-900 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-purple-100">Adquiridas</p>
+              <p className="text-xs font-medium text-gray-400">Adquiridas</p>
               <p className="text-2xl font-bold text-white mt-1">{stats.acquired}</p>
             </div>
             <div className="p-2 bg-gray-900 bg-opacity-60 rounded-lg">
-              <CheckCircle size={20} className="text-gray-400" />
+              <Receipt size={20} className="text-gray-400" />
             </div>
           </div>
         </Card>
@@ -207,7 +219,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Buscar por descrição, solicitante, fornecedor, marca ou modelo..."
+                placeholder="Buscar por descrição, fornecedor, marca ou modelo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -291,12 +303,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                   >
                     Descrição {renderSortIndicator('description')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Marca/Modelo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Localização
-                  </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('urgency')}
@@ -311,9 +317,12 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('requestDate')}
+                    onClick={() => handleSort('expectedDate')}
                   >
-                    Data {renderSortIndicator('requestDate')}
+                    Data Esperada {renderSortIndicator('expectedDate')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fornecedor Sugerido
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
@@ -323,7 +332,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedPurchases.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center">
+                    <td colSpan={6} className="px-6 py-12 text-center">
                       <ShoppingCart className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                       <p className="text-gray-500">Nenhuma solicitação encontrada</p>
                       <p className="text-sm text-gray-400 mt-1">Tente ajustar os filtros ou criar uma nova solicitação</p>
@@ -333,50 +342,21 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                   sortedPurchases.map((item) => (
                     <tr 
                       key={item.id} 
-                      className="hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => onViewDetails(item.id)}
+                      className="hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-start">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {item.description}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Solicitado por {item.requestedBy}
-                            </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {item.description}
                           </div>
+                          {(item.brand || item.model) && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              {item.brand && <span>{item.brand}</span>}
+                              {item.brand && item.model && <span> - </span>}
+                              {item.model && <span>{item.model}</span>}
+                            </div>
+                          )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.brand || item.model ? (
-                          <div className="text-sm">
-                            {item.brand && (
-                              <div className="flex items-center gap-1 text-gray-600">
-                                <Building2 className="h-3 w-3" />
-                                {item.brand}
-                              </div>
-                            )}
-                            {item.model && (
-                              <div className="flex items-center gap-1 text-gray-600">
-                                <Monitor className="h-3 w-3" />
-                                {item.model}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-sm">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.location ? (
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <MapPin className="h-3 w-3" />
-                            {item.location}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-sm">-</span>
-                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge variante={getUrgencyColor(item.urgency)} size="sm">
@@ -399,39 +379,41 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1 text-sm text-gray-500">
                           <Calendar className="h-3.5 w-3.5" />
-                          {formatDate(item.requestDate)}
+                          {formatMonthYear(item.expectedDate)}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {item.supplier ? (
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <Briefcase className="h-3.5 w-3.5" />
+                            {item.supplier}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onViewDetails(item.id)}
-                            icon={<Eye size={16} />}
-                          >
-                            Ver
-                          </Button>
-                          {item.status === 'pendente' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onEdit(item.id)}
-                              icon={<Edit size={16} />}
-                            >
-                              Editar
-                            </Button>
-                          )}
-                          {item.status === 'aprovado' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onMarkAsAcquired(item.id)}
-                              icon={<CheckCircle size={16} />}
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              Adquirido
-                            </Button>
+                        <div className="flex items-center justify-center gap-1">
+                          {item.status !== 'adquirido' && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onEdit(item.id)}
+                                icon={<Edit size={16} />}
+                              >
+                                Editar
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onMarkAsAcquired(item.id)}
+                                icon={<CheckCircle size={16} />}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                Adquirido
+                              </Button>
+                            </>
                           )}
                           <Button
                             variant="ghost"
