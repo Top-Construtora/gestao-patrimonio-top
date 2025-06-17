@@ -133,6 +133,15 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     }
   }, [purchase]);
 
+  useEffect(() => {
+    if (isOpen && purchase) {
+      setAttachments([]);
+      
+      setDragActive(false);
+      setErrors({});
+    }
+  }, [isOpen, purchase?.id]);
+
   // Função auxiliar para extrair informações do campo observations
   const extractFromObservations = (field: string, observations?: string): string => {
     if (!observations) return '';

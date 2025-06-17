@@ -38,6 +38,8 @@ function App() {
   const [equipmentToDelete, setEquipmentToDelete] = useState<string | null>(null);
   const [showConversionModal, setShowConversionModal] = useState(false);
   const [purchaseToConvert, setPurchaseToConvert] = useState<EquipmentPurchase | null>(null);
+  const [showDeletePurchaseModal, setShowDeletePurchaseModal] = useState(false);
+  const [purchaseToDelete, setPurchaseToDelete] = useState<string | null>(null);
   
   // Hook de Toast
   const { showSuccess, showError, showInfo, showWarning, toasts } = useToast();
@@ -252,17 +254,25 @@ function App() {
   }, [purchases, showError]);
 
   const handleDeletePurchase = useCallback(async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta solicitação?\n\nEsta ação não pode ser desfeita.')) return;
+    setPurchaseToDelete(id);
+    setShowDeletePurchaseModal(true);
+  }, []);
+  
+  const handleConfirmDeletePurchase = useCallback(async () => {
+    if (!purchaseToDelete) return;
     
     try {
-      await purchaseService.deletePurchase(id, currentUser);
+      await purchaseService.deletePurchase(purchaseToDelete, currentUser);
       await loadPurchases();
       showSuccess('Solicitação excluída com sucesso!');
     } catch (error) {
       console.error('❌ Erro ao excluir solicitação:', error);
       showError('Erro ao excluir solicitação');
+    } finally {
+      setShowDeletePurchaseModal(false);
+      setPurchaseToDelete(null);
     }
-  }, [currentUser, loadPurchases, showSuccess, showError]);
+  }, [purchaseToDelete, currentUser, loadPurchases, showSuccess, showError]);
 
   // Carregar histórico específico quando necessário
   useEffect(() => {
@@ -491,6 +501,18 @@ function App() {
               showError('Erro ao converter solicitação em equipamento');
             }
           }
+        }}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={showDeletePurchaseModal}
+        title="Excluir Solicitação"
+        message="Tem certeza que deseja excluir esta solicitação?"
+        itemName={purchases.find(p => p.id === purchaseToDelete)?.description || 'Esta solicitação'}
+        onConfirm={handleConfirmDeletePurchase}
+        onCancel={() => {
+          setShowDeletePurchaseModal(false);
+          setPurchaseToDelete(null);
         }}
       />
     </>
