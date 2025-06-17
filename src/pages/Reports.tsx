@@ -14,7 +14,8 @@ import {
   MapPin,
   AlertCircle,
   ChevronDown,
-  Eye
+  Eye,
+  Laptop
 } from 'lucide-react';
 
 interface ReportsProps {
@@ -141,8 +142,8 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Filter size={18} className="text-blue-600" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Filter size={18} className="text-secondary" />
               </div>
               <h3 className="text-base sm:text-lg font-semibold text-gray-900">Filtros</h3>
               {hasActiveFilters && (
@@ -260,135 +261,44 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-secondary to-secondary border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between p-4 sm:p-6">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-blue-600">Total de Equipamentos</p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{filteredEquipment.length}</p>
-              <p className="text-xs text-gray-600 mt-1 truncate">
-                {equipment.length > 0 
-                  ? `${Math.round((filteredEquipment.length / equipment.length) * 100)}% do total`
-                  : 'Nenhum equipamento'}
+              <p className="text-xs sm:text-sm font-medium text-primary-light">Em operação</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mt-1 sm:mt-2">{filteredEquipment.length}</p>
+              <p className="text-xs text-primary-light mt-1 truncate">
+                equipamentos 
               </p>
             </div>
-            <div className="p-2 sm:p-3 bg-white bg-opacity-60 rounded-full ml-3 flex-shrink-0">
-              <Package className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            <div className="p-2 sm:p-3 bg-secondary bg-opacity-60 rounded-full ml-3 flex-shrink-0">
+              <Laptop className="w-5 h-5 sm:w-6 sm:h-6 text-primary-light" />
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-gray-900 to-gray-900 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between p-4 sm:p-6">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-green-600">Valor Total</p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1 sm:mt-2 truncate">
+              <p className="text-xs sm:text-sm font-medium text-gray-400">Valor Total</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mt-1 sm:mt-2 truncate">
                 {formatCurrency(totalValue)}
               </p>
-              <p className="text-xs text-gray-600 mt-1">Valor acumulado</p>
+              <p className="text-xs text-gray-400 mt-1">Valor acumulado</p>
             </div>
-            <div className="p-2 sm:p-3 bg-white bg-opacity-60 rounded-full ml-3 flex-shrink-0">
-              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+            <div className="p-2 sm:p-3 bg-gray bg-opacity-60 rounded-full ml-3 flex-shrink-0">
+              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
             </div>
           </div>
         </Card>
       </div>
-
-      {/* Visualizações */}
-      <Card className="bg-white shadow-lg">
-        <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 sm:pb-6 border-b border-gray-100">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-0">Análise Visual</h3>
-            <div className="inline-flex rounded-lg bg-gray-100 p-1 w-full sm:w-auto">
-              <button
-                type="button"
-                className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 ${
-                  chartView === 'status'
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                onClick={() => setChartView('status')}
-              >
-                <PieChart size={14} className="inline mr-1.5 sm:mr-2" />
-                Distribuição por Status
-              </button>
-            </div>
-          </div>
-
-          {/* Distribuição por Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-700">Ativos</p>
-                  <span className="text-xl sm:text-2xl font-bold text-green-700">{statusData.active}</span>
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                  {filteredEquipment.length > 0 
-                    ? `${Math.round((statusData.active / filteredEquipment.length) * 100)}% do total` 
-                    : '0%'}
-                </div>
-                <div className="w-full bg-green-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-green-400 to-green-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${filteredEquipment.length > 0 ? (statusData.active / filteredEquipment.length) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-              <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-green-200 rounded-full opacity-20" />
-            </div>
-
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-700">Manutenção</p>
-                  <span className="text-xl sm:text-2xl font-bold text-yellow-700">{statusData.maintenance}</span>
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                  {filteredEquipment.length > 0 
-                    ? `${Math.round((statusData.maintenance / filteredEquipment.length) * 100)}% do total` 
-                    : '0%'}
-                </div>
-                <div className="w-full bg-yellow-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${filteredEquipment.length > 0 ? (statusData.maintenance / filteredEquipment.length) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-              <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-yellow-200 rounded-full opacity-20" />
-            </div>
-
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-red-100 p-4 sm:p-6 shadow-md hover:shadow-lg transition-all duration-300">
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <p className="text-xs sm:text-sm font-medium text-gray-700">Desativados</p>
-                  <span className="text-xl sm:text-2xl font-bold text-red-700">{statusData.inactive}</span>
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                  {filteredEquipment.length > 0 
-                    ? `${Math.round((statusData.inactive / filteredEquipment.length) * 100)}% do total` 
-                    : '0%'}
-                </div>
-                <div className="w-full bg-red-200 bg-opacity-50 rounded-full h-2.5 sm:h-3 overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-red-400 to-red-500 h-2.5 sm:h-3 rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${filteredEquipment.length > 0 ? (statusData.inactive / filteredEquipment.length) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-              <div className="absolute -bottom-4 -right-4 w-20 h-20 sm:w-24 sm:h-24 bg-red-200 rounded-full opacity-20" />
-            </div>
-          </div>
-        </div>
-      </Card>
 
       {/* Tabela Detalhada */}
       <Card className="bg-white shadow-lg">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 pb-4 border-b border-gray-100 flex-1">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <FileText size={18} className="text-blue-600" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <FileText size={18} className="text-primary" />
               </div>
               <h3 className="text-base sm:text-lg font-semibold text-gray-900">Detalhamento</h3>
             </div>

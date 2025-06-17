@@ -10,7 +10,9 @@ import {
   DollarSign,
   BarChart3,
   Zap,
-  Settings
+  Settings,
+  Notebook,
+  Laptop
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -23,7 +25,6 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
     item.status === 'ativo' || item.status === 'manutenção'
   );
 
-  // Cálculos de estatísticas (apenas ativos e manutenção)
   const stats = {
     total: activeEquipment.length,
     active: activeEquipment.filter(item => item.status === 'ativo').length,
@@ -89,61 +90,61 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
       {/* Métricas Principais - Apenas Ativos e Manutenção */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total de Equipamentos eDm Operação */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-secondary to-secondary rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-blue-600 font-medium">Em Operação</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
-              <p className="text-xs text-blue-700 mt-1 font-medium">equipamentos</p>
+              <p className="text-sm text-primary-light font-medium">Em Operação</p>
+              <p className="text-3xl font-bold text-white mt-2">{stats.total}</p>
+              <p className="text-xs text-primary-light mt-1 font-medium">equipamentos</p>
             </div>
-            <div className="p-3 bg-white bg-opacity-60 rounded-full">
-              <Package className="h-6 w-6 text-blue-600" />
+            <div className="p-3 bg-secondary bg-opacity-60 rounded-full">
+              <Laptop className="h-6 w-6 text-primary-light" />
             </div>
           </div>
         </div>
 
         {/* Equipamentos Ativos */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-primary to-primary rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-green-600 font-medium">Ativos</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.active}</p>
-              <p className="text-xs text-green-700 mt-1 font-medium">
+              <p className="text-sm text-secondary-dark font-medium">Ativos</p>
+              <p className="text-3xl font-bold text-white mt-2">{stats.active}</p>
+              <p className="text-xs text-secondary-dark mt-1 font-medium">
                 {stats.total > 0 ? `${Math.round(activePercentage)}% do total` : '0%'}
               </p>
             </div>
-            <div className="p-3 bg-white bg-opacity-60 rounded-full">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="p-3 bg-primary bg-opacity-60 rounded-full">
+              <CheckCircle className="h-6 w-6 text-secondary-dark" />
             </div>
           </div>
         </div>
 
         {/* Equipamentos em Manutenção */}
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-100 rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-accent-light to-accent-light rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-yellow-600 font-medium">Manutenção</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.maintenance}</p>
-              <p className="text-xs text-yellow-700 mt-1 font-medium">
+              <p className="text-sm text-white font-medium">Manutenção</p>
+              <p className="text-3xl font-bold text-white mt-2">{stats.maintenance}</p>
+              <p className="text-xs text-white mt-1 font-medium">
                 {stats.total > 0 ? `${Math.round(maintenancePercentage)}% do total` : '0%'}
               </p>
             </div>
-            <div className="p-3 bg-white bg-opacity-60 rounded-full">
-              <AlertTriangle className="h-6 w-6 text-yellow-600" />
+            <div className="p-3 bg-accent-light bg-opacity-60 rounded-full">
+              <AlertTriangle className="h-6 w-6 text-accent-dark" />
             </div>
           </div>
         </div>
 
         {/* Valor Total */}
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-900 rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-purple-600 font-medium">Valor Total</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">{formatCurrency(stats.totalValue)}</p>
-              <p className="text-xs text-purple-700 mt-1 font-medium">patrimônio ativo</p>
+              <p className="text-sm text-gray-400 font-medium">Valor Total</p>
+              <p className="text-2xl font-bold text-white mt-2">{formatCurrency(stats.totalValue)}</p>
+              <p className="text-xs text-gray-400 mt-1 font-medium">patrimônio ativo</p>
             </div>
-            <div className="p-3 bg-white bg-opacity-60 rounded-full">
-              <DollarSign className="h-6 w-6 text-purple-600" />
+            <div className="p-3 bg-gray bg-opacity-60 rounded-full">
+              <DollarSign className="h-6 w-6 text-gray-400" />
             </div>
           </div>
         </div>
@@ -155,8 +156,8 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Activity className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-gray-200 rounded-lg">
+                <Activity className="h-5 w-5 text-accent" />
               </div>
               <h2 className="text-lg font-semibold text-gray-900">Atividades Recentes</h2>
             </div>
@@ -170,21 +171,21 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
                   <div key={entry.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors group">
                     <div className="mt-1 flex-shrink-0">
                       {entry.changeType === 'criou' && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-secondary-dark rounded-full"></div>
                       )}
                       {entry.changeType === 'editou' && (
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-accent rounded-full"></div>
                       )}
                       {entry.changeType === 'excluiu' && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-red-600 rounded-full"></div>
                       )}
                       {entry.changeType === 'alterou status' && (
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-primary-dark rounded-full"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-gray-900">
-                        <span className="font-medium text-blue-600">{entry.user}</span>
+                        <span className="font-medium text-primary">{entry.user}</span>
                         {' '}
                         <span className="text-gray-600">{getChangeTypeText(entry.changeType)}</span>
                         {' '}
@@ -255,8 +256,8 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-gray-200 rounded-lg">
+                <BarChart3 className="h-5 w-5 text-secondary" />
               </div>
               <h2 className="text-lg font-semibold text-gray-900">Status</h2>
             </div>
@@ -281,7 +282,7 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
                     cx="80"
                     cy="80"
                     r="70"
-                    stroke="#10b981"
+                    stroke="#0f9b8d"
                     strokeWidth="12"
                     fill="none"
                     strokeDasharray={`${(stats.active / stats.total) * 439.82} 439.82`}
@@ -292,7 +293,7 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
                     cx="80"
                     cy="80"
                     r="70"
-                    stroke="#f59e0b"
+                    stroke="#c4b285"
                     strokeWidth="12"
                     fill="none"
                     strokeDasharray={`${(stats.maintenance / stats.total) * 439.82} 439.82`}
@@ -318,27 +319,27 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
 
             {/* Legenda */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                 <div className="flex items-center">
-                  <Zap className="w-4 h-4 text-green-600 mr-2" />
-                  <span className="text-sm font-medium text-green-800">Ativos</span>
+                  <Zap className="w-4 h-4 text-primary-light mr-2" />
+                  <span className="text-sm font-medium text-primary-light">Ativos</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-lg font-bold text-green-900">{stats.active}</span>
-                  <span className="text-xs text-green-700 ml-1">
+                  <span className="text-lg font-bold text-primary-light">{stats.active}</span>
+                  <span className="text-xs text-primary-light ml-1">
                     ({stats.total > 0 ? Math.round(activePercentage) : 0}%)
                   </span>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-accent rounded-lg">
                 <div className="flex items-center">
-                  <Settings className="w-4 h-4 text-yellow-600 mr-2" />
-                  <span className="text-sm font-medium text-yellow-800">Manutenção</span>
+                  <Settings className="w-4 h-4 text-white mr-2" />
+                  <span className="text-sm font-medium text-white">Manutenção</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-lg font-bold text-yellow-900">{stats.maintenance}</span>
-                  <span className="text-xs text-yellow-700 ml-1">
+                  <span className="text-lg font-bold text-white">{stats.maintenance}</span>
+                  <span className="text-xs text-white ml-1">
                     ({stats.total > 0 ? Math.round(maintenancePercentage) : 0}%)
                   </span>
                 </div>

@@ -202,7 +202,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
       <div className="bg-blue-50 p-6 rounded-t-xl">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-start gap-4">
-            <Package className="h-10 w-10 text-blue-600 mt-1" />
+            <Package className="h-10 w-10 text-primary-dark mt-1" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{equipment.description}</h1>
               <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -300,7 +300,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
             {/* Informações Gerais */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                <Info className="h-5 w-5 text-blue-600" />
+                <Info className="h-5 w-5 text-accent" />
                 Informações Gerais
               </div>
               
@@ -370,7 +370,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
             {/* Detalhes Técnicos */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                <Laptop className="h-5 w-5 text-purple-600" />
+                <Laptop className="h-5 w-5 text-secondary-light" />
                 Detalhes Técnicos
               </div>
               

@@ -120,50 +120,50 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-secondary to-secondary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-green-600">Ativos</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.active}</p>
+              <p className="text-xs font-medium text-primary-light">Total</p>
+              <p className="text-2xl font-bold text-white mt-1">{equipment.length}</p>
             </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <CheckCircle size={20} className="text-green-600" />
+            <div className="p-2 bg-secondary bg-opacity-60 rounded-lg">
+              <Laptop size={20} className="text-primary-light" />
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-primary to-primary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-secondary-dark">Ativos</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.active}</p>
+            </div>
+            <div className="p-2 bg-primary bg-opacity-60 rounded-lg">
+              <CheckCircle size={20} className="text-secondary-dark" />
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-accent-light to-accent-light border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-yellow-600">Manutenção</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.maintenance}</p>
+              <p className="text-xs font-medium text-white">Manutenção</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.maintenance}</p>
             </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <AlertTriangle size={20} className="text-yellow-600" />
+            <div className="p-2 bg-accent-light bg-opacity-60 rounded-lg">
+              <AlertTriangle size={20} className="text-white" />
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-red-800 to-red-800 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-red-600">Inativos</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.inactive}</p>
+              <p className="text-xs font-medium text-red-400">Inativos</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.inactive}</p>
             </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <XCircle size={20} className="text-red-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-blue-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{equipment.length}</p>
-            </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <Package size={20} className="text-blue-600" />
+            <div className="p-2 bg-red bg-opacity-60 rounded-lg">
+              <XCircle size={20} className="text-red-400" />
             </div>
           </div>
         </Card>

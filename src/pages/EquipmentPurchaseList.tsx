@@ -169,50 +169,50 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-secondary to-secondary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-blue-600">Total de Solicitações</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+              <p className="text-xs font-medium text-primary-light">Total de Solicitações</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.total}</p>
             </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <ShoppingCart size={20} className="text-blue-600" />
+            <div className="p-2 bg-secondary bg-opacity-60 rounded-lg">
+              <ShoppingCart size={20} className="text-primary-light" />
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-accent-light to-accent-light border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-yellow-600">Pendentes</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.pending}</p>
+              <p className="text-xs font-medium text-white">Pendentes</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.pending}</p>
             </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <Clock size={20} className="text-yellow-600" />
+            <div className="p-2 bg-accent-light bg-opacity-60 rounded-lg">
+              <Clock size={20} className="text-white" />
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-primary to-primary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-green-600">Adquiridas</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{stats.acquired}</p>
+              <p className="text-xs font-medium text-secondary-dark">Adquiridas</p>
+              <p className="text-2xl font-bold text-white mt-1">{stats.acquired}</p>
             </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <CheckCircle size={20} className="text-green-600" />
+            <div className="p-2 bg-primary bg-opacity-60 rounded-lg">
+              <CheckCircle size={20} className="text-secondary-dark" />
             </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-gray-900 to-gray-900 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-purple-600">Valor Total Estimado</p>
-              <p className="text-lg font-bold text-gray-900 mt-1">{formatCurrency(stats.totalValue)}</p>
+              <p className="text-xs font-medium text-gray-400">Valor Total Estimado</p>
+              <p className="text-lg font-bold text-white mt-1">{formatCurrency(stats.totalValue)}</p>
             </div>
-            <div className="p-2 bg-white bg-opacity-60 rounded-lg">
-              <DollarSign size={20} className="text-purple-600" />
+            <div className="p-2 bg-gray-900 bg-opacity-60 rounded-lg">
+              <DollarSign size={20} className="text-gray-400" />
             </div>
           </div>
         </Card>

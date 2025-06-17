@@ -274,7 +274,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         <Card 
           title="Identificação" 
           subtitle="Informações básicas do equipamento"
-          icon={<Package className="h-5 w-5 text-blue-600" />}
+          icon={<Package className="h-5 w-5 text-primary-dark" />}
           variant="elevated"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -375,7 +375,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         <Card 
           title="Informações Técnicas" 
           subtitle="Detalhes técnicos do equipamento"
-          icon={<Settings className="h-5 w-5 text-blue-600" />}
+          icon={<Settings className="h-5 w-5 text-secondary" />}
           variant="elevated"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -444,7 +444,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         <Card 
           title="Localização e Responsável" 
           subtitle="Onde está e quem cuida do equipamento"
-          icon={<MapPin className="h-5 w-5 text-blue-600" />}
+          icon={<MapPin className="h-5 w-5 text-accent" />}
           variant="elevated"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -502,7 +502,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         <Card 
           title="Datas e Valores" 
           subtitle="Informações financeiras e temporais"
-          icon={<DollarSign className="h-5 w-5 text-blue-600" />}
+          icon={<DollarSign className="h-5 w-5 text-gray-400" />}
           variant="elevated"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

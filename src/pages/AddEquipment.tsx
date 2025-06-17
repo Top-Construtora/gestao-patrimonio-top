@@ -22,7 +22,8 @@ import {
   Info,
   Trash,
   Save,
-  RefreshCw
+  RefreshCw,
+  Laptop
 } from 'lucide-react';
 
 interface AddEquipmentProps {
@@ -320,7 +321,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
           {/* Identificação */}
           <Card>
             <div className="flex items-center gap-2 mb-4">
-              <Package className="h-5 w-5 text-blue-600" />
+              <Laptop className="h-5 w-5 text-primary light" />
               <h3 className="text-lg font-semibold text-gray-900">Identificação</h3>
             </div>
             
@@ -424,7 +425,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
           {/* Detalhes Técnicos */}
           <Card>
             <div className="flex items-center gap-2 mb-4">
-              <FileText className="h-5 w-5 text-purple-600" />
+              <FileText className="h-5 w-5 text-secondary-dark" />
               <h3 className="text-lg font-semibold text-gray-900">Detalhes Técnicos</h3>
             </div>
             
@@ -499,7 +500,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
           {/* Localização e Responsável */}
           <Card>
             <div className="flex items-center gap-2 mb-4">
-              <MapPin className="h-5 w-5 text-green-600" />
+              <MapPin className="h-5 w-5 text-accent-dark" />
               <h3 className="text-lg font-semibold text-gray-900">Localização e Responsável</h3>
             </div>
             
@@ -555,7 +556,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
           {/* Informações Financeiras */}
           <Card>
             <div className="flex items-center gap-2 mb-4">
-              <DollarSign className="h-5 w-5 text-yellow-600" />
+              <DollarSign className="h-5 w-5 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900">Informações Financeiras</h3>
             </div>
             
@@ -629,7 +630,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
         <div className="lg:col-span-2">
           <Card>
             <div className="flex items-center gap-2 mb-4">
-              <Upload className="h-5 w-5 text-indigo-600" />
+              <Upload className="h-5 w-5 text-black" />
               <h3 className="text-lg font-semibold text-gray-900">Anexos</h3>
             </div>
             
