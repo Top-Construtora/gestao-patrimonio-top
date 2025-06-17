@@ -185,13 +185,13 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-primary-light to-primary-light border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <Card className="bg-gradient-to-br from-primary to-primary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-secondary">Aprovadas</p>
               <p className="text-2xl font-bold text-white mt-1">{stats.approved}</p>
             </div>
-            <div className="p-2 bg-primary-light bg-opacity-60 rounded-lg">
+            <div className="p-2 bg-primary bg-opacity-60 rounded-lg">
               <CheckCircle size={20} className="text-secondary" />
             </div>
           </div>

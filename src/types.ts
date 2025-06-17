@@ -40,7 +40,6 @@ export interface CreateEquipmentPurchaseDto {
 export interface CompleteEquipmentPurchaseDto {
   responsible_person: string;
   acquisition_date: string;
-  // Campos adicionais do equipamento principal
   serial_number?: string;
   asset_tag?: string;
   model?: string;
@@ -114,4 +113,13 @@ export interface DatabaseAttachment {
   uploaded_by: string;
   uploaded_at: string;
   created_at: string;
+}
+
+export interface FileAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  file: File;
+  category: 'invoice' | 'purchase_order' | 'manual' | 'other';
 }

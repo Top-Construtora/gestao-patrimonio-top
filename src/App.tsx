@@ -12,7 +12,7 @@ import PurchaseToEquipmentModal from './components/purchases/PurchaseToEquipment
 import { useToast } from './components/common/Toast';
 import Toast from './components/common/Toast';
 import DeleteConfirmationModal from './components/common/DeleteConfirmationModal';
-import { Equipment, HistoryEntry } from './types';
+import { Equipment, HistoryEntry, FileAttachment } from './types';
 import { EquipmentPurchase } from './types/purchaseTypes';
 import inventoryService from './services/inventoryService';
 import purchaseService from './services/purchaseService';
@@ -447,13 +447,22 @@ function App() {
           setShowConversionModal(false);
           setPurchaseToConvert(null);
         }}
-        onSuccess={async (equipmentData) => {
+        onSuccess={async (equipmentData, attachments) => {
           if (purchaseToConvert) {
             try {
-              // Converter solicitação em equipamento
-              await purchaseService.convertToEquipment(
-                purchaseToConvert.id,
+              // Extrair os arquivos File dos objetos FileAttachment
+              const attachmentFiles = attachments.map(att => att.file);
+              
+              // Criar o equipamento com os anexos
+              await inventoryService.createEquipment(
                 equipmentData,
+                currentUser,
+                attachmentFiles // Passar os arquivos aqui
+              );
+              
+              // Marcar a solicitação como adquirida
+              await purchaseService.markAsAcquired(
+                purchaseToConvert.id,
                 currentUser
               );
               
@@ -468,7 +477,11 @@ function App() {
               setPurchases(updatedPurchases);
               setHistory(updatedHistory);
               
-              showSuccess('Equipamento cadastrado e solicitação marcada como adquirida!');
+              // Mensagem de sucesso incluindo informação sobre anexos
+              const attachmentText = attachmentFiles.length > 0 
+                ? ` com ${attachmentFiles.length} anexo(s)` 
+                : '';
+              showSuccess(`Equipamento cadastrado e solicitação marcada como adquirida${attachmentText}!`);
               
               // Fechar modal
               setShowConversionModal(false);
