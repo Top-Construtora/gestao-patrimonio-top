@@ -3,6 +3,7 @@ import { Equipment, HistoryEntry, Attachment } from '../types';
 import Button from '../components/common/Button';
 import EquipmentDetails from '../components/equipment/EquipmentDetails';
 import TransferEquipmentModal from '../components/equipment/TransferEquipment';
+import ResponsibilityTermAssinafy from '../components/responsability/ResponsabilityTerm';
 import LoadingOverlay from '../components/common/LoadingOverlay';
 import { 
   ArrowLeft, 
@@ -13,7 +14,8 @@ import {
   Shield,
   FileText,
   Activity,
-  ArrowRight
+  ArrowRight,
+  FileSignature
 } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 import { useToast } from '../components/common/Toast';
@@ -38,6 +40,7 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showResponsibilityTerm, setShowResponsibilityTerm] = useState(false);
 
   const loadEquipmentData = async () => {
     try {
@@ -144,6 +147,16 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
     }
   };
 
+  const handleTermCreated = async (term: any) => {
+    console.log('Termo criado:', term);
+    showSuccess('Termo de responsabilidade enviado para assinatura!');
+    
+    // Recarregar anexos para mostrar o novo termo quando for assinado
+    setTimeout(async () => {
+      await loadEquipmentData();
+    }, 2000);
+  };
+
   if (loading) {
     return <LoadingOverlay message="Carregando detalhes..." submessage="Por favor, aguarde" />;
   }
@@ -200,6 +213,16 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
           </button>
           
           <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowResponsibilityTerm(true)}
+              className="flex items-center space-x-2"
+            >
+              <FileSignature className="w-4 h-4" />
+              <span>Termo de Responsabilidade</span>
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -290,6 +313,15 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
         onClose={() => setShowTransferModal(false)}
         onSuccess={handleTransfer}
       />
+
+      {/* Responsibility Term Modal with Assinafy */}
+      {showResponsibilityTerm && (
+        <ResponsibilityTermAssinafy
+          equipment={equipment}
+          onClose={() => setShowResponsibilityTerm(false)}
+          onTermCreated={handleTermCreated}
+        />
+      )}
     </>
   );
 };

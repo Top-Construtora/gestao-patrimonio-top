@@ -133,3 +133,41 @@ export interface FileAttachment {
   file: File;
   category: 'invoice' | 'purchase_order' | 'manual' | 'other';
 }
+
+export interface ResponsibilityTerm {
+  id: string;
+  equipmentId: string;
+  responsiblePerson: string;
+  responsibleEmail: string;
+  responsiblePhone: string;
+  responsibleCPF: string;
+  responsibleDepartment: string;
+  termDate: string;
+  status: 'draft' | 'sent' | 'signed' | 'cancelled';
+  observations?: string;
+  assinafyDocumentId?: string;
+  assinafySignerId?: string;
+  assinafySignedAt?: string;
+  pdfUrl?: string;
+  signedPdfUrl?: string;
+}
+
+export interface DatabaseResponsibilityTerm {
+  id: string;
+  equipment_id: string;
+  responsible_person: string;
+  responsible_email: string;
+  responsible_phone: string;
+  responsible_cpf: string;
+  responsible_department: string;
+  term_date: string;
+  status: 'draft' | 'sent' | 'signed' | 'cancelled';
+  observations: string | null;
+  assinafy_document_id: string | null;
+  assinafy_signer_id: string | null;
+  assinafy_signed_at: string | null;
+  pdf_url: string | null;
+  signed_pdf_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
