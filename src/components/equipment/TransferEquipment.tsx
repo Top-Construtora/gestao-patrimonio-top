@@ -210,14 +210,14 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-slide-up">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 p-2 rounded-lg">
               <ArrowRight className="h-5 w-5 text-white" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-white">Transferir Equipamento</h2>
-              <p className="text-blue-100 text-sm">Registrar movimentação de localização</p>
+              <p className="text-gray-100 text-sm">Registrar movimentação de localização</p>
             </div>
           </div>
           <button
@@ -236,8 +236,8 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
               {/* Equipment Info Card */}
               <Card variant="bordered" className="bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <Package className="h-6 w-6 text-blue-600" />
+                  <div className="bg-gray-100 p-3 rounded-lg">
+                    <Package className="h-6 w-6 text-gray-800" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 text-lg">{equipment.assetNumber}</h3>
@@ -274,7 +274,7 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
                       onChange={handleChange}
                       onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 200)}
                       placeholder="Ex: Sala 205, Almoxarifado, Recepção"
-                      className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                      className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                         errors.newLocation ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                       }`}
                     />
@@ -287,7 +287,7 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
                             key={index}
                             type="button"
                             onClick={() => handleLocationSelect(location)}
-                            className="w-full px-4 py-2 text-left hover:bg-blue-50 hover:text-blue-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
+                            className="w-full px-4 py-2 text-left hover:bg-gray-50 hover:text-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg"
                           >
                             <div className="flex items-center gap-2">
                               <Building2 className="h-4 w-4 text-gray-400" />
@@ -320,7 +320,7 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
                       onChange={handleChange}
                       max={new Date().toISOString().split('T')[0]}
                       min={equipment.acquisitionDate?.split('T')[0]}
-                      className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                      className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                         errors.transferDate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                       }`}
                     />
@@ -346,7 +346,7 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
                       value={formData.responsiblePerson}
                       onChange={handleChange}
                       placeholder="Nome completo do responsável"
-                      className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                      className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                         errors.responsiblePerson ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                       }`}
                     />
@@ -373,7 +373,7 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
                       onChange={handleChange}
                       rows={3}
                       placeholder="Motivo da transferência, condições do equipamento ou outras informações relevantes"
-                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none hover:border-gray-400"
+                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none hover:border-gray-400"
                     />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
@@ -383,12 +383,12 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
               </div>
 
               {/* Info Alert */}
-              <Card variant="bordered" className="border-blue-200 bg-blue-50">
+              <Card variant="bordered" className="border-gray-200 bg-gray-50">
                 <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Info className="h-5 w-5 text-gray-800 mt-0.5 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="text-blue-900 font-medium mb-1">Importante</p>
-                    <ul className="text-blue-700 space-y-1 list-disc list-inside">
+                    <p className="text-gray-900 font-medium mb-1">Importante</p>
+                    <ul className="text-gray-700 space-y-1 list-disc list-inside">
                       <li>A transferência será registrada permanentemente no histórico</li>
                       <li>O equipamento permanecerá com o mesmo responsável</li>
                       <li>Para alterar o responsável, use a função "Editar"</li>
@@ -422,8 +422,8 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
                   </div>
                   
                   {/* Transferência */}
-                  <div className="bg-gradient-to-r from-blue-50 to-white rounded-lg p-4 border border-blue-200">
-                    <p className="text-sm text-blue-700 mb-3 font-medium flex items-center gap-2">
+                  <div className="bg-gradient-to-r from-gray-50 to-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm text-gray-700 mb-3 font-medium flex items-center gap-2">
                       <ArrowRight className="h-4 w-4" />
                       Detalhes da Transferência
                     </p>
@@ -438,9 +438,9 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
                       </div>
                       
                       <div>
-                        <p className="text-xs text-blue-600 mb-1">Para:</p>
-                        <p className="font-medium text-blue-900 flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-blue-600" />
+                        <p className="text-xs text-gray-800 mb-1">Para:</p>
+                        <p className="font-medium text-gray-900 flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-gray-800" />
                           {formData.newLocation}
                         </p>
                       </div>

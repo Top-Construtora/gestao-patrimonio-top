@@ -140,11 +140,11 @@ const Toast: React.FC<ToastProps> = ({
           bg: 'bg-gradient-to-r from-blue-50 to-indigo-50',
           border: 'border-blue-200',
           iconBg: 'bg-blue-100',
-          iconColor: 'text-blue-600',
+          iconColor: 'text-gray-800',
           textColor: 'text-blue-900',
           descColor: 'text-blue-700',
           progressBg: 'bg-blue-200',
-          progressBar: 'bg-blue-500',
+          progressBar: 'bg-gray-700',
           actionColor: 'text-blue-700 hover:text-blue-800 hover:bg-blue-100'
         };
       case 'info':
@@ -153,11 +153,11 @@ const Toast: React.FC<ToastProps> = ({
           bg: 'bg-gradient-to-r from-blue-50 to-cyan-50',
           border: 'border-blue-200',
           iconBg: 'bg-blue-100',
-          iconColor: 'text-blue-600',
+          iconColor: 'text-gray-800',
           textColor: 'text-blue-900',
           descColor: 'text-blue-700',
           progressBg: 'bg-blue-200',
-          progressBar: 'bg-blue-500',
+          progressBar: 'bg-gray-700',
           actionColor: 'text-blue-700 hover:text-blue-800 hover:bg-blue-100'
         };
     }

@@ -260,7 +260,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
           <p className="text-gray-600 mt-2">Atualize as informações do equipamento</p>
         </div>
 
-        <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+        <div className="flex items-center gap-2 text-gray-800 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
           <Edit className="h-4 w-4" />
           <span className="text-sm font-medium">
             {formData.assetNumber}
@@ -287,7 +287,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                 name="assetNumber"
                 value={formData.assetNumber}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                   errors.assetNumber ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                 }`}
               />
@@ -307,7 +307,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:border-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all hover:border-gray-400"
               >
                 <option value="ativo">Ativo</option>
                 <option value="manutenção">Em Manutenção</option>
@@ -324,7 +324,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                 value={formData.description}
                 onChange={handleChange}
                 rows={3}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none ${
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none ${
                   errors.description ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                 }`}
               />
@@ -390,7 +390,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   name="brand"
                   value={formData.brand}
                   onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                     errors.brand ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                   }`}
                 />
@@ -412,7 +412,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                 name="model"
                 value={formData.model}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                   errors.model ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                 }`}
               />
@@ -434,7 +434,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                 onChange={handleChange}
                 rows={4}
                 placeholder="Processador, memória, armazenamento, etc."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none hover:border-gray-400"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none hover:border-gray-400"
               />
             </div>
           </div>
@@ -459,7 +459,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                     errors.location ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                   }`}
                 />
@@ -483,7 +483,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   name="responsible"
                   value={formData.responsible}
                   onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                     errors.responsible ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                   }`}
                 />
@@ -517,7 +517,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   name="acquisitionDate"
                   value={formData.acquisitionDate}
                   onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                     errors.acquisitionDate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                   }`}
                 />
@@ -541,7 +541,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   name="invoiceDate"
                   value={formData.invoiceDate || ''}
                   onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all border-gray-300 hover:border-gray-400"
+                  className="w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all border-gray-300 hover:border-gray-400"
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500">
@@ -560,7 +560,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
                   name="value"
                   value={formatCurrency(formData.value)}
                   onChange={handleValueChange}
-                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all ${
                     errors.value ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                   }`}
                 />
@@ -592,7 +592,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
         {/* Form Instructions */}
         <Card 
           status="info"
-          icon={<Info className="h-5 w-5 text-blue-600" />}
+          icon={<Info className="h-5 w-5 text-gray-800" />}
           className="border-blue-200 bg-blue-50"
         >
           <div className="text-sm text-blue-800">
@@ -622,7 +622,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             onClick={handleSubmit}
             icon={<Save className="h-4 w-4" />}
             disabled={!hasChanges || Object.keys(errors).length > 0}
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+            className="w-full sm:w-auto bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
             Salvar Alterações
           </Button>

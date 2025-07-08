@@ -294,7 +294,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
     
     if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '')) {
-      return <Image className="h-5 w-5 text-blue-500" />;
+      return <Image className="h-5 w-5 text-gray-700" />;
     } else if (['pdf'].includes(extension || '')) {
       return <FileText className="h-5 w-5 text-red-500" />;
     } else {
@@ -339,7 +339,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     disabled={loadingAssetNumber}
                     readOnly
                     placeholder={loadingAssetNumber ? "Carregando..." : "TOP-0000"}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
                       errors.assetNumber ? 
                       'border-red-300 bg-red-50' : 
                       loadingAssetNumber ? 
@@ -363,7 +363,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm bg-white"
                   >
                     <option value="ativo">Ativo</option>
                     <option value="manutenção">Em Manutenção</option>
@@ -382,7 +382,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Descreva o equipamento..."
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none text-sm ${
                     errors.description ? 
                     'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}
@@ -406,7 +406,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     onChange={handleChange}
                     rows={2}
                     placeholder="Descreva o que será feito na manutenção..."
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-sm ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none text-sm ${
                       errors.maintenanceDescription ? 
                       'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
@@ -441,7 +441,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     value={formData.brand}
                     onChange={handleChange}
                     placeholder="Ex: Dell"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
                       errors.brand ? 
                       'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
@@ -464,7 +464,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     value={formData.model}
                     onChange={handleChange}
                     placeholder="Ex: OptiPlex 7090"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
                       errors.model ? 
                       'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
@@ -488,7 +488,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Ex: Intel Core i7, 16GB RAM, 512GB SSD..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none text-sm"
                 />
               </div>
             </div>
@@ -515,7 +515,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   value={formData.location}
                   onChange={handleChange}
                   placeholder="Ex: Sala de TI - 2º Andar"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
                     errors.location ? 
                     'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}
@@ -538,7 +538,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   value={formData.responsible}
                   onChange={handleChange}
                   placeholder="Nome do responsável"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
                     errors.responsible ? 
                     'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}
@@ -571,7 +571,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     name="acquisitionDate"
                     value={formData.acquisitionDate}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
                       errors.acquisitionDate ? 
                       'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
@@ -593,7 +593,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     name="invoiceDate"
                     value={formData.invoiceDate || ''}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm"
                   />
                 </div>
               </div>
@@ -610,7 +610,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   step="0.01"
                   min="0"
                   placeholder="0,00"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
                     errors.value ? 
                     'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}
@@ -646,7 +646,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
               onDrop={handleFileDrop}
             >
               <Upload className={`mx-auto h-10 w-10 mb-3 ${
-                isDragging ? 'text-blue-500' : 'text-gray-400'
+                isDragging ? 'text-gray-700' : 'text-gray-400'
               }`} />
               <p className="text-sm font-medium text-gray-700 mb-1">
                 Arraste arquivos aqui ou clique para selecionar
@@ -732,7 +732,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
 
           {/* Form Instructions */}
           <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Info className="h-5 w-5 text-gray-800 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Instruções de Cadastro:</p>
               <ul className="text-xs space-y-0.5 list-disc list-inside">

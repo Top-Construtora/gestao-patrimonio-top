@@ -417,7 +417,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-gray-800 to-blue-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg">
               <ShoppingCart className="h-6 w-6 text-white" />
@@ -456,13 +456,13 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                     placeholder={isGeneratingAssetNumber ? "Gerando..." : "TOP-0000"}
                     className={`w-full px-3 py-2 border rounded-lg ${
                       isGeneratingAssetNumber ? 'bg-gray-100' : 'bg-gray-50'
-                    } focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    } focus:ring-2 focus:ring-gray-700 focus:border-transparent ${
                       errors.assetNumber ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
                   {isGeneratingAssetNumber && (
                     <div className="absolute right-3 top-2.5">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-800"></div>
                     </div>
                   )}
                 </div>
@@ -487,7 +487,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   name="brand"
                   value={formData.brand}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent ${
                     errors.brand ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -509,7 +509,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   name="model"
                   value={formData.model}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent ${
                     errors.model ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -531,7 +531,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   value={formData.specs}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent resize-none"
                 />
               </div>
             </div>
@@ -548,7 +548,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent ${
                     errors.location ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -570,7 +570,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   name="responsible"
                   value={formData.responsible}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent ${
                     errors.responsible ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -593,7 +593,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                     name="acquisitionDate"
                     value={formData.acquisitionDate}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -605,7 +605,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                     name="invoiceDate"
                     value={formData.invoiceDate}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -619,7 +619,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   type="text"
                   value={formatCurrency(formData.value)}
                   onChange={handleValueChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent ${
                     errors.value ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -640,7 +640,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent"
                 >
                   <option value="ativo">Ativo</option>
                   <option value="manutenção">Em Manutenção</option>
@@ -661,7 +661,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                       value={formData.maintenanceDescription}
                       onChange={handleChange}
                       rows={3}
-                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent resize-none ${
                         errors.maintenanceDescription ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Descreva o que está sendo feito..."
@@ -688,7 +688,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
             {/* Área de Upload */}
             <div
               className={`relative border-2 border-dashed rounded-lg p-6 text-center ${
-                dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                dragActive ? 'border-gray-700 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
               }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -710,7 +710,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
               >
                 <Upload className="mx-auto h-12 w-12 text-gray-400" />
                 <p className="mt-2 text-sm text-gray-600">
-                  <span className="font-semibold text-blue-600 hover:text-blue-700">
+                  <span className="font-semibold text-gray-800 hover:text-blue-700">
                     Clique para escolher arquivos
                   </span>
                   {' '}ou arraste até aqui
@@ -736,7 +736,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${
                           attachment.category === 'invoice' ? 'bg-green-100 text-green-600' :
-                          attachment.category === 'purchase_order' ? 'bg-blue-100 text-blue-600' :
+                          attachment.category === 'purchase_order' ? 'bg-blue-100 text-gray-800' :
                           attachment.category === 'manual' ? 'bg-purple-100 text-purple-600' :
                           'bg-gray-100 text-gray-600'
                         }`}>
@@ -792,7 +792,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
               isLoading={isSubmitting}
               loadingText="Convertendo..."
               icon={<ArrowRight size={16} />}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+              className="bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
             >
               Converter para Equipamento
             </Button>

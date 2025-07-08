@@ -8,13 +8,12 @@ import {
   ArrowLeft, 
   AlertTriangle, 
   RefreshCw,
-  Clock,
-  History as HistoryIcon,
-  Paperclip,
-  Package,
-  ArrowRight,
   Edit,
-  Trash
+  Trash,
+  Shield,
+  FileText,
+  Activity,
+  ArrowRight
 } from 'lucide-react';
 import inventoryService from '../services/inventoryService';
 import { useToast } from '../components/common/Toast';
@@ -87,7 +86,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
     observations?: string
   ) => {
     try {
-      // Usar a função transferEquipment do serviço
       await inventoryService.transferEquipment(
         equipmentId,
         newLocation,
@@ -96,19 +94,18 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
         observations
       );
       
-      // Recarregar dados
       await loadEquipmentData();
-      
       setShowTransferModal(false);
+      showSuccess('Equipamento transferido com sucesso!');
     } catch (error) {
       console.error('Erro ao transferir equipamento:', error);
+      showError('Erro ao transferir equipamento');
       throw error;
     }
   };
 
   const handleUploadAttachment = async (file: File) => {
     try {
-      // Validate file size (10MB max)
       if (file.size > 10 * 1024 * 1024) {
         throw new Error('Arquivo muito grande. Tamanho máximo: 10MB');
       }
@@ -192,37 +189,26 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
   return (
     <>
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onBack}
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors group"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1.5 transition-transform group-hover:-translate-x-1" />
-              Voltar
-            </button>
-            
-            <div className="h-6 w-px bg-gray-300"></div>
-            
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Package className="h-4 w-4" />
-              <span>{equipment.assetNumber}</span>
-            </div>
-          </div>
+        {/* Breadcrumb e Actions */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors group"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1.5 transition-transform group-hover:-translate-x-1" />
+            Voltar para lista
+          </button>
           
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               icon={<ArrowRight className="h-4 w-4" />}
               onClick={() => setShowTransferModal(true)}
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Transferir
             </Button>
-            
             <Button
               variant="outline"
               size="sm"
@@ -240,22 +226,7 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
             >
               Excluir
             </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<RefreshCw className="h-4 w-4" />}
-              onClick={handleRefresh}
-            >
-              Atualizar
-            </Button>
           </div>
-        </div>
-
-        {/* Title */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Detalhes do Equipamento</h1>
-          <p className="text-gray-600 mt-2">Visualize e gerencie informações completas do equipamento</p>
         </div>
 
         {/* Equipment Details Component */}
@@ -268,56 +239,46 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
           onUploadAttachment={handleUploadAttachment}
           onDeleteAttachment={handleDeleteAttachment}
           onDownloadAttachment={handleDownloadAttachment}
+          onTransfer={() => setShowTransferModal(true)}
         />
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <HistoryIcon className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Histórico</p>
-                  <p className="text-xl font-bold text-gray-900">{history.length}</p>
-                </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="bg-gray-600 p-2 rounded-lg">
+                <Activity className="h-5 w-5 text-white" />
               </div>
-              <Clock className="h-4 w-4 text-gray-400" />
+              <span className="text-2xl font-bold text-gray-900">{history.length}</span>
             </div>
+            <p className="text-sm font-medium text-gray-700">Atividades Registradas</p>
+            <p className="text-xs text-gray-600 mt-1">Histórico completo de alterações</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <Paperclip className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Anexos</p>
-                  <p className="text-xl font-bold text-gray-900">{attachments.length}</p>
-                </div>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="bg-gray-600 p-2 rounded-lg">
+                <FileText className="h-5 w-5 text-white" />
               </div>
-              <Package className="h-4 w-4 text-gray-400" />
+              <span className="text-2xl font-bold text-gray-900">{attachments.length}</span>
             </div>
+            <p className="text-sm font-medium text-gray-700">Documentos Anexados</p>
+            <p className="text-xs text-gray-600 mt-1">Arquivos e documentos relacionados</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <Clock className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Última Atualização</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {equipment.updatedAt || equipment.createdAt
-                      ? new Date((equipment.updatedAt || equipment.createdAt) as string).toLocaleDateString('pt-BR')
-                      : '—'}
-                  </p>
-                </div>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="bg-gray-600 p-2 rounded-lg">
+                <Shield className="h-5 w-5 text-white" />
               </div>
+              <span className="text-sm font-bold text-gray-900">
+                {equipment.status === 'ativo' ? 'Operacional' : 
+                 equipment.status === 'manutenção' ? 'Em Manutenção' : 
+                 'Inativo'}
+              </span>
             </div>
+            <p className="text-sm font-medium text-gray-700">Status Atual</p>
+            <p className="text-xs text-gray-600 mt-1">Condição operacional do equipamento</p>
           </div>
         </div>
       </div>

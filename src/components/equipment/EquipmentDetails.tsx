@@ -31,7 +31,21 @@ import {
   Wrench,
   Tag,
   ArrowRight,
-  Building2
+  Building2,
+  Cpu,
+  HardDrive,
+  Monitor,
+  Shield,
+  Server,
+  Printer,
+  Router,
+  Smartphone,
+  Tablet,
+  Watch,
+  Camera,
+  Headphones,
+  Mouse,
+  Keyboard
 } from 'lucide-react';
 
 interface EquipmentDetailsProps {
@@ -57,7 +71,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
   onDownloadAttachment,
   onTransfer
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'history' | 'attachments'>('details');
+  const [activeTab, setActiveTab] = useState<'info' | 'history' | 'attachments'>('info');
   const [isDragging, setIsDragging] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [attachmentToDelete, setAttachmentToDelete] = useState<Attachment | null>(null);
@@ -101,47 +115,49 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
     }).format(value);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return 'success';
-      case 'manutenção':
-        return 'warning';
-      case 'desativado':
-        return 'error';
-      default:
-        return 'default';
-    }
+  const getEquipmentIcon = () => {
+    const desc = equipment.description.toLowerCase();
+    if (desc.includes('notebook') || desc.includes('laptop')) return <Laptop className="h-6 w-6" />;
+    if (desc.includes('monitor')) return <Monitor className="h-6 w-6" />;
+    if (desc.includes('cpu') || desc.includes('desktop')) return <Cpu className="h-6 w-6" />;
+    if (desc.includes('servidor') || desc.includes('server')) return <Server className="h-6 w-6" />;
+    if (desc.includes('impressora') || desc.includes('printer')) return <Printer className="h-6 w-6" />;
+    if (desc.includes('roteador') || desc.includes('router')) return <Router className="h-6 w-6" />;
+    if (desc.includes('celular') || desc.includes('smartphone')) return <Smartphone className="h-6 w-6" />;
+    if (desc.includes('tablet')) return <Tablet className="h-6 w-6" />;
+    if (desc.includes('mouse')) return <Mouse className="h-6 w-6" />;
+    if (desc.includes('teclado') || desc.includes('keyboard')) return <Keyboard className="h-6 w-6" />;
+    return <Package className="h-6 w-6" />;
   };
 
-  const getChangeTypeIcon = (changeType: string) => {
+  const getChangeTypeDetails = (changeType: string) => {
     switch (changeType) {
       case 'criou':
-        return <Package className="h-4 w-4" />;
+        return { icon: <Package className="h-4 w-4" />, color: 'text-gray-600 bg-gray-50', action: 'criou o equipamento' };
       case 'editou':
-        return <Edit className="h-4 w-4" />;
+        return { icon: <Edit className="h-4 w-4" />, color: 'text-gray-800 bg-blue-50', action: 'editou' };
       case 'excluiu':
-        return <Trash className="h-4 w-4" />;
+        return { icon: <Trash className="h-4 w-4" />, color: 'text-red-600 bg-red-50', action: 'excluiu' };
       case 'manutenção':
-        return <Wrench className="h-4 w-4" />;
+        return { icon: <Wrench className="h-4 w-4" />, color: 'text-orange-600 bg-orange-50', action: 'registrou manutenção' };
       case 'alterou status':
-        return <Activity className="h-4 w-4" />;
+        return { icon: <Activity className="h-4 w-4" />, color: 'text-yellow-600 bg-yellow-50', action: 'alterou o status' };
       case 'anexou arquivo':
-        return <Paperclip className="h-4 w-4" />;
+        return { icon: <Paperclip className="h-4 w-4" />, color: 'text-gray-600 bg-gray-50', action: 'anexou arquivo' };
       case 'removeu arquivo':
-        return <X className="h-4 w-4" />;
+        return { icon: <X className="h-4 w-4" />, color: 'text-pink-600 bg-pink-50', action: 'removeu arquivo' };
       case 'transferiu':
-        return <ArrowRight className="h-4 w-4" />;
+        return { icon: <ArrowRight className="h-4 w-4" />, color: 'text-gray-600 bg-gray-50', action: 'transferiu' };
       default:
-        return <Clock className="h-4 w-4" />;
+        return { icon: <Clock className="h-4 w-4" />, color: 'text-gray-600 bg-gray-50', action: changeType };
     }
   };
 
   const getFileIcon = (type: string) => {
-    if (type.includes('pdf')) return <FileText className="h-5 w-5 text-red-600" />;
-    if (type.includes('image')) return <Image className="h-5 w-5 text-blue-600" />;
-    if (type.includes('sheet') || type.includes('excel')) return <FileSpreadsheet className="h-5 w-5 text-green-600" />;
-    return <File className="h-5 w-5 text-gray-600" />;
+    if (type.includes('pdf')) return <FileText className="h-8 w-8 text-red-500" />;
+    if (type.includes('image')) return <Image className="h-8 w-8 text-gray-700" />;
+    if (type.includes('sheet') || type.includes('excel')) return <FileSpreadsheet className="h-8 w-8 text-gray-500" />;
+    return <File className="h-8 w-8 text-gray-500" />;
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,260 +205,197 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
     setAttachmentToDelete(null);
   };
 
-  // Buscar última transferência no histórico
-  const lastTransfer = history.find(entry => entry.changeType === 'transferiu' && entry.field === 'location');
+  const tabs = [
+    { id: 'info' as const, label: 'Informações', icon: <Info className="h-4 w-4" /> },
+    { id: 'history' as const, label: 'Histórico', icon: <History className="h-4 w-4" />, count: history.length },
+    { id: 'attachments' as const, label: 'Anexos', icon: <Paperclip className="h-4 w-4" />, count: attachments.length }
+  ];
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Package className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">{equipment.description}</h2>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-sm font-medium text-gray-600 flex items-center gap-1">
-                    <Tag className="h-4 w-4" />
-                    {equipment.assetNumber}
-                  </span>
-                  <Badge
-                    variante={
-                      equipment.status === 'ativo' ? 'success' : 
-                      equipment.status === 'manutenção' ? 'warning' : 
-                      'error'
-                    }
-                  >
-                    {equipment.status === 'ativo' ? 'Ativo' : 
-                     equipment.status === 'manutenção' ? 'Em Manutenção' : 
-                     'Desativado'}
-                  </Badge>
-                </div>
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* Header com gradiente suave */}
+      <div className="bg-gradient-to-r from-gray-800 to-gray-700 p-6 text-white">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm">
+              {getEquipmentIcon()}
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{equipment.description}</h1>
+              <div className="flex items-center gap-4 text-blue-100">
+                <span className="flex items-center gap-1.5">
+                  <Tag className="h-4 w-4" />
+                  {equipment.assetNumber}
+                </span>
+                <Badge
+                  variante={
+                    equipment.status === 'ativo' ? 'success' : 
+                    equipment.status === 'manutenção' ? 'warning' : 
+                    'error'
+                  }
+                  className="bg-white/20 backdrop-blur-sm text-white border-transparent"
+                >
+                  {equipment.status === 'ativo' ? 'Ativo' : 
+                   equipment.status === 'manutenção' ? 'Em Manutenção' : 
+                   'Desativado'}
+                </Badge>
               </div>
             </div>
           </div>
-          
-          <div className="flex gap-3">
-            {onTransfer && (
-              <Button
-                variant="outline"
-                onClick={onTransfer}
-                icon={<ArrowRight size={16} />}
-                className="border-blue-300 text-blue-700 hover:bg-blue-50"
-              >
-                Transferir
-              </Button>
-            )}
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <p className="text-blue-100 text-sm">Localização</p>
+            <p className="text-white font-semibold">{equipment.location}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <p className="text-blue-100 text-sm">Responsável</p>
+            <p className="text-white font-semibold">{equipment.responsible}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <p className="text-blue-100 text-sm">Aquisição</p>
+            <p className="text-white font-semibold">{formatDate(equipment.acquisitionDate)}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <p className="text-blue-100 text-sm">Valor</p>
+            <p className="text-white font-semibold">{formatCurrency(equipment.value)}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex">
-          <button
-            onClick={() => setActiveTab('details')}
-            className={`flex-1 sm:flex-initial px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center gap-2 ${
-              activeTab === 'details'
-                ? 'text-blue-600 border-blue-600'
-                : 'text-gray-500 border-transparent hover:text-gray-700'
-            }`}
-          >
-            <Eye size={16} />
-            Detalhes
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex-1 sm:flex-initial px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center gap-2 ${
-              activeTab === 'history'
-                ? 'text-blue-600 border-blue-600'
-                : 'text-gray-500 border-transparent hover:text-gray-700'
-            }`}
-          >
-            <History size={16} />
-            Histórico
-            {history.length > 0 && (
-              <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs font-medium">
-                {history.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('attachments')}
-            className={`flex-1 sm:flex-initial px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center gap-2 ${
-              activeTab === 'attachments'
-                ? 'text-blue-600 border-blue-600'
-                : 'text-gray-500 border-transparent hover:text-gray-700'
-            }`}
-          >
-            <Paperclip size={16} />
-            Anexos
-            {attachments.length > 0 && (
-              <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs font-medium">
-                {attachments.length}
-              </span>
-            )}
-          </button>
+      <div className="border-b border-gray-100">
+        <nav className="flex gap-1 px-6">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all relative ${
+                activeTab === tab.id
+                  ? 'text-gray-800'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+              {tab.count !== undefined && tab.count > 0 && (
+                <span className={`ml-1.5 px-2 py-0.5 text-xs rounded-full ${
+                  activeTab === tab.id
+                    ? 'bg-blue-100 text-gray-800'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {tab.count}
+                </span>
+              )}
+              {activeTab === tab.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-800" />
+              )}
+            </button>
+          ))}
         </nav>
       </div>
 
       {/* Content */}
       <div className="p-6">
-        {activeTab === 'details' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Informações Gerais */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                <Info className="h-5 w-5 text-accent" />
-                Informações Gerais
-              </div>
-              
-              <div className="space-y-4">
+        {activeTab === 'info' && (
+          <div className="space-y-6">
+            {/* Especificações Técnicas */}
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Cpu className="h-5 w-5 text-gray-800" />
+                Especificações Técnicas
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <div className="flex items-center text-sm text-gray-500 mb-1">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Localização Atual
-                  </div>
-                  <p className="text-gray-900 font-medium">{equipment.location}</p>
-                  
-                  {/* Mostrar última transferência se existir */}
-                  {lastTransfer && (
-                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-start gap-2">
-                        <ArrowRight className="h-4 w-4 text-blue-600 mt-0.5" />
-                        <div className="text-sm">
-                          <p className="text-blue-900 font-medium">Última Transferência</p>
-                          <p className="text-blue-700">
-                            De: <span className="font-medium">{lastTransfer.oldValue}</span> → Para: <span className="font-medium">{lastTransfer.newValue}</span>
-                          </p>
-                          <p className="text-blue-600 text-xs mt-1">
-                            Por {lastTransfer.user} em {formatDateTime(lastTransfer.timestamp)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <label className="text-sm text-gray-500">Marca</label>
+                  <p className="text-base font-medium text-gray-900 mt-1">{equipment.brand}</p>
                 </div>
-                
                 <div>
-                  <div className="flex items-center text-sm text-gray-500 mb-1">
-                    <User className="h-4 w-4 mr-2" />
-                    Responsável
-                  </div>
-                  <p className="text-gray-900">{equipment.responsible}</p>
-                </div>
-                
-                <div>
-                  <div className="flex items-center text-sm text-gray-500 mb-1">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Data de Aquisição
-                  </div>
-                  <p className="text-gray-900">{formatDate(equipment.acquisitionDate)}</p>
-                </div>
-                
-                {equipment.invoiceDate && (
-                  <div>
-                    <div className="flex items-center text-sm text-gray-500 mb-1">
-                      <Receipt className="h-4 w-4 mr-2" />
-                      Data de Emissão da Nota Fiscal
-                    </div>
-                    <p className="text-gray-900">{formatDate(equipment.invoiceDate)}</p>
-                  </div>
-                )}
-                
-                <div className="pt-4 border-t">
-                  <div className="flex items-center text-sm text-gray-500 mb-2">
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Valor do Equipamento
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(equipment.value)}
-                  </p>
+                  <label className="text-sm text-gray-500">Modelo</label>
+                  <p className="text-base font-medium text-gray-900 mt-1">{equipment.model}</p>
                 </div>
               </div>
-
-              {equipment.maintenanceDescription && equipment.status === 'manutenção' && (
-                <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-start">
-                    <Wrench className="h-5 w-5 text-orange-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-orange-800 mb-1">
-                        Observações de Manutenção
-                      </p>
-                      <p className="text-sm text-orange-700 whitespace-pre-line">
-                        {equipment.maintenanceDescription}
-                      </p>
-                    </div>
+              {equipment.specs && (
+                <div className="mt-6">
+                  <label className="text-sm text-gray-500">Especificações Detalhadas</label>
+                  <div className="mt-2 bg-white rounded-lg p-4 text-sm text-gray-700 whitespace-pre-line">
+                    {equipment.specs}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Detalhes Técnicos */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
-                <Laptop className="h-5 w-5 text-secondary-light" />
-                Detalhes Técnicos
-              </div>
-              
+            {/* Rastreamento e Controle */}
+            <div className="bg-blue-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-gray-800" />
+                Rastreamento e Controle
+              </h3>
               <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                    MARCA
-                  </p>
-                  <p className="text-gray-900 font-medium">{equipment.brand}</p>
-                </div>
-                
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
-                    MODELO
-                  </p>
-                  <p className="text-gray-900 font-medium">{equipment.model}</p>
-                </div>
-                
-                {equipment.specs && (
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                      ESPECIFICAÇÕES TÉCNICAS
-                    </p>
-                    <p className="text-sm text-gray-700 whitespace-pre-line">
-                      {equipment.specs}
-                    </p>
+                {equipment.createdAt && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Cadastrado em</span>
+                    <span className="text-sm font-medium text-gray-900">{formatDateTime(equipment.createdAt)}</span>
+                  </div>
+                )}
+                {equipment.updatedAt && equipment.updatedAt !== equipment.createdAt && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Última atualização</span>
+                    <span className="text-sm font-medium text-gray-900">{formatDateTime(equipment.updatedAt)}</span>
+                  </div>
+                )}
+                {equipment.invoiceDate && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Data da Nota Fiscal</span>
+                    <span className="text-sm font-medium text-gray-900">{formatDate(equipment.invoiceDate)}</span>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Informações de Rastreamento */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                  <Clock className="h-4 w-4" />
-                  Informações de Rastreamento
+            {/* Observações de Manutenção */}
+            {equipment.status === 'manutenção' && equipment.maintenanceDescription && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
+                <div className="flex items-start gap-3">
+                  <Wrench className="h-5 w-5 text-orange-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-orange-900 mb-2">Observações de Manutenção</h4>
+                    <p className="text-sm text-orange-800 whitespace-pre-line">
+                      {equipment.maintenanceDescription}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-2 text-sm">
-                  {equipment.createdAt && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Cadastrado em:</span>
-                      <span className="text-gray-900">{formatDateTime(equipment.createdAt)}</span>
-                    </div>
-                  )}
-                  {equipment.updatedAt && equipment.createdAt && equipment.updatedAt !== equipment.createdAt && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Última atualização:</span>
-                      <span className="text-gray-900">{formatDateTime(equipment.updatedAt)}</span>
-                    </div>
-                  )}
-                  {history.filter(h => h.changeType === 'transferiu').length > 0 && (
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <span className="text-gray-600">Total de transferências:</span>
-                      <span className="text-gray-900 font-medium">
-                        {history.filter(h => h.changeType === 'transferiu').length}
-                      </span>
-                    </div>
-                  )}
+              </div>
+            )}
+
+            {/* Resumo de Atividades */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <Activity className="h-8 w-8 text-gray-600" />
+                  <span className="text-2xl font-bold text-gray-900">{history.length}</span>
                 </div>
+                <p className="text-sm font-medium text-gray-700">Total de Alterações</p>
+              </div>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <ArrowRight className="h-8 w-8 text-gray-600" />
+                  <span className="text-2xl font-bold text-gray-900">
+                    {history.filter(h => h.changeType === 'transferiu').length}
+                  </span>
+                </div>
+                <p className="text-sm font-medium text-gray-700">Transferências</p>
+              </div>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <Wrench className="h-8 w-8 text-gray-600" />
+                  <span className="text-2xl font-bold text-gray-900">
+                    {history.filter(h => h.changeType === 'manutenção').length}
+                  </span>
+                </div>
+                <p className="text-sm font-medium text-gray-700">Manutenções</p>
               </div>
             </div>
           </div>
@@ -451,69 +404,57 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
         {activeTab === 'history' && (
           <div className="space-y-4">
             {history.length > 0 ? (
-              history.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className={`p-2 rounded-lg ${
-                    entry.changeType === 'criou' ? 'bg-green-100 text-green-600' :
-                    entry.changeType === 'editou' ? 'bg-blue-100 text-blue-600' :
-                    entry.changeType === 'excluiu' ? 'bg-red-100 text-red-600' :
-                    entry.changeType === 'manutenção' ? 'bg-orange-100 text-orange-600' :
-                    entry.changeType === 'alterou status' ? 'bg-yellow-100 text-yellow-600' :
-                    entry.changeType === 'anexou arquivo' ? 'bg-indigo-100 text-indigo-600' :
-                    entry.changeType === 'removeu arquivo' ? 'bg-pink-100 text-pink-600' :
-                    entry.changeType === 'transferiu' ? 'bg-purple-100 text-purple-600' :
-                    'bg-gray-200 text-gray-600'
-                  }`}>
-                    {getChangeTypeIcon(entry.changeType)}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {entry.user} {entry.changeType} 
-                      {entry.field && ` ${
-                        entry.field === 'location' ? 'a localização' :
-                        entry.field === 'responsible' ? 'o responsável' :
-                        entry.field === 'status' ? 'o status' :
-                        entry.field
-                      }`}
-                    </p>
-                    
-                    {entry.field && (entry.changeType === 'editou' || entry.changeType === 'alterou status') && (
-                      <div className="flex items-center gap-2 mt-1 text-sm">
-                        <span className="text-gray-500">{entry.oldValue || 'Vazio'}</span>
-                        <ChevronRight className="h-3 w-3 text-gray-400" />
-                        <span className="text-gray-900 font-medium">{entry.newValue || 'Vazio'}</span>
-                      </div>
-                    )}
-                    
-                    {entry.field && entry.changeType === 'transferiu' && (
-                      <div className="mt-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-gray-500">{entry.oldValue}</span>
-                          <ArrowRight className="h-3 w-3 text-purple-500" />
-                          <span className="text-purple-700 font-medium">{entry.newValue}</span>
+              <div className="space-y-3">
+                {history.map((entry, index) => {
+                  const details = getChangeTypeDetails(entry.changeType);
+                  return (
+                    <div key={entry.id} className="relative">
+                      {index < history.length - 1 && (
+                        <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-gray-200" />
+                      )}
+                      <div className="flex gap-4">
+                        <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${details.color}`}>
+                          {details.icon}
+                        </div>
+                        <div className="flex-1 bg-gray-50 rounded-xl p-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {entry.user} {details.action}
+                                {entry.field && ` ${
+                                  entry.field === 'location' ? 'a localização' :
+                                  entry.field === 'responsible' ? 'o responsável' :
+                                  entry.field === 'status' ? 'o status' :
+                                  entry.field === 'assetNumber' ? 'o número do patrimônio' : 
+                                  entry.field
+                                }`}
+                              </p>
+                              {entry.field && (entry.oldValue || entry.newValue) && (
+                                <div className="mt-2 flex items-center gap-2 text-sm">
+                                  <span className="text-gray-500">{entry.oldValue || '—'}</span>
+                                  <ArrowRight className="h-3 w-3 text-gray-400" />
+                                  <span className="font-medium text-gray-900">{entry.newValue || '—'}</span>
+                                </div>
+                              )}
+                              {entry.changeType === 'manutenção' && entry.newValue && (
+                                <p className="mt-2 text-sm text-gray-600">{entry.newValue}</p>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                              {formatDateTime(entry.timestamp)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    )}
-                    
-                    {entry.changeType === 'manutenção' && entry.newValue && (
-                      <div className="mt-2 p-2 bg-orange-50 rounded text-sm text-orange-700">
-                        {entry.newValue}
-                      </div>
-                    )}
-                    
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatDateTime(entry.timestamp)}
-                    </p>
-                  </div>
-                </div>
-              ))
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-16">
                 <History className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Nenhum histórico disponível</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  As alterações futuras serão registradas aqui
-                </p>
+                <p className="text-gray-500 font-medium">Nenhum histórico disponível</p>
+                <p className="text-sm text-gray-400 mt-1">As alterações futuras serão registradas aqui</p>
               </div>
             )}
           </div>
@@ -523,7 +464,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
           <div className="space-y-6">
             {/* Upload Area */}
             <div 
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+              className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${
                 isDragging 
                   ? 'border-blue-400 bg-blue-50' 
                   : 'border-gray-300 hover:border-gray-400'
@@ -532,14 +473,14 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
               onDragLeave={handleDragLeave}
               onDrop={handleFileDrop}
             >
-              <Upload className={`mx-auto h-12 w-12 mb-3 ${
-                isDragging ? 'text-blue-500' : 'text-gray-400'
+              <Upload className={`mx-auto h-16 w-16 mb-4 ${
+                isDragging ? 'text-gray-700' : 'text-gray-400'
               }`} />
-              <p className="text-sm font-medium text-gray-700 mb-1">
-                Arraste arquivos aqui ou clique para selecionar
+              <p className="text-lg font-medium text-gray-700 mb-2">
+                Arraste arquivos aqui
               </p>
-              <p className="text-xs text-gray-500 mb-4">
-                PDF, Imagens, Planilhas, Documentos (máx. 10MB)
+              <p className="text-sm text-gray-500 mb-6">
+                ou clique para selecionar arquivos do seu computador
               </p>
               <input
                 ref={fileInputRef}
@@ -549,53 +490,60 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
                 accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.xls,.xlsx,.csv,.doc,.docx"
               />
               <Button 
-                variant="outline" 
-                size="sm" 
-                icon={<Upload size={16} />}
+                variant="primary" 
+                icon={<Upload size={18} />}
                 onClick={() => fileInputRef.current?.click()}
               >
                 Selecionar Arquivo
               </Button>
+              <p className="text-xs text-gray-400 mt-4">
+                Formatos aceitos: PDF, Imagens, Planilhas, Documentos • Tamanho máximo: 10MB
+              </p>
             </div>
 
-            {/* Attachments List */}
+            {/* Attachments Grid */}
             {attachments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {attachments.map((attachment) => (
-                  <div key={attachment.id} className="bg-gray-50 rounded-lg p-4 flex items-center gap-3 hover:bg-gray-100 transition-colors">
-                    {getFileIcon(attachment.type)}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                  <div key={attachment.id} className="group relative bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all">
+                    <div className="flex flex-col items-center text-center">
+                      {getFileIcon(attachment.type)}
+                      <h4 className="mt-3 font-medium text-gray-900 text-sm truncate max-w-full">
                         {attachment.name}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {(attachment.size / 1024).toFixed(1)} KB
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {(attachment.size / 1024).toFixed(1)} KB • {formatDateTime(attachment.uploadedAt)}
+                      <p className="text-xs text-gray-400 mt-2">
+                        {formatDateTime(attachment.uploadedAt)}
                       </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={handleCancelDelete}
-                      className="flex-1"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={handleConfirmDelete}
-                      icon={<Trash size={16} />}
-                      className="flex-1"
-                    >
-                      Excluir Anexo
-                    </Button>
+                      <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          icon={<Download size={16} />}
+                          onClick={() => onDownloadAttachment(attachment)}
+                        >
+                          Baixar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<Trash size={16} />}
+                          onClick={() => handleDeleteClick(attachment)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          Excluir
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-16">
                 <Paperclip className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Nenhum anexo disponível</p>
+                <p className="text-gray-500 font-medium">Nenhum anexo disponível</p>
                 <p className="text-sm text-gray-400 mt-1">
                   Adicione documentos, imagens ou outros arquivos relevantes
                 </p>
@@ -605,31 +553,21 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
         )}
       </div>
 
-      {/* Modal de Confirmação de Exclusão de Anexo */}
+      {/* Modal de Confirmação de Exclusão */}
       {showDeleteModal && attachmentToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mx-auto mb-4">
-              <Trash className="h-6 w-6 text-red-600" />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-6">
+              <Trash className="h-8 w-8 text-red-600" />
             </div>
             
-            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-              Confirmar Exclusão
+            <h3 className="text-2xl font-bold text-gray-900 text-center mb-3">
+              Excluir Anexo?
             </h3>
             
-            <p className="text-gray-600 text-center mb-6">
-              Tem certeza que deseja excluir o anexo <span className="font-semibold text-gray-900">"{attachmentToDelete.name}"</span>?
+            <p className="text-gray-600 text-center mb-8">
+              O arquivo <span className="font-semibold text-gray-900">"{attachmentToDelete.name}"</span> será permanentemente removido.
             </p>
-            
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
-                <div className="text-sm text-yellow-800">
-                  <p className="font-semibold mb-1">Atenção!</p>
-                  <p>Esta ação não pode ser desfeita. O arquivo será permanentemente removido do sistema.</p>
-                </div>
-              </div>
-            </div>
             
             <div className="flex gap-3">
               <Button
@@ -642,10 +580,10 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
               <Button
                 variant="danger"
                 onClick={handleConfirmDelete}
-                icon={<Trash size={16} />}
+                icon={<Trash size={18} />}
                 className="flex-1"
               >
-                Excluir Anexo
+                Excluir
               </Button>
             </div>
           </div>

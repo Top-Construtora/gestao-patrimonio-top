@@ -91,7 +91,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       case 'minimal':
         return (
           <div className="flex flex-col items-center">
-            <Loader2 className={`${sizes.icon} text-blue-600 animate-spin`} />
+            <Loader2 className={`${sizes.icon} text-gray-800 animate-spin`} />
           </div>
         );
 
@@ -99,11 +99,11 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
         return (
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
-              <div className={`${sizes.icon} text-blue-600 transition-all duration-500 transform`}>
+              <div className={`${sizes.icon} text-gray-800 transition-all duration-500 transform`}>
                 <TechIcon className="w-full h-full animate-pulse" />
               </div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
+                <div className="h-20 w-20 rounded-full border-4 border-blue-200 border-t-gray-800 animate-spin"></div>
               </div>
             </div>
             <div className="text-center">
@@ -118,7 +118,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       case 'progress':
         return (
           <div className="flex flex-col items-center space-y-4 w-64">
-            <Loader2 className={`${sizes.icon} text-blue-600 animate-spin`} />
+            <Loader2 className={`${sizes.icon} text-gray-800 animate-spin`} />
             <div className="w-full">
               <div className="flex justify-between items-center mb-2">
                 <p className={`${sizes.text} font-medium text-gray-800`}>{message}</p>
@@ -126,7 +126,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300 ease-out"
+                  className="bg-gradient-to-r from-gray-700 to-gray-800 h-full rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -141,9 +141,9 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
         return (
           <div className="flex flex-col items-center space-y-4">
             <div className="flex space-x-2">
-              <div className="h-3 w-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="h-3 w-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="h-3 w-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div className="h-3 w-3 bg-gray-800 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="h-3 w-3 bg-gray-800 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="h-3 w-3 bg-gray-800 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
             </div>
             <p className={`${sizes.text} font-medium text-gray-800`}>
               {message}{dots}
@@ -158,8 +158,8 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
         return (
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
-              <div className={`${sizes.icon} bg-blue-600 rounded-full animate-ping absolute`}></div>
-              <div className={`${sizes.icon} bg-blue-600 rounded-full relative flex items-center justify-center`}>
+              <div className={`${sizes.icon} bg-gray-800 rounded-full animate-ping absolute`}></div>
+              <div className={`${sizes.icon} bg-gray-800 rounded-full relative flex items-center justify-center`}>
                 {icon || <Wifi className="h-6 w-6 text-white" />}
               </div>
             </div>
@@ -175,7 +175,7 @@ const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
       default:
         return (
           <div className="flex items-center space-x-4">
-            {icon || <Loader2 className={`${sizes.icon} text-blue-600 animate-spin`} />}
+            {icon || <Loader2 className={`${sizes.icon} text-gray-800 animate-spin`} />}
             <div>
               <p className={`${sizes.text} font-semibold text-gray-800`}>{message}</p>
               {submessage && (

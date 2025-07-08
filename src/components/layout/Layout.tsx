@@ -97,7 +97,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
           <nav className="flex items-center text-sm">
             <span className="text-gray-500">Sistema</span>
             <span className="mx-2 text-gray-400">/</span>
-            <span className="text-blue-600 font-medium">{routeLabels[activeRoute] || activeRoute}</span>
+            <span className="text-gray-800 font-medium">{routeLabels[activeRoute] || activeRoute}</span>
           </nav>
         </div>
         

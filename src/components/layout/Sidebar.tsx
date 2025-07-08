@@ -90,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                   <button
                     className={`relative flex items-center w-full px-4 py-3.5 rounded-lg transition-all duration-200 group ${
                       activeRoute === item.route
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                        ? 'bg-gray-800 text-white shadow-lg shadow-gray-800/30'
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                     }`}
                     onClick={() => {
@@ -121,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                     />
                   </button>
                   {activeRoute === item.route && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-blue-500 rounded-r-full"></div>
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-gray-700 rounded-r-full"></div>
                   )}
                 </div>
               ))}

@@ -300,7 +300,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   value={formData.brand}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors ${
                     errors.brand && touched.brand ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Ex: Dell, HP, Lenovo"
@@ -324,7 +324,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   value={formData.model}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors ${
                     errors.model && touched.model ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Ex: Latitude 5420, EliteBook 840"
@@ -348,7 +348,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   onChange={handleChange}
                   onBlur={handleBlur}
                   rows={4}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors resize-none ${
                     errors.specifications && touched.specifications ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Ex: Intel Core i5-1135G7, 8GB RAM, SSD 256GB, Tela 14 Full HD"
@@ -382,7 +382,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   value={formData.location}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors ${
                     errors.location && touched.location ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Ex: Sala de TI, Recepção, Diretoria"
@@ -406,7 +406,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   value={formData.expectedMonthYear}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors ${
                     errors.expectedMonthYear && touched.expectedMonthYear ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
@@ -441,7 +441,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   name="supplier"
                   value={formData.supplier}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors"
                   placeholder="Nome do fornecedor (opcional)"
                 />
                 <p className="mt-1 text-xs text-gray-500">
@@ -459,7 +459,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   value={formData.observations}
                   onChange={handleChange}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors resize-none"
                   placeholder="Informações adicionais relevantes para a análise..."
                 />
                 <p className="mt-1 text-xs text-gray-500">
@@ -486,7 +486,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
                   name="urgency"
                   value={formData.urgency}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-colors"
                 >
                   <option value="baixa">Baixa - Pode aguardar</option>
                   <option value="média">Média - Prazo regular</option>
@@ -515,7 +515,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
           isLoading={isSubmitting}
           loadingText="Criando solicitação..."
           icon={<Save size={16} />}
-          className="flex-1 sm:flex-initial bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+          className="flex-1 sm:flex-initial bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
         >
           Criar Solicitação
         </Button>

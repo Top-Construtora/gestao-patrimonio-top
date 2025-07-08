@@ -110,7 +110,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
           <p className="mt-2 text-sm text-gray-600">Gerencie todos os equipamentos do seu inventário</p>
         </div>
         <Button 
-          className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200" 
+          className="w-full sm:w-auto bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200" 
           onClick={onAddNew}
           icon={<PlusCircle size={18} />}
         >
@@ -182,7 +182,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-200"
                   placeholder="Buscar por patrimônio, descrição, marca, modelo ou responsável..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -203,7 +203,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
               {/* Desktop Filters */}
               <div className="hidden lg:flex items-center gap-3">
                 <select
-                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-200"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -214,7 +214,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 </select>
 
                 <select
-                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-200"
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
                 >
@@ -230,7 +230,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
             {showFilters && (
               <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gray-100">
                 <select
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-200"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -241,7 +241,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                 </select>
 
                 <select
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all duration-200"
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
                 >
@@ -269,7 +269,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                   setStatusFilter('all');
                   setLocationFilter('all');
                 }}
-                className="text-blue-600 hover:text-blue-700"
+                className="text-gray-800 hover:text-blue-700"
               >
                 Limpar filtros
               </Button>
@@ -356,7 +356,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
                       >
                         <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-blue-600 group-hover:text-blue-700">
+                            <span className="text-sm font-semibold text-gray-800 group-hover:text-blue-700">
                               {item.assetNumber}
                             </span>
                             <span className="text-xs text-gray-500 sm:hidden mt-1">

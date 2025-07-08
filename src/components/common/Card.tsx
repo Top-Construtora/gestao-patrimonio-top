@@ -82,7 +82,7 @@ const Card: React.FC<CardProps> = ({
   const getStatusClasses = () => {
     switch (status) {
       case 'info':
-        return 'border-l-4 border-blue-500';
+        return 'border-l-4 border-gray-700';
       case 'success':
         return 'border-l-4 border-green-500';
       case 'warning':
@@ -97,7 +97,7 @@ const Card: React.FC<CardProps> = ({
   const getStatusIcon = () => {
     switch (status) {
       case 'info':
-        return <Info className="h-5 w-5 text-blue-500" />;
+        return <Info className="h-5 w-5 text-gray-700" />;
       case 'success':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'warning':
@@ -267,7 +267,7 @@ const CardDemo: React.FC = () => {
           footer={
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-500">Atualizado há 2 horas</span>
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-700">
+              <button className="text-gray-800 text-sm font-medium hover:text-blue-700">
                 Ver mais
               </button>
             </div>
@@ -346,7 +346,7 @@ const CardDemo: React.FC = () => {
         {/* Card Info */}
         <Card 
           status="info"
-          icon={<Info className="h-5 w-5 text-blue-500" />}
+          icon={<Info className="h-5 w-5 text-gray-700" />}
           title="Informação"
         >
           <p className="text-gray-600">

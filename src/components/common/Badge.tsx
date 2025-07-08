@@ -45,7 +45,7 @@ const Badge: React.FC<BadgeProps> = ({
         case 'error':
           return 'border-2 border-red-500 text-red-700 bg-red-50';
         case 'info':
-          return 'border-2 border-blue-500 text-blue-700 bg-blue-50';
+          return 'border-2 border-gray-700 text-blue-700 bg-blue-50';
         default:
           return 'border-2 border-gray-500 text-gray-700 bg-gray-50';
       }
@@ -62,7 +62,7 @@ const Badge: React.FC<BadgeProps> = ({
       case 'error':
         return 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-500/25';
       case 'info':
-        return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-blue-500/25';
+        return 'bg-gradient-to-r from-gray-700 to-gray-800 text-white shadow-gray-700/25';
       default:
         return 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-gray-500/25';
     }

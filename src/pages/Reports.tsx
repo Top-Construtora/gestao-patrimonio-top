@@ -149,7 +149,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-xs text-gray-800 hover:text-blue-700 font-medium"
                 >
                   Limpar filtros
                 </button>
@@ -170,13 +170,13 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="date"
-                  className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent text-sm"
                   value={dateRange.start}
                   onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
                 />
                 <input
                   type="date"
-                  className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent text-sm"
                   value={dateRange.end}
                   onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                 />
@@ -186,7 +186,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Status</label>
               <select
-                className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent text-sm"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
               >
@@ -200,7 +200,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Localização</label>
               <select
-                className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent text-sm"
                 value={selectedLocation}
                 onChange={(e) => setSelectedLocation(e.target.value)}
               >
@@ -306,7 +306,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
               onClick={() => setShowDetails(!showDetails)}
               className="sm:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <Eye className={`h-5 w-5 text-gray-500 ${showDetails ? 'text-blue-600' : ''}`} />
+              <Eye className={`h-5 w-5 text-gray-500 ${showDetails ? 'text-gray-800' : ''}`} />
             </button>
           </div>
           
@@ -341,7 +341,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                        <span className="text-sm font-semibold text-blue-600">{item.assetNumber}</span>
+                        <span className="text-sm font-semibold text-gray-800">{item.assetNumber}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-700">
                         {item.location}
@@ -381,7 +381,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
               <div className="px-6 py-3 bg-gray-50 text-center">
                 <button
                   onClick={() => setShowDetails(true)}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-sm text-gray-800 hover:text-blue-700 font-medium"
                 >
                   Ver todos ({filteredEquipment.length} itens)
                 </button>
@@ -396,7 +396,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
                 <div key={item.id} className="bg-gray-50 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-semibold text-blue-600 text-sm">{item.assetNumber}</p>
+                      <p className="font-semibold text-gray-800 text-sm">{item.assetNumber}</p>
                       <p className="text-xs text-gray-600 mt-0.5">{item.description}</p>
                     </div>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -429,7 +429,7 @@ const Reports: React.FC<ReportsProps> = ({ equipment }) => {
             {!showDetails && filteredEquipment.length > 3 && (
               <button
                 onClick={() => setShowDetails(true)}
-                className="w-full py-2 text-sm text-blue-600 hover:text-blue-700 font-medium bg-gray-50 rounded-lg"
+                className="w-full py-2 text-sm text-gray-800 hover:text-blue-700 font-medium bg-gray-50 rounded-lg"
               >
                 Ver todos ({filteredEquipment.length} itens)
               </button>

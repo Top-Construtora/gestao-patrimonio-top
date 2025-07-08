@@ -151,7 +151,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
           <p className="mt-2 text-sm text-gray-600">Gerencie as solicitações de compra de novos equipamentos</p>
         </div>
         <Button 
-          className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200" 
+          className="w-full sm:w-auto bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200" 
           onClick={onAddNew}
           icon={<PlusCircle size={18} />}
         >
@@ -222,7 +222,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                 placeholder="Buscar por descrição, fornecedor, marca ou modelo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all"
               />
             </div>
             <Button
@@ -243,7 +243,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent"
                 >
                   <option value="all">Todos</option>
                   <option value="pendente">Pendente</option>
@@ -258,7 +258,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                 <select
                   value={urgencyFilter}
                   onChange={(e) => setUrgencyFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent"
                 >
                   <option value="all">Todas</option>
                   <option value="baixa">Baixa</option>
@@ -285,7 +285,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                   setStatusFilter('all');
                   setUrgencyFilter('all');
                 }}
-                className="text-blue-600 hover:text-blue-700"
+                className="text-gray-800 hover:text-blue-700"
               >
                 Limpar filtros
               </Button>
@@ -370,7 +370,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                             item.status === 'pendente' ? 'text-yellow-600' :
                             item.status === 'aprovado' ? 'text-green-600' :
                             item.status === 'rejeitado' ? 'text-red-600' :
-                            'text-blue-600'
+                            'text-gray-800'
                           }`}>
                             {item.status}
                           </span>
