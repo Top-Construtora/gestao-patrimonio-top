@@ -48,12 +48,22 @@ export interface CompleteEquipmentPurchaseDto {
   notes?: string;
 }
 
+export type ChangeType = 
+  | 'criou' 
+  | 'editou' 
+  | 'excluiu' 
+  | 'manutenção' 
+  | 'alterou status' 
+  | 'anexou arquivo' 
+  | 'removeu arquivo' 
+  | 'transferiu';
+
 export interface HistoryEntry {
   id: string;
   equipmentId: string;
   timestamp: string;
   user: string;
-  changeType: 'criou' | 'editou' | 'excluiu' | 'manutenção' | 'alterou status' | 'anexou arquivo' | 'removeu arquivo';
+  changeType: ChangeType;
   field?: string;
   oldValue?: string;
   newValue?: string;
@@ -95,7 +105,7 @@ export interface DatabaseHistoryEntry {
   equipment_id: string;
   timestamp: string;
   user_name: string;
-  change_type: 'criou' | 'editou' | 'excluiu' | 'manutenção' | 'alterou status' | 'anexou arquivo' | 'removeu arquivo';
+  change_type: ChangeType;
   field: string | null;
   old_value: string | null;
   new_value: string | null;
@@ -108,7 +118,7 @@ export interface DatabaseAttachment {
   name: string;
   size: number;
   type: string;
-  url: string;
+  url?: string;
   file_path: string; // Caminho do arquivo no bucket
   uploaded_by: string;
   uploaded_at: string;

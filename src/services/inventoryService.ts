@@ -13,12 +13,12 @@ const transformEquipment = (dbEquipment: DatabaseEquipment): Equipment => ({
   location: dbEquipment.location,
   responsible: dbEquipment.responsible,
   acquisitionDate: dbEquipment.acquisition_date,
-  invoiceDate: dbEquipment.invoice_date || undefined, // NOVO CAMPO
+  invoiceDate: dbEquipment.invoice_date || undefined,
   value: dbEquipment.value,
   maintenanceDescription: dbEquipment.maintenance_description || undefined,
   observacoesManutenção: dbEquipment.maintenance_description || undefined,
-  createdAt: dbEquipment.created_at,
-  updatedAt: dbEquipment.updated_at
+  createdAt: dbEquipment.created_at || undefined,
+  updatedAt: dbEquipment.updated_at || undefined
 });
 
 const transformHistoryEntry = (dbHistory: DatabaseHistoryEntry): HistoryEntry => ({
@@ -54,7 +54,7 @@ const transformToDatabase = (equipment: Omit<Equipment, 'id'>): Omit<DatabaseEqu
   location: equipment.location,
   responsible: equipment.responsible,
   acquisition_date: equipment.acquisitionDate,
-  invoice_date: equipment.invoiceDate || null, // NOVO CAMPO
+  invoice_date: equipment.invoiceDate || null,
   value: equipment.value,
   maintenance_description: equipment.maintenanceDescription || equipment.observacoesManutenção || null
 });
@@ -81,7 +81,7 @@ const inventoryService = {
     }
   },
 
-  // NOVA FUNÇÃO: Obter próximo número de patrimônio
+  // Obter próximo número de patrimônio
   getNextAssetNumber: async (): Promise<string> => {
     try {      
       // Buscar TODOS os equipamentos para análise completa
@@ -125,59 +125,6 @@ const inventoryService = {
       
       return nextAssetNumber;
     } catch (error) {
-      throw error;
-    }
-  },
-
-  // Função para padronizar números de patrimônio existentes
-  standardizeAssetNumbers: async (): Promise<{ updated: number; errors: number }> => {
-    try {
-      
-      // Buscar todos os equipamentos
-      const { data: equipment, error } = await supabase
-        .from('equipments')
-        .select('id, asset_number');
-
-      if (error) {
-        throw new Error(`Erro ao buscar equipamentos: ${error.message}`);
-      }
-
-      if (!equipment || equipment.length === 0) {
-        return { updated: 0, errors: 0 };
-      }
-
-      let updated = 0;
-      let errors = 0;
-
-      // Processar cada equipamento
-      for (const item of equipment) {
-        // Verificar se precisa padronização
-        const match = item.asset_number.match(/^TOP\s*[-–]\s*(\d+)$/i);
-        
-        if (match) {
-          const number = match[1];
-          const standardized = `TOP-${number.padStart(4, '0')}`;
-          
-          // Se é diferente do formato padrão, atualizar
-          if (item.asset_number !== standardized) {            
-            const { error: updateError } = await supabase
-              .from('equipments')
-              .update({ asset_number: standardized })
-              .eq('id', item.id);
-
-            if (updateError) {
-              console.error(`   ❌ Erro ao atualizar ${item.asset_number}:`, updateError);
-              errors++;
-            } else {
-              updated++;
-            }
-          }
-        }
-      }
-      
-      return { updated, errors };
-    } catch (error) {
-      console.error('❌ Erro na padronização:', error);
       throw error;
     }
   },
@@ -249,6 +196,7 @@ const inventoryService = {
       const equipment = data ? data.map(transformEquipment) : [];
       
       if (equipment.length === 0) {
+        console.log('ℹ️ Nenhum equipamento encontrado');
       }
       
       return equipment;
@@ -293,48 +241,44 @@ const inventoryService = {
     user: string, 
     attachmentFiles?: File[]
   ): Promise<Equipment> => {
-    try {      
+    try {
+      // Converter dados para formato do banco
+      const dbData = transformToDatabase(equipmentData);
+      
       // Inserir equipamento
       const { data, error } = await supabase
         .from('equipments')
-        .insert(transformToDatabase(equipmentData))
+        .insert(dbData)
         .select()
         .single();
 
-      if (error) {
+      if (error || !data) {
         console.error('❌ Erro ao criar equipamento:', error);
-        throw new Error(`Erro ao criar equipamento: ${error.message}`);
+        throw new Error(`Erro ao criar equipamento: ${error?.message}`);
       }
 
-      if (!data) {
-        throw new Error('Erro: Equipamento não foi criado corretamente');
-      }
+      // Registrar criação no histórico
+      await supabase
+        .from('history_entries')
+        .insert({
+          equipment_id: data.id,
+          timestamp: new Date().toISOString(),
+          user_name: user,
+          change_type: 'criou'
+        });
 
-      const newEquipment = transformEquipment(data);
-
-      // Registrar no histórico
-      const { error: historyError } = await supabase.from('history_entries').insert({
-        equipment_id: newEquipment.id,
-        user_name: user,
-        change_type: 'criou'
-      });
-
-      if (historyError) {
-        console.warn('⚠️ Erro ao registrar histórico:', historyError);
-      }
-
-      // Upload de anexos se houver
+      // Upload de anexos, se houver
       if (attachmentFiles && attachmentFiles.length > 0) {
         for (const file of attachmentFiles) {
           try {
-            await inventoryService.uploadAttachment(newEquipment.id, file, user);
-          } catch (attachError) {
-            console.warn('⚠️ Erro no upload de anexo:', attachError);
+            await inventoryService.uploadAttachment(data.id, file, user);
+          } catch (err) {
+            console.error('Erro ao fazer upload de anexo:', err);
           }
         }
       }
 
-      return newEquipment;
+      return transformEquipment(data);
     } catch (error) {
       console.error('❌ Erro no createEquipment:', error);
       throw error;
@@ -344,196 +288,327 @@ const inventoryService = {
   // Atualizar equipamento
   updateEquipment: async (
     id: string, 
-    updates: Partial<Equipment>, 
-    user: string
+    updates: Partial<Omit<Equipment, 'id'>>, 
+    user: string,
+    observations?: string
   ): Promise<Equipment> => {
-    try {      
+    try {
       // Buscar dados atuais para comparação
-      const currentEquipment = await inventoryService.getEquipmentById(id);
-      if (!currentEquipment) {
+      const { data: currentData, error: fetchError } = await supabase
+        .from('equipments')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !currentData) {
         throw new Error('Equipamento não encontrado');
       }
 
       // Preparar dados para atualização
       const updateData: any = {};
-      
-      if (updates.assetNumber !== undefined) updateData.asset_number = updates.assetNumber;
-      if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.brand !== undefined) updateData.brand = updates.brand;
-      if (updates.model !== undefined) updateData.model = updates.model;
-      if (updates.specs !== undefined) updateData.specs = updates.specs || null;
-      if (updates.status !== undefined) updateData.status = updates.status;
-      if (updates.location !== undefined) updateData.location = updates.location;
-      if (updates.responsible !== undefined) updateData.responsible = updates.responsible;
-      if (updates.acquisitionDate !== undefined) updateData.acquisition_date = updates.acquisitionDate;
-      if (updates.invoiceDate !== undefined) updateData.invoice_date = updates.invoiceDate || null; // NOVO CAMPO
-      if (updates.value !== undefined) updateData.value = updates.value;
-      if (updates.maintenanceDescription !== undefined) updateData.maintenance_description = updates.maintenanceDescription || null;
-      if (updates.observacoesManutenção !== undefined) updateData.maintenance_description = updates.observacoesManutenção || null;
+      const historyEntries: any[] = [];
 
-      // Atualizar no banco
-      const { data, error } = await supabase
+      // Mapear campos e registrar mudanças
+      const fieldMap: Record<string, { dbField: string; label: string }> = {
+        assetNumber: { dbField: 'asset_number', label: 'número do patrimônio' },
+        description: { dbField: 'description', label: 'descrição' },
+        brand: { dbField: 'brand', label: 'marca' },
+        model: { dbField: 'model', label: 'modelo' },
+        specs: { dbField: 'specs', label: 'especificações' },
+        status: { dbField: 'status', label: 'status' },
+        location: { dbField: 'location', label: 'localização' },
+        responsible: { dbField: 'responsible', label: 'responsável' },
+        acquisitionDate: { dbField: 'acquisition_date', label: 'data de aquisição' },
+        invoiceDate: { dbField: 'invoice_date', label: 'data da nota fiscal' },
+        value: { dbField: 'value', label: 'valor' },
+        maintenanceDescription: { dbField: 'maintenance_description', label: 'observações de manutenção' }
+      };
+
+      // Verificar mudanças e preparar histórico
+      Object.entries(updates).forEach(([key, newValue]) => {
+        const field = fieldMap[key];
+        if (field && newValue !== undefined) {
+          const oldValue = currentData[field.dbField];
+          
+          // Só registrar se houver mudança real
+          if (oldValue !== newValue) {
+            updateData[field.dbField] = newValue;
+            
+            // Criar entrada no histórico
+            const changeType = key === 'status' ? 'alterou status' : 'editou';
+            
+            historyEntries.push({
+              equipment_id: id,
+              timestamp: new Date().toISOString(),
+              user_name: user,
+              change_type: changeType,
+              field: field.label,
+              old_value: String(oldValue || ''),
+              new_value: String(newValue || '')
+            });
+          }
+        }
+      });
+
+      // Se não houver mudanças, retornar dados atuais
+      if (Object.keys(updateData).length === 0) {
+        return transformEquipment(currentData);
+      }
+
+      // Adicionar timestamp de atualização
+      updateData.updated_at = new Date().toISOString();
+
+      // Executar atualização
+      const { data: updatedData, error: updateError } = await supabase
         .from('equipments')
         .update(updateData)
         .eq('id', id)
         .select()
         .single();
 
-      if (error) {
-        console.error('❌ Erro ao atualizar equipamento:', error);
-        throw new Error(`Erro ao atualizar equipamento: ${error.message}`);
+      if (updateError || !updatedData) {
+        throw new Error(`Erro ao atualizar: ${updateError?.message}`);
       }
 
-      if (!data) {
-        throw new Error('Erro: Equipamento não foi atualizado corretamente');
-      }
+      // Inserir entradas no histórico
+      if (historyEntries.length > 0) {
+        const { error: historyError } = await supabase
+          .from('history_entries')
+          .insert(historyEntries);
 
-      // Registrar mudanças no histórico
-      for (const [key, value] of Object.entries(updates)) {
-        if (key === 'id') continue;
-        
-        const currentValue = currentEquipment[key as keyof Equipment];
-        if (currentValue !== value) {
-          // Entrada especial para manutenção
-          if (key === 'status' && value === 'manutenção' && updates.observacoesManutenção) {
-            await supabase.from('history_entries').insert({
-              equipment_id: id,
-              user_name: user,
-              change_type: 'manutenção',
-              new_value: updates.observacoesManutenção
-            });
-          } else {
-            await supabase.from('history_entries').insert({
-              equipment_id: id,
-              user_name: user,
-              change_type: 'editou',
-              field: key,
-              old_value: String(currentValue || ''),
-              new_value: String(value || '')
-            });
-          }
+        if (historyError) {
+          console.error('Erro ao criar histórico:', historyError);
         }
       }
 
-      const updatedEquipment = transformEquipment(data);
-      return updatedEquipment;
+      // Se houver observações adicionais, criar entrada separada
+      if (observations && observations.trim()) {
+        await supabase
+          .from('history_entries')
+          .insert({
+            equipment_id: id,
+            timestamp: new Date().toISOString(),
+            user_name: user,
+            change_type: 'editou',
+            field: 'observações',
+            new_value: observations
+          });
+      }
+
+      return transformEquipment(updatedData);
     } catch (error) {
+      console.error('❌ Erro no updateEquipment:', error);
       throw error;
     }
   },
 
   // Excluir equipamento
   deleteEquipment: async (id: string, user: string): Promise<void> => {
-    try {      
-      // Buscar equipamento para obter informações
-      const equipment = await inventoryService.getEquipmentById(id);
-      if (!equipment) {
+    try {
+      // Buscar dados do equipamento antes de excluir
+      const { data: equipment, error: fetchError } = await supabase
+        .from('equipments')
+        .select('asset_number')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !equipment) {
         throw new Error('Equipamento não encontrado');
       }
 
-      // Excluir anexos do storage
-      const attachments = await inventoryService.getEquipmentAttachments(id);
-      if (attachments.length > 0) {
-        const filePaths = attachments.map(att => att.url.split('/').pop()!);
-        const { error: storageError } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .remove(filePaths);
-          
-        if (storageError) {
-          console.warn('⚠️ Erro ao excluir arquivos do storage:', storageError);
-        }
+      // Deletar anexos do storage primeiro
+      const { data: attachments } = await supabase
+        .from('attachments')
+        .select('file_path')
+        .eq('equipment_id', id);
+
+      if (attachments && attachments.length > 0) {
+        const filePaths = attachments.map(a => a.file_path);
+        await supabase.storage.from(STORAGE_BUCKET).remove(filePaths);
       }
 
-      // Registrar no histórico antes de excluir
-      const { error: historyError } = await supabase.from('history_entries').insert({
-        equipment_id: id,
-        user_name: user,
-        change_type: 'excluiu'
-      });
+      // Deletar registros relacionados (cascata)
+      await supabase.from('attachments').delete().eq('equipment_id', id);
+      await supabase.from('history_entries').delete().eq('equipment_id', id);
 
-      if (historyError) {
-        console.warn('⚠️ Erro ao registrar histórico:', historyError);
-      }
-
-      // Excluir equipamento (cascata excluirá anexos e histórico)
-      const { error } = await supabase
+      // Deletar equipamento
+      const { error: deleteError } = await supabase
         .from('equipments')
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('❌ Erro ao excluir equipamento:', error);
-        throw new Error(`Erro ao excluir equipamento: ${error.message}`);
+      if (deleteError) {
+        throw new Error(`Erro ao excluir: ${deleteError.message}`);
       }
 
+      console.log(`✅ Equipamento ${equipment.asset_number} excluído com sucesso`);
     } catch (error) {
       console.error('❌ Erro no deleteEquipment:', error);
       throw error;
     }
   },
 
-  // Obter estatísticas dos números de patrimônio
-  getAssetNumberStats: async (): Promise<{
-    total: number;
-    topCount: number;
-    lastNumber: string;
-    gaps: number[];
-  }> => {
+  // ================================
+  // OPERAÇÕES DE ANEXOS
+  // ================================
+
+  uploadAttachment: async (
+    equipmentId: string,
+    file: File,
+    uploadedBy: string
+  ): Promise<Attachment> => {
     try {
-      const { data, error } = await supabase
-        .from('equipments')
-        .select('asset_number')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const stats = {
-        total: data?.length || 0,
-        topCount: 0,
-        lastNumber: '',
-        gaps: [] as number[]
-      };
-
-      if (!data || data.length === 0) return stats;
-
-      const topNumbers: number[] = [];
-      
-      data.forEach(item => {
-        const match = item.asset_number.match(/^TOP-(\d+)$/i);
-        if (match) {
-          topNumbers.push(parseInt(match[1], 10));
-        }
-      });
-
-      if (topNumbers.length > 0) {
-        stats.topCount = topNumbers.length;
-        const sortedNumbers = topNumbers.sort((a, b) => a - b);
-        const maxNumber = sortedNumbers[sortedNumbers.length - 1];
-        stats.lastNumber = `TOP-${maxNumber.toString().padStart(4, '0')}`;
-
-        // Encontrar gaps na sequência
-        for (let i = 1; i <= maxNumber; i++) {
-          if (!sortedNumbers.includes(i)) {
-            stats.gaps.push(i);
-          }
-        }
+      // Validar tamanho (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('Arquivo muito grande. Tamanho máximo: 10MB');
       }
 
-      return stats;
+      // Gerar nome único
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${equipmentId}_${Date.now()}.${fileExt}`;
+      const filePath = `attachments/${fileName}`;
+
+      // Upload para o storage
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw new Error(`Erro no upload: ${uploadError.message}`);
+      }
+
+      // Criar registro no banco
+      const attachmentData: Omit<DatabaseAttachment, 'id' | 'created_at'> = {
+        equipment_id: equipmentId,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file_path: filePath,
+        uploaded_by: uploadedBy,
+        uploaded_at: new Date().toISOString()
+      };
+
+      const { data, error: dbError } = await supabase
+        .from('attachments')
+        .insert(attachmentData)
+        .select()
+        .single();
+
+      if (dbError || !data) {
+        // Se falhar, remover arquivo do storage
+        await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+        throw new Error(`Erro ao salvar anexo: ${dbError?.message}`);
+      }
+
+      // Registrar no histórico
+      await supabase
+        .from('history_entries')
+        .insert({
+          equipment_id: equipmentId,
+          timestamp: new Date().toISOString(),
+          user_name: uploadedBy,
+          change_type: 'anexou arquivo',
+          field: 'anexo',
+          new_value: file.name
+        });
+
+      return transformAttachment(data);
     } catch (error) {
-      console.error('Erro ao obter estatísticas:', error);
+      console.error('❌ Erro ao fazer upload:', error);
+      throw error;
+    }
+  },
+
+  deleteAttachment: async (attachmentId: string, deletedBy: string = 'Sistema'): Promise<void> => {
+    try {
+      // Buscar anexo para obter o caminho e nome
+      const { data: attachment, error: fetchError } = await supabase
+        .from('attachments')
+        .select('*')
+        .eq('id', attachmentId)
+        .single();
+
+      if (fetchError || !attachment) {
+        throw new Error('Anexo não encontrado');
+      }
+
+      // Deletar do storage
+      const { error: storageError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .remove([attachment.file_path]);
+
+      if (storageError) {
+        console.error('Erro ao deletar arquivo do storage:', storageError);
+      }
+
+      // Deletar do banco
+      const { error: dbError } = await supabase
+        .from('attachments')
+        .delete()
+        .eq('id', attachmentId);
+
+      if (dbError) {
+        throw new Error(`Erro ao deletar anexo: ${dbError.message}`);
+      }
+
+      // Registrar no histórico
+      await supabase
+        .from('history_entries')
+        .insert({
+          equipment_id: attachment.equipment_id,
+          timestamp: new Date().toISOString(),
+          user_name: deletedBy,
+          change_type: 'removeu arquivo',
+          field: 'anexo',
+          old_value: attachment.name
+        });
+
+    } catch (error) {
+      console.error('❌ Erro ao deletar anexo:', error);
+      throw error;
+    }
+  },
+
+  getEquipmentAttachments: async (equipmentId: string): Promise<Attachment[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('attachments')
+        .select('*')
+        .eq('equipment_id', equipmentId)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Erro ao buscar anexos: ${error.message}`);
+      }
+
+      return data ? data.map(transformAttachment) : [];
+    } catch (error) {
+      console.error('❌ Erro no getEquipmentAttachments:', error);
+      throw error;
+    }
+  },
+
+  downloadAttachment: async (attachment: Attachment): Promise<void> => {
+    try {
+      // Criar link temporário e clicar
+      const link = document.createElement('a');
+      link.href = attachment.url;
+      link.download = attachment.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('❌ Erro ao baixar anexo:', error);
       throw error;
     }
   },
 
   // ================================
-  // OPERAÇÕES DE RELATÓRIOS
+  // OPERAÇÕES DE HISTÓRICO
   // ================================
 
-  // Obter atividades recentes
   getRecentActivities: async (limit: number = 10): Promise<HistoryEntry[]> => {
     try {
-      
       const { data, error } = await supabase
         .from('history_entries')
         .select('*')
@@ -555,10 +630,8 @@ const inventoryService = {
     }
   },
 
-  // Obter histórico de um equipamento
   getEquipmentHistory: async (equipmentId: string): Promise<HistoryEntry[]> => {
     try {
-      
       const { data, error } = await supabase
         .from('history_entries')
         .select('*')
@@ -575,156 +648,182 @@ const inventoryService = {
       
       return history;
     } catch (error) {
+      console.error('❌ Erro no getEquipmentHistory:', error);
       throw error;
     }
   },
 
   // ================================
-  // OPERAÇÕES DE ANEXOS
+  // OPERAÇÕES ESPECÍFICAS
   // ================================
 
-  // Obter anexos de um equipamento
-  getEquipmentAttachments: async (equipmentId: string): Promise<Attachment[]> => {
-    try {      
-      const { data, error } = await supabase
-        .from('attachments')
-        .select('*')
-        .eq('equipment_id', equipmentId)
-        .order('uploaded_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Erro ao carregar anexos:', error);
-        throw new Error(`Erro ao carregar anexos: ${error.message}`);
-      }
-
-      // Se data for null, retorna array vazio
-      const attachments = data ? data.map(transformAttachment) : [];
-      
-      return attachments;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Upload de anexo
-  uploadAttachment: async (
-    equipmentId: string, 
-    file: File, 
+  // Registrar entrada em manutenção
+  registerMaintenance: async (
+    equipmentId: string,
+    maintenanceDescription: string,
     user: string
-  ): Promise<Attachment> => {
-    try {      
-      // Gerar nome único para o arquivo
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${equipmentId}/${Date.now()}.${fileExt}`;
-      
-      // Upload para o Storage
-      const { error: uploadError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(fileName, file);
+  ): Promise<void> => {
+    try {
+      // Buscar status atual
+      const { data: currentEquipment, error: fetchError } = await supabase
+        .from('equipments')
+        .select('status')
+        .eq('id', equipmentId)
+        .single();
 
-      if (uploadError) {
-        console.error('❌ Erro no upload:', uploadError);
-        throw new Error(`Erro ao fazer upload: ${uploadError.message}`);
+      if (fetchError || !currentEquipment) {
+        throw new Error('Equipamento não encontrado');
       }
 
-      // Registrar no banco de dados
-      const { data, error } = await supabase
-        .from('attachments')
+      // Atualizar status para manutenção
+      const { error: updateError } = await supabase
+        .from('equipments')
+        .update({ 
+          status: 'manutenção',
+          maintenance_description: maintenanceDescription,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', equipmentId);
+
+      if (updateError) {
+        throw new Error(`Erro ao atualizar status: ${updateError.message}`);
+      }
+
+      // Registrar no histórico
+      await supabase
+        .from('history_entries')
         .insert({
           equipment_id: equipmentId,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          file_path: fileName,
-          uploaded_by: user
-        })
-        .select()
-        .single();
+          timestamp: new Date().toISOString(),
+          user_name: user,
+          change_type: 'manutenção',
+          field: 'status',
+          old_value: currentEquipment.status,
+          new_value: maintenanceDescription
+        });
 
-      if (error) {
-        // Se falhar ao registrar, remover arquivo do storage
-        await supabase.storage.from(STORAGE_BUCKET).remove([fileName]);
-        console.error('❌ Erro ao registrar anexo:', error);
-        throw new Error(`Erro ao registrar anexo: ${error.message}`);
-      }
-
-      // Registrar no histórico
-      await supabase.from('history_entries').insert({
-        equipment_id: equipmentId,
-        user_name: user,
-        change_type: 'anexou arquivo',
-        new_value: file.name
-      });
-
-      const attachment = transformAttachment(data);
-      return attachment;
     } catch (error) {
+      console.error('❌ Erro ao registrar manutenção:', error);
       throw error;
     }
   },
 
-  // Excluir anexo
-  deleteAttachment: async (attachmentId: string, user: string): Promise<void> => {
-    try {      
-      // Buscar anexo para obter informações
-      const { data: attachment, error: fetchError } = await supabase
-        .from('attachments')
+  // Registrar transferência de equipamento
+  transferEquipment: async (
+    equipmentId: string,
+    newLocation: string,
+    transferDate: string,
+    responsiblePerson: string,
+    observations?: string
+  ): Promise<void> => {
+    try {
+      // Buscar equipamento atual
+      const { data: currentEquipment, error: fetchError } = await supabase
+        .from('equipments')
         .select('*')
-        .eq('id', attachmentId)
+        .eq('id', equipmentId)
         .single();
 
-      if (fetchError || !attachment) {
-        throw new Error('Anexo não encontrado');
+      if (fetchError || !currentEquipment) {
+        throw new Error('Equipamento não encontrado');
       }
 
-      // Excluir do Storage
-      const { error: storageError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .remove([attachment.file_path]);
+      const oldLocation = currentEquipment.location;
 
-      if (storageError) {
-        console.warn('⚠️ Erro ao excluir arquivo do storage:', storageError);
+      // Atualizar localização
+      const { error: updateError } = await supabase
+        .from('equipments')
+        .update({ 
+          location: newLocation,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', equipmentId);
+
+      if (updateError) {
+        throw new Error(`Erro ao atualizar localização: ${updateError.message}`);
       }
 
-      // Registrar no histórico
-      await supabase.from('history_entries').insert({
-        equipment_id: attachment.equipment_id,
-        user_name: user,
-        change_type: 'removeu arquivo',
-        old_value: attachment.name
-      });
+      // Criar entrada no histórico
+      const historyEntry = {
+        equipment_id: equipmentId,
+        timestamp: new Date().toISOString(),
+        user_name: responsiblePerson,
+        change_type: 'transferiu',
+        field: 'location',
+        old_value: oldLocation,
+        new_value: newLocation
+      };
 
-      // Excluir do banco de dados
-      const { error } = await supabase
-        .from('attachments')
-        .delete()
-        .eq('id', attachmentId);
+      const { error: historyError } = await supabase
+        .from('history_entries')
+        .insert(historyEntry);
 
-      if (error) {
-        throw new Error(`Erro ao excluir anexo: ${error.message}`);
+      if (historyError) {
+        console.error('Erro ao criar histórico de transferência:', historyError);
       }
 
+      // Se houver observações, criar entrada adicional
+      if (observations && observations.trim()) {
+        const observationEntry = {
+          equipment_id: equipmentId,
+          timestamp: new Date().toISOString(),
+          user_name: responsiblePerson,
+          change_type: 'editou' as const,
+          field: 'observações_transferência',
+          new_value: `Transferência em ${new Date(transferDate).toLocaleDateString('pt-BR')}: ${observations}`
+        };
+
+        await supabase
+          .from('history_entries')
+          .insert(observationEntry);
+      }
+
+      console.log(`✅ Equipamento ${currentEquipment.asset_number} transferido de "${oldLocation}" para "${newLocation}"`);
     } catch (error) {
+      console.error('❌ Erro ao transferir equipamento:', error);
       throw error;
     }
   },
 
-  // Download de anexo
-  downloadAttachment: async (attachment: Attachment): Promise<void> => {
-    try {      
-      // Criar link temporário e clicar
-      const link = document.createElement('a');
-      link.href = attachment.url;
-      link.download = attachment.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
+  // ================================
+  // RELATÓRIOS E ESTATÍSTICAS
+  // ================================
+
+  getEquipmentStats: async () => {
+    try {
+      const { data: equipment, error } = await supabase
+        .from('equipments')
+        .select('status');
+
+      if (error) throw error;
+
+      const stats = {
+        total: equipment?.length || 0,
+        active: 0,
+        maintenance: 0,
+        inactive: 0
+      };
+
+      equipment?.forEach(item => {
+        switch (item.status) {
+          case 'ativo':
+            stats.active++;
+            break;
+          case 'manutenção':
+            stats.maintenance++;
+            break;
+          case 'desativado':
+            stats.inactive++;
+            break;
+        }
+      });
+
+      return stats;
     } catch (error) {
+      console.error('Erro ao obter estatísticas:', error);
       throw error;
     }
   }
 };
 
-// Exportar o serviço
 export default inventoryService;

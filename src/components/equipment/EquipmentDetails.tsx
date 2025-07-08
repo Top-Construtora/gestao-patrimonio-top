@@ -29,7 +29,9 @@ import {
   Info,
   CheckCircle,
   Wrench,
-  Tag
+  Tag,
+  ArrowRight,
+  Building2
 } from 'lucide-react';
 
 interface EquipmentDetailsProps {
@@ -41,6 +43,7 @@ interface EquipmentDetailsProps {
   onUploadAttachment: (file: File) => void;
   onDeleteAttachment: (attachmentId: string) => void;
   onDownloadAttachment: (attachment: Attachment) => void;
+  onTransfer?: () => void;
 }
 
 const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ 
@@ -51,7 +54,8 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
   onDelete,
   onUploadAttachment,
   onDeleteAttachment,
-  onDownloadAttachment
+  onDownloadAttachment,
+  onTransfer
 }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'attachments'>('details');
   const [isDragging, setIsDragging] = useState(false);
@@ -59,28 +63,35 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
   const [attachmentToDelete, setAttachmentToDelete] = useState<Attachment | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'N/A';
-    const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
-    const [year, month, day] = dateOnly.split('-').map(Number);
-    const date = new Date(year, month - 1, day); 
-    return new Intl.DateTimeFormat('pt-BR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
+    try {
+      const dateOnly = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+      const date = new Date(dateOnly + 'T00:00:00');
+      return date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return 'Data inválida';
+    }
   };
 
-  const formatDateTime = (dateTimeString: string) => {
-    if (!dateTimeString) return 'N/A';
-    const date = new Date(dateTimeString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+  const formatDateTime = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Data inválida';
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -90,95 +101,77 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
     }).format(value);
   };
 
-  // Função para traduzir nomes dos campos
-  const getFieldDisplayName = (field: string): string => {
-    const fieldNames: Record<string, string> = {
-      assetNumber: 'Número do Patrimônio',
-      description: 'Descrição',
-      brand: 'Marca',
-      model: 'Modelo',
-      specs: 'Especificações',
-      status: 'Status',
-      location: 'Localização',
-      responsible: 'Responsável',
-      acquisitionDate: 'Data de Aquisição',
-      invoiceDate: 'Data da Nota Fiscal',
-      value: 'Valor',
-      maintenanceDescription: 'Observações de Manutenção',
-      observacoesManutenção: 'Observações de Manutenção'
-    };
-    return fieldNames[field] || field;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'ativo':
+        return 'success';
+      case 'manutenção':
+        return 'warning';
+      case 'desativado':
+        return 'error';
+      default:
+        return 'default';
+    }
   };
 
-  const getChangeTypeText = (changeType: string) => {
+  const getChangeTypeIcon = (changeType: string) => {
     switch (changeType) {
       case 'criou':
-        return 'Criação';
+        return <Package className="h-4 w-4" />;
       case 'editou':
-        return 'Edição';
+        return <Edit className="h-4 w-4" />;
       case 'excluiu':
-        return 'Exclusão';
+        return <Trash className="h-4 w-4" />;
       case 'manutenção':
-        return 'Manutenção';
+        return <Wrench className="h-4 w-4" />;
+      case 'alterou status':
+        return <Activity className="h-4 w-4" />;
       case 'anexou arquivo':
-        return 'Anexo Adicionado';
+        return <Paperclip className="h-4 w-4" />;
       case 'removeu arquivo':
-        return 'Anexo Removido';
+        return <X className="h-4 w-4" />;
+      case 'transferiu':
+        return <ArrowRight className="h-4 w-4" />;
       default:
-        return 'Alteração';
+        return <Clock className="h-4 w-4" />;
     }
   };
 
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase() || '';
-    
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
-      return <Image className="h-5 w-5 text-gray-500" />;
-    } else if (['pdf'].includes(extension)) {
-      return <FileText className="h-5 w-5 text-gray-500" />;
-    } else if (['xls', 'xlsx', 'csv'].includes(extension)) {
-      return <FileSpreadsheet className="h-5 w-5 text-gray-500" />;
-    } else {
-      return <File className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      onUploadAttachment(files[0]);
-    }
+  const getFileIcon = (type: string) => {
+    if (type.includes('pdf')) return <FileText className="h-5 w-5 text-red-600" />;
+    if (type.includes('image')) return <Image className="h-5 w-5 text-blue-600" />;
+    if (type.includes('sheet') || type.includes('excel')) return <FileSpreadsheet className="h-5 w-5 text-green-600" />;
+    return <File className="h-5 w-5 text-gray-600" />;
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      onUploadAttachment(files[0]);
+    const file = e.target.files?.[0];
+    if (file) {
+      onUploadAttachment(file);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDeleteAttachmentClick = (attachment: Attachment) => {
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      onUploadAttachment(file);
+    }
+  };
+
+  const handleDeleteClick = (attachment: Attachment) => {
     setAttachmentToDelete(attachment);
     setShowDeleteModal(true);
   };
@@ -196,50 +189,53 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
     setAttachmentToDelete(null);
   };
 
+  // Buscar última transferência no histórico
+  const lastTransfer = history.find(entry => entry.changeType === 'transferiu' && entry.field === 'location');
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden">
       {/* Header */}
-      <div className="bg-blue-50 p-6 rounded-t-xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-start gap-4">
-            <Package className="h-10 w-10 text-primary-dark mt-1" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{equipment.description}</h1>
-              <div className="flex flex-wrap items-center gap-3 mt-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Tag className="h-4 w-4" />
-                  <span className="font-medium">{equipment.assetNumber}</span>
+      <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Package className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{equipment.description}</h2>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                    <Tag className="h-4 w-4" />
+                    {equipment.assetNumber}
+                  </span>
+                  <Badge
+                    variante={
+                      equipment.status === 'ativo' ? 'success' : 
+                      equipment.status === 'manutenção' ? 'warning' : 
+                      'error'
+                    }
+                  >
+                    {equipment.status === 'ativo' ? 'Ativo' : 
+                     equipment.status === 'manutenção' ? 'Em Manutenção' : 
+                     'Desativado'}
+                  </Badge>
                 </div>
-                <Badge 
-                  variante={
-                    equipment.status === 'ativo' ? 'success' : 
-                    equipment.status === 'manutenção' ? 'warning' : 
-                    'error'
-                  }
-                >
-                  {equipment.status === 'ativo' ? 'Ativo' : 
-                   equipment.status === 'manutenção' ? 'Em Manutenção' : 
-                   'Desativado'}
-                </Badge>
               </div>
             </div>
           </div>
           
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => onEdit(equipment.id)}
-              icon={<Edit size={16} />}
-            >
-              Editar
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => onDelete(equipment.id)}
-              icon={<Trash size={16} />}
-            >
-              Excluir
-            </Button>
+            {onTransfer && (
+              <Button
+                variant="outline"
+                onClick={onTransfer}
+                icon={<ArrowRight size={16} />}
+                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              >
+                Transferir
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -308,9 +304,27 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
                 <div>
                   <div className="flex items-center text-sm text-gray-500 mb-1">
                     <MapPin className="h-4 w-4 mr-2" />
-                    Localização
+                    Localização Atual
                   </div>
-                  <p className="text-gray-900">{equipment.location}</p>
+                  <p className="text-gray-900 font-medium">{equipment.location}</p>
+                  
+                  {/* Mostrar última transferência se existir */}
+                  {lastTransfer && (
+                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-start gap-2">
+                        <ArrowRight className="h-4 w-4 text-blue-600 mt-0.5" />
+                        <div className="text-sm">
+                          <p className="text-blue-900 font-medium">Última Transferência</p>
+                          <p className="text-blue-700">
+                            De: <span className="font-medium">{lastTransfer.oldValue}</span> → Para: <span className="font-medium">{lastTransfer.newValue}</span>
+                          </p>
+                          <p className="text-blue-600 text-xs mt-1">
+                            Por {lastTransfer.user} em {formatDateTime(lastTransfer.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div>
@@ -401,14 +415,35 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
                 )}
               </div>
 
-              {equipment.createdAt && (
-                <div className="pt-4 border-t">
-                  <p className="text-xs text-gray-500 flex items-center">
-                    <Clock className="h-3 w-3 mr-1" />
-                    Cadastrado em {formatDateTime(equipment.createdAt)}
-                  </p>
+              {/* Informações de Rastreamento */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                  <Clock className="h-4 w-4" />
+                  Informações de Rastreamento
                 </div>
-              )}
+                <div className="space-y-2 text-sm">
+                  {equipment.createdAt && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Cadastrado em:</span>
+                      <span className="text-gray-900">{formatDateTime(equipment.createdAt)}</span>
+                    </div>
+                  )}
+                  {equipment.updatedAt && equipment.createdAt && equipment.updatedAt !== equipment.createdAt && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Última atualização:</span>
+                      <span className="text-gray-900">{formatDateTime(equipment.updatedAt)}</span>
+                    </div>
+                  )}
+                  {history.filter(h => h.changeType === 'transferiu').length > 0 && (
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <span className="text-gray-600">Total de transferências:</span>
+                      <span className="text-gray-900 font-medium">
+                        {history.filter(h => h.changeType === 'transferiu').length}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -417,68 +452,52 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
           <div className="space-y-4">
             {history.length > 0 ? (
               history.map((entry) => (
-                <div 
-                  key={entry.id} 
-                  className="flex items-start space-x-3 p-4 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <div className="mt-1">
-                    {entry.changeType === 'criou' && (
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    )}
-                    {entry.changeType === 'editou' && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    )}
-                    {entry.changeType === 'excluiu' && (
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    )}
-                    {entry.changeType === 'manutenção' && (
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    )}
-                    {(entry.changeType === 'anexou arquivo' || entry.changeType === 'removeu arquivo') && (
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    )}
+                <div key={entry.id} className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className={`p-2 rounded-lg ${
+                    entry.changeType === 'criou' ? 'bg-green-100 text-green-600' :
+                    entry.changeType === 'editou' ? 'bg-blue-100 text-blue-600' :
+                    entry.changeType === 'excluiu' ? 'bg-red-100 text-red-600' :
+                    entry.changeType === 'manutenção' ? 'bg-orange-100 text-orange-600' :
+                    entry.changeType === 'alterou status' ? 'bg-yellow-100 text-yellow-600' :
+                    entry.changeType === 'anexou arquivo' ? 'bg-indigo-100 text-indigo-600' :
+                    entry.changeType === 'removeu arquivo' ? 'bg-pink-100 text-pink-600' :
+                    entry.changeType === 'transferiu' ? 'bg-purple-100 text-purple-600' :
+                    'bg-gray-200 text-gray-600'
+                  }`}>
+                    {getChangeTypeIcon(entry.changeType)}
                   </div>
-                  
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-gray-900">
-                        {entry.user}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {getChangeTypeText(entry.changeType).toLowerCase()}
-                      </span>
-                      {entry.field && (
-                        <span className="text-sm text-gray-600">
-                          {getFieldDisplayName(entry.field).toLowerCase()}
-                        </span>
-                      )}
-                    </div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {entry.user} {entry.changeType} 
+                      {entry.field && ` ${
+                        entry.field === 'location' ? 'a localização' :
+                        entry.field === 'responsible' ? 'o responsável' :
+                        entry.field === 'status' ? 'o status' :
+                        entry.field
+                      }`}
+                    </p>
                     
-                    {entry.changeType === 'manutenção' && entry.newValue && (
-                      <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                        <p className="text-sm text-orange-700 whitespace-pre-line">
-                          {entry.newValue}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {entry.changeType === 'anexou arquivo' && entry.newValue && (
-                      <p className="text-sm text-gray-600">
-                        Arquivo: <span className="font-medium">{entry.newValue}</span>
-                      </p>
-                    )}
-                    
-                    {entry.changeType === 'removeu arquivo' && entry.oldValue && (
-                      <p className="text-sm text-gray-600">
-                        Arquivo: <span className="font-medium">{entry.oldValue}</span>
-                      </p>
-                    )}
-                    
-                    {entry.field && entry.changeType === 'editou' && (
+                    {entry.field && (entry.changeType === 'editou' || entry.changeType === 'alterou status') && (
                       <div className="flex items-center gap-2 mt-1 text-sm">
                         <span className="text-gray-500">{entry.oldValue || 'Vazio'}</span>
                         <ChevronRight className="h-3 w-3 text-gray-400" />
                         <span className="text-gray-900 font-medium">{entry.newValue || 'Vazio'}</span>
+                      </div>
+                    )}
+                    
+                    {entry.field && entry.changeType === 'transferiu' && (
+                      <div className="mt-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-gray-500">{entry.oldValue}</span>
+                          <ArrowRight className="h-3 w-3 text-purple-500" />
+                          <span className="text-purple-700 font-medium">{entry.newValue}</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {entry.changeType === 'manutenção' && entry.newValue && (
+                      <div className="mt-2 p-2 bg-orange-50 rounded text-sm text-orange-700">
+                        {entry.newValue}
                       </div>
                     )}
                     
@@ -541,41 +560,34 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
 
             {/* Attachments List */}
             {attachments.length > 0 ? (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {attachments.map((attachment) => (
-                  <div 
-                    key={attachment.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="flex-shrink-0">
-                        {getFileIcon(attachment.name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {attachment.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {formatFileSize(attachment.size)} • {attachment.uploadedBy} • {formatDateTime(attachment.uploadedAt)}
-                        </p>
-                      </div>
+                  <div key={attachment.id} className="bg-gray-50 rounded-lg p-4 flex items-center gap-3 hover:bg-gray-100 transition-colors">
+                    {getFileIcon(attachment.type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {attachment.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {(attachment.size / 1024).toFixed(1)} KB • {formatDateTime(attachment.uploadedAt)}
+                      </p>
                     </div>
-                    
-                    <div className="flex items-center gap-2 ml-4">
-                      <button
-                        onClick={() => onDownloadAttachment(attachment)}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Baixar arquivo"
-                      >
-                        <Download size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAttachmentClick(attachment)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remover anexo"
-                      >
-                        <Trash size={16} />
-                      </button>
+                    <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelDelete}
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={handleConfirmDelete}
+                      icon={<Trash size={16} />}
+                      className="flex-1"
+                    >
+                      Excluir Anexo
+                    </Button>
                     </div>
                   </div>
                 ))}
