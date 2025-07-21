@@ -1,6 +1,6 @@
+// src/services/responsibilityTermService.ts - Versão simplificada sem Assinafy
 import { supabase } from '../lib/supabase';
 import { ResponsibilityTerm } from '../types';
-import { assinafyService } from './assinafyService';
 
 // Transformar dados do banco para aplicação
 const transformResponsibilityTerm = (dbTerm: any): ResponsibilityTerm => ({
@@ -12,13 +12,10 @@ const transformResponsibilityTerm = (dbTerm: any): ResponsibilityTerm => ({
   responsibleCPF: dbTerm.responsible_cpf,
   responsibleDepartment: dbTerm.responsible_department,
   termDate: dbTerm.term_date,
-  status: dbTerm.status,
+  status: dbTerm.status || 'signed',
   observations: dbTerm.observations || undefined,
-  assinafyDocumentId: dbTerm.assinafy_document_id || undefined,
-  assinafySignerId: dbTerm.assinafy_signer_id || undefined,
-  assinafySignedAt: dbTerm.assinafy_signed_at || undefined,
-  pdfUrl: dbTerm.pdf_url || undefined,
-  signedPdfUrl: dbTerm.signed_pdf_url || undefined
+  manualSignature: dbTerm.manual_signature,
+  pdfUrl: dbTerm.pdf_url || undefined
 });
 
 class ResponsibilityTermService {
@@ -35,8 +32,9 @@ class ResponsibilityTermService {
           responsible_cpf: termData.responsibleCPF,
           responsible_department: termData.responsibleDepartment,
           term_date: termData.termDate,
-          status: 'draft',
-          observations: termData.observations || null
+          status: 'signed',
+          observations: termData.observations || null,
+          manual_signature: termData.manualSignature
         })
         .select()
         .single();
@@ -52,7 +50,7 @@ class ResponsibilityTermService {
         user_name: termData.responsiblePerson,
         change_type: 'criou',
         field: 'termo_responsabilidade',
-        new_value: 'Termo de responsabilidade criado'
+        new_value: 'Termo de responsabilidade assinado'
       });
 
       return transformResponsibilityTerm(data);
@@ -82,49 +80,8 @@ class ResponsibilityTermService {
     }
   }
 
-  // Atualizar termo
-  async updateTerm(
-    termId: string,
-    updates: Partial<ResponsibilityTerm>
-  ): Promise<ResponsibilityTerm> {
-    try {
-      const updateData: any = {};
-
-      if (updates.status !== undefined) updateData.status = updates.status;
-      if (updates.assinafyDocumentId !== undefined) {
-        updateData.assinafy_document_id = updates.assinafyDocumentId;
-      }
-      if (updates.assinafySignerId !== undefined) {
-        updateData.assinafy_signer_id = updates.assinafySignerId;
-      }
-      if (updates.assinafySignedAt !== undefined) {
-        updateData.assinafy_signed_at = updates.assinafySignedAt;
-      }
-      if (updates.pdfUrl !== undefined) updateData.pdf_url = updates.pdfUrl;
-      if (updates.signedPdfUrl !== undefined) {
-        updateData.signed_pdf_url = updates.signedPdfUrl;
-      }
-
-      const { data, error } = await supabase
-        .from('responsibility_terms')
-        .update(updateData)
-        .eq('id', termId)
-        .select()
-        .single();
-
-      if (error || !data) {
-        throw new Error('Erro ao atualizar termo');
-      }
-
-      return transformResponsibilityTerm(data);
-    } catch (error) {
-      console.error('Erro ao atualizar termo:', error);
-      throw error;
-    }
-  }
-
-  // Criar e enviar termo via Assinafy (INTEGRAÇÃO REAL)
-  async createAndSendTerm(
+  // Criar termo e salvar PDF como anexo
+  async createTermWithAttachment(
     termData: Omit<ResponsibilityTerm, 'id'>,
     pdfBase64: string
   ): Promise<ResponsibilityTerm> {
@@ -133,114 +90,115 @@ class ResponsibilityTermService {
       console.log('1️⃣ Criando termo no banco de dados...');
       const createdTerm = await this.createTerm(termData);
 
-      try {
-        // 2. Criar documento no Assinafy
-        console.log('2️⃣ Enviando para Assinafy...');
-        const assinafyDoc = await assinafyService.createDocument(
-          `Termo de Responsabilidade - ${termData.responsiblePerson}`,
-          pdfBase64,
-          [{
-            name: termData.responsiblePerson,
-            email: termData.responsibleEmail,
-            cpf: termData.responsibleCPF.replace(/[^\d]/g, ''),
-            phone: termData.responsiblePhone.replace(/[^\d]/g, '')
-          }]
-        );
+      // 2. Salvar PDF como anexo do equipamento
+      console.log('2️⃣ Salvando PDF como anexo...');
+      const pdfUrl = await this.savePdfAsAttachment(
+        termData.equipmentId,
+        pdfBase64,
+        `Termo_Responsabilidade_${termData.responsiblePerson.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+        termData.responsiblePerson
+      );
 
-        console.log('3️⃣ Documento criado no Assinafy:', assinafyDoc.id);
+      // 3. Atualizar termo com URL do PDF
+      if (pdfUrl) {
+        const { data, error } = await supabase
+          .from('responsibility_terms')
+          .update({ pdf_url: pdfUrl })
+          .eq('id', createdTerm.id)
+          .select()
+          .single();
 
-        // 3. Atualizar termo com dados do Assinafy
-        const updatedTerm = await this.updateTerm(createdTerm.id, {
-          status: 'sent',
-          assinafyDocumentId: assinafyDoc.id,
-          assinafySignerId: assinafyDoc.signers[0]?.id,
-          pdfUrl: assinafyDoc.document_url
-        });
-
-        console.log('✅ Termo enviado com sucesso!');
-        console.log('📧 Email enviado para:', termData.responsibleEmail);
-        
-        return updatedTerm;
-      } catch (assinafyError) {
-        // Se falhar no Assinafy, ainda temos o termo criado no banco
-        console.error('Erro no Assinafy, mas termo foi salvo:', assinafyError);
-        
-        // Atualizar termo com status de erro
-        await this.updateTerm(createdTerm.id, {
-          status: 'draft',
-          observations: 'Erro ao enviar para assinatura digital. Tente novamente.'
-        });
-        
-        throw assinafyError;
+        if (data) {
+          return transformResponsibilityTerm(data);
+        }
       }
+
+      return createdTerm;
     } catch (error) {
-      console.error('Erro ao criar e enviar termo:', error);
+      console.error('Erro ao criar termo com anexo:', error);
       throw error;
     }
   }
 
-  // Verificar e atualizar status
-  async checkAndUpdateStatus(termId: string): Promise<ResponsibilityTerm> {
+  // Salvar PDF como anexo
+  private async savePdfAsAttachment(
+    equipmentId: string,
+    pdfBase64: string,
+    fileName: string,
+    uploadedBy: string
+  ): Promise<string | null> {
     try {
-      // 1. Buscar termo no banco
-      const { data: termData } = await supabase
-        .from('responsibility_terms')
-        .select('*')
-        .eq('id', termId)
-        .single();
+      // Converter base64 para blob
+      const byteCharacters = atob(pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      
+      // Determinar o tipo MIME baseado no conteúdo
+      // Se começar com 0xFF 0xD8 é JPEG, senão assume PDF
+      const isJPEG = byteArray[0] === 0xFF && byteArray[1] === 0xD8;
+      const mimeType = isJPEG ? 'image/jpeg' : 'application/pdf';
+      const fileExtension = isJPEG ? '.jpg' : '.pdf';
+      
+      // Ajustar o nome do arquivo
+      const finalFileName = fileName.replace('.pdf', fileExtension);
+      
+      const blob = new Blob([byteArray], { type: mimeType });
 
-      if (!termData) {
-        throw new Error('Termo não encontrado');
+      // Gerar caminho único para o arquivo
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(7);
+      const filePath = `${equipmentId}/${timestamp}_${randomString}_${finalFileName}`;
+
+      // Upload para o storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('equipment-attachments')
+        .upload(filePath, blob, {
+          contentType: mimeType,
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw uploadError;
       }
 
-      // 2. Se tem documento no Assinafy, verificar status
-      if (termData.assinafy_document_id) {
-        try {
-          console.log('🔍 Verificando status no Assinafy...');
-          const assinafyDoc = await assinafyService.getDocumentStatus(
-            termData.assinafy_document_id
-          );
+      // Criar registro do anexo
+      const { error: dbError } = await supabase
+        .from('attachments')
+        .insert({
+          equipment_id: equipmentId,
+          file_name: finalFileName,
+          file_size: byteArray.length,
+          file_type: mimeType,
+          file_path: filePath,
+          uploaded_by: uploadedBy,
+          uploaded_at: new Date().toISOString()
+        });
 
-          // 3. Verificar se foi assinado
-          const signer = assinafyDoc.signers[0];
-          if (signer?.signed_at && termData.status !== 'signed') {
-            console.log('✅ Documento foi assinado!');
-            
-            // Atualizar termo
-            const updatedTerm = await this.updateTerm(termId, {
-              status: 'signed',
-              assinafySignedAt: signer.signed_at,
-              signedPdfUrl: assinafyDoc.signed_document_url
-            });
-
-            // Registrar no histórico
-            await supabase.from('history_entries').insert({
-              equipment_id: termData.equipment_id,
-              timestamp: new Date().toISOString(),
-              user_name: termData.responsible_person,
-              change_type: 'editou',
-              field: 'termo_responsabilidade',
-              old_value: 'Aguardando assinatura',
-              new_value: 'Assinado digitalmente'
-            });
-
-            return transformResponsibilityTerm(updatedTerm);
-          }
-        } catch (error) {
-          console.error('Erro ao verificar status no Assinafy:', error);
-        }
+      if (dbError) {
+        // Se falhar ao criar registro, deletar arquivo do storage
+        await supabase.storage
+          .from('equipment-attachments')
+          .remove([filePath]);
+        throw dbError;
       }
 
-      return transformResponsibilityTerm(termData);
+      // Retornar URL pública do arquivo
+      const { data: urlData } = supabase.storage
+        .from('equipment-attachments')
+        .getPublicUrl(filePath);
+
+      console.log('✅ Documento salvo como anexo:', finalFileName);
+      return urlData.publicUrl;
     } catch (error) {
-      console.error('Erro ao verificar status:', error);
-      throw error;
+      console.error('Erro ao salvar documento como anexo:', error);
+      return null;
     }
   }
 }
 
-// IMPORTANTE: Exportar uma instância da classe
+// Exportar instância única
 export const responsibilityTermService = new ResponsibilityTermService();
-
-// Também exportar a classe se necessário
 export default ResponsibilityTermService;

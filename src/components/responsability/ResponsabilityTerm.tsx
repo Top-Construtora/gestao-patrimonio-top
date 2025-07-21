@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FileText, 
-  Send, 
   X, 
   Calendar,
   User,
@@ -9,14 +8,13 @@ import {
   Phone,
   Building2,
   CreditCard,
-  AlertTriangle,
-  Clock,
-  CheckCircle,
-  FileSignature,
-  Loader2,
+  PenTool,
+  Trash2,
+  Check,
   Download,
   Eye,
-  RefreshCw
+  FileSignature,
+  Loader2
 } from 'lucide-react';
 
 // Tipos
@@ -43,19 +41,189 @@ interface ResponsibilityTerm {
   responsibleCPF: string;
   responsibleDepartment: string;
   termDate: string;
-  status: 'draft' | 'sent' | 'signed' | 'cancelled';
+  status: 'signed';
   observations?: string;
-  assinafyDocumentId?: string;
-  assinafySignerId?: string;
-  assinafySignedAt?: string;
+  manualSignature: string;
   pdfUrl?: string;
-  signedPdfUrl?: string;
 }
 
-// Mock da biblioteca jsPDF removido - agora usa a API real
+// Componente de Assinatura
+const SignaturePad: React.FC<{
+  onSignatureChange: (signature: string | null) => void;
+  initialSignature?: string;
+}> = ({ onSignatureChange, initialSignature }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasSignature, setHasSignature] = useState(!!initialSignature);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Configurar canvas com alta resolução
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * 2;
+    canvas.height = rect.height * 2;
+    
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.scale(2, 2);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    if (initialSignature) {
+      const img = new Image();
+      img.onload = () => {
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, rect.width, rect.height);
+          setHasSignature(true);
+        }
+      };
+      img.src = initialSignature;
+    }
+  }, [initialSignature]);
+
+  const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    
+    if ('touches' in e) {
+      const touch = e.touches[0];
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+    } else {
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    setIsDrawing(true);
+    const { x, y } = getCoordinates(e);
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#000000';
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { x, y } = getCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setHasSignature(true);
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const signature = canvas.toDataURL('image/png');
+      onSignatureChange(signature);
+    }
+  };
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    
+    setHasSignature(false);
+    onSignatureChange(null);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-between items-center">
+        <label className="block text-sm font-semibold text-gray-700">
+          <FileSignature className="inline w-4 h-4 mr-1.5" />
+          Assinatura do Responsável
+        </label>
+        {hasSignature && (
+          <button
+            type="button"
+            onClick={clearSignature}
+            className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1.5 hover:bg-red-50 px-2 py-1 rounded-md transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            Limpar
+          </button>
+        )}
+      </div>
+      
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          className="w-full border-2 border-gray-300 rounded-lg bg-white cursor-crosshair touch-none shadow-sm hover:border-blue-400 transition-colors"
+          style={{ height: '180px' }}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            startDrawing(e);
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            draw(e);
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            stopDrawing();
+          }}
+        />
+        {!hasSignature && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center">
+              <PenTool className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-gray-400 font-medium">Assine aqui</p>
+              <p className="text-xs text-gray-400 mt-1">Use o mouse ou toque na tela</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // Componente Principal
-const ResponsibilityTermAssinafy: React.FC<{
+const ResponsibilityTerm: React.FC<{
   equipment: Equipment;
   onClose: () => void;
   onTermCreated?: (term: ResponsibilityTerm) => void;
@@ -63,8 +231,8 @@ const ResponsibilityTermAssinafy: React.FC<{
   const [loading, setLoading] = useState(false);
   const [loadingTerms, setLoadingTerms] = useState(true);
   const [existingTerms, setExistingTerms] = useState<ResponsibilityTerm[]>([]);
-  const [selectedTerm, setSelectedTerm] = useState<ResponsibilityTerm | null>(null);
   const [activeTab, setActiveTab] = useState<'create' | 'list'>('create');
+  const [manualSignature, setManualSignature] = useState<string | null>(null);
   
   // Formulário
   const [formData, setFormData] = useState({
@@ -101,7 +269,6 @@ const ResponsibilityTermAssinafy: React.FC<{
     cpf = cpf.replace(/[^\d]/g, '');
     if (cpf.length !== 11) return false;
     
-    // Validação básica de CPF
     let sum = 0;
     let remainder;
     
@@ -153,19 +320,28 @@ const ResponsibilityTermAssinafy: React.FC<{
       newErrors.responsibleDepartment = 'Departamento é obrigatório';
     }
 
+    if (!manualSignature) {
+      newErrors.signature = 'Assinatura é obrigatória';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Criar e enviar termo
-  const handleCreateAndSend = async () => {
+  // Criar termo
+  const handleCreate = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     try {
       const { api } = await import('../../services/api');
       
-      const newTerm = await api.responsibilityTerms.createAndSend(equipment, formData);
+      const termDataWithSignature = {
+        ...formData,
+        manualSignature
+      };
+      
+      const newTerm = await api.responsibilityTerms.create(equipment, termDataWithSignature);
       
       // Atualizar lista
       setExistingTerms([newTerm, ...existingTerms]);
@@ -180,152 +356,173 @@ const ResponsibilityTermAssinafy: React.FC<{
         responsibleDepartment: '',
         observations: ''
       });
+      setManualSignature(null);
       
       if (onTermCreated) {
         onTermCreated(newTerm);
       }
       
-      alert('Termo enviado com sucesso! O responsável receberá um e-mail para assinatura.');
+      // Notificação de sucesso
+      const successMessage = document.createElement('div');
+      successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-slide-in';
+      successMessage.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Termo criado e salvo nos anexos!</span>
+      `;
+      document.body.appendChild(successMessage);
+      setTimeout(() => successMessage.remove(), 3000);
+      
     } catch (error) {
-      console.error('Erro ao criar e enviar termo:', error);
+      console.error('Erro ao criar termo:', error);
       alert('Erro ao processar termo. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Verificar status do documento
-  const checkDocumentStatus = async (term: ResponsibilityTerm) => {
-    setLoading(true);
-    try {
-      const { api } = await import('../../services/api');
-      
-      const updatedTerm = await api.responsibilityTerms.checkStatus(term.id);
-      
-      // Atualizar termo na lista
-      setExistingTerms(existingTerms.map(t => 
-        t.id === updatedTerm.id ? updatedTerm : t
-      ));
-      
-      if (updatedTerm.status === 'signed') {
-        alert('Documento assinado com sucesso! O PDF assinado foi anexado ao equipamento.');
-      } else {
-        alert('Documento ainda não foi assinado.');
-      }
-    } catch (error) {
-      console.error('Erro ao verificar status:', error);
-      alert('Erro ao verificar status do documento.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Formatar telefone
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 10) {
-      return numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-    }
-    return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-  };
-
-  // Formatar CPF
+  // Formatação de CPF
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, '');
-    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+    return value;
+  };
+
+  // Formatação de telefone
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    return value;
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+        <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-600 to-blue-700">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <FileSignature className="w-8 h-8" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <FileSignature className="h-6 w-6 text-white" />
+              </div>
               <div>
-                <h2 className="text-2xl font-bold">Termo de Responsabilidade Digital</h2>
-                <p className="text-blue-100">Equipamento: {equipment.assetNumber} - {equipment.description}</p>
+                <h2 className="text-xl font-semibold text-white">
+                  Termo de Responsabilidade
+                </h2>
+                <p className="text-sm text-blue-100">
+                  Equipamento: {equipment.assetNumber} - {equipment.description}
+                </p>
               </div>
             </div>
-            <button onClick={onClose} className="text-white hover:bg-white/20 p-2 rounded-lg">
-              <X className="w-6 h-6" />
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5 text-white" />
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <div className="border-b bg-gray-50">
           <div className="flex">
             <button
-              className={`px-6 py-3 font-medium transition-colors ${
-                activeTab === 'create'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
               onClick={() => setActiveTab('create')}
+              className={`flex-1 px-6 py-3 text-sm font-medium transition-all ${
+                activeTab === 'create'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
             >
-              <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4" />
-                <span>Novo Termo</span>
+              <div className="flex items-center justify-center gap-2">
+                <PenTool className="w-4 h-4" />
+                Novo Termo
               </div>
             </button>
             <button
-              className={`px-6 py-3 font-medium transition-colors ${
-                activeTab === 'list'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
               onClick={() => setActiveTab('list')}
+              className={`flex-1 px-6 py-3 text-sm font-medium transition-all relative ${
+                activeTab === 'list'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
             >
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4" />
-                <span>Termos Enviados ({existingTerms.length})</span>
+              <div className="flex items-center justify-center gap-2">
+                <FileText className="w-4 h-4" />
+                Termos Assinados
+                {existingTerms.length > 0 && (
+                  <span className="bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {existingTerms.length}
+                  </span>
+                )}
               </div>
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 200px)' }}>
-          {activeTab === 'create' && (
-            <div className="p-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">Como funciona:</p>
-                    <ol className="list-decimal list-inside space-y-1">
-                      <li>Preencha os dados do responsável pelo equipamento</li>
-                      <li>O sistema gerará o PDF do termo automaticamente</li>
-                      <li>O responsável receberá um e-mail para assinar digitalmente</li>
-                      <li>Após assinado, o documento será anexado ao equipamento</li>
-                    </ol>
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+          {activeTab === 'create' ? (
+            <form className="p-6 space-y-6" onSubmit={(e) => { e.preventDefault(); handleCreate(); }}>
+              {/* Info do equipamento */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Informações do Equipamento
+                </h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-500">Patrimônio:</span>
+                    <p className="font-semibold text-gray-900">{equipment.assetNumber}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Localização:</span>
+                    <p className="font-semibold text-gray-900">{equipment.location}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Marca/Modelo:</span>
+                    <p className="font-semibold text-gray-900">{equipment.brand} {equipment.model}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Valor:</span>
+                    <p className="font-semibold text-gray-900">R$ {equipment.value.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-4 max-w-2xl mx-auto">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nome Completo *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.responsiblePerson}
-                    onChange={(e) => setFormData({ ...formData, responsiblePerson: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.responsiblePerson ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {errors.responsiblePerson && (
-                    <p className="text-red-500 text-xs mt-1">{errors.responsiblePerson}</p>
-                  )}
-                </div>
+              {/* Dados do responsável */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Dados do Responsável
+                </h3>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Nome Completo *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.responsiblePerson}
+                      onChange={(e) => setFormData({ ...formData, responsiblePerson: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                        errors.responsiblePerson ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="João da Silva"
+                    />
+                    {errors.responsiblePerson && (
+                      <p className="mt-1 text-xs text-red-600">{errors.responsiblePerson}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
                       CPF *
                     </label>
                     <input
@@ -335,194 +532,220 @@ const ResponsibilityTermAssinafy: React.FC<{
                         ...formData, 
                         responsibleCPF: formatCPF(e.target.value) 
                       })}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                         errors.responsibleCPF ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="000.000.000-00"
                       maxLength={14}
                     />
                     {errors.responsibleCPF && (
-                      <p className="text-red-500 text-xs mt-1">{errors.responsibleCPF}</p>
+                      <p className="mt-1 text-xs text-red-600">{errors.responsibleCPF}</p>
                     )}
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      E-mail *
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.responsibleEmail}
+                      onChange={(e) => setFormData({ ...formData, responsibleEmail: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                        errors.responsibleEmail ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="joao@empresa.com"
+                    />
+                    {errors.responsibleEmail && (
+                      <p className="mt-1 text-xs text-red-600">{errors.responsibleEmail}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
                       Telefone *
                     </label>
                     <input
-                      type="text"
+                      type="tel"
                       value={formData.responsiblePhone}
                       onChange={(e) => setFormData({ 
                         ...formData, 
                         responsiblePhone: formatPhone(e.target.value) 
                       })}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                         errors.responsiblePhone ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="(00) 00000-0000"
                       maxLength={15}
                     />
                     {errors.responsiblePhone && (
-                      <p className="text-red-500 text-xs mt-1">{errors.responsiblePhone}</p>
+                      <p className="mt-1 text-xs text-red-600">{errors.responsiblePhone}</p>
+                    )}
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Departamento *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.responsibleDepartment}
+                      onChange={(e) => setFormData({ ...formData, responsibleDepartment: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                        errors.responsibleDepartment ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Tecnologia da Informação"
+                    />
+                    {errors.responsibleDepartment && (
+                      <p className="mt-1 text-xs text-red-600">{errors.responsibleDepartment}</p>
                     )}
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    E-mail *
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.responsibleEmail}
-                    onChange={(e) => setFormData({ ...formData, responsibleEmail: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.responsibleEmail ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {errors.responsibleEmail && (
-                    <p className="text-red-500 text-xs mt-1">{errors.responsibleEmail}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Departamento/Setor *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.responsibleDepartment}
-                    onChange={(e) => setFormData({ ...formData, responsibleDepartment: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.responsibleDepartment ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {errors.responsibleDepartment && (
-                    <p className="text-red-500 text-xs mt-1">{errors.responsibleDepartment}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Observações
-                  </label>
-                  <textarea
-                    value={formData.observations}
-                    onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows={3}
-                    placeholder="Informações adicionais sobre o equipamento ou condições especiais..."
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleCreateAndSend}
-                    disabled={loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center space-x-2"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Processando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span>Gerar e Enviar para Assinatura</span>
-                      </>
-                    )}
-                  </button>
-                </div>
               </div>
-            </div>
-          )}
 
-          {activeTab === 'list' && (
+              {/* Campo de assinatura */}
+              <div>
+                <SignaturePad 
+                  onSignatureChange={setManualSignature}
+                  initialSignature={manualSignature || undefined}
+                />
+                {errors.signature && (
+                  <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                    <span className="inline-block w-1 h-1 bg-red-600 rounded-full"></span>
+                    {errors.signature}
+                  </p>
+                )}
+              </div>
+
+              {/* Observações */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Observações (opcional)
+                </label>
+                <textarea
+                  value={formData.observations}
+                  onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  rows={3}
+                  placeholder="Informações adicionais sobre o termo..."
+                />
+              </div>
+
+              {/* Botões */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Criar e Salvar Termo
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          ) : (
             <div className="p-6">
               {loadingTerms ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                 </div>
               ) : existingTerms.length > 0 ? (
                 <div className="space-y-4">
                   {existingTerms.map((term) => (
                     <div
                       key={term.id}
-                      className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                      className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all bg-white"
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{term.responsiblePerson}</h4>
-                          <p className="text-sm text-gray-600">{term.responsibleEmail}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Enviado em: {new Date(term.termDate).toLocaleDateString('pt-BR')}
-                          </p>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <h4 className="font-semibold text-gray-900 text-lg">
+                              {term.responsiblePerson}
+                            </h4>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              <Check className="w-3.5 h-3.5" />
+                              Assinado
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
+                            <div className="flex items-center gap-1.5">
+                              <CreditCard className="w-4 h-4 text-gray-400" />
+                              CPF: {term.responsibleCPF}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Building2 className="w-4 h-4 text-gray-400" />
+                              {term.responsibleDepartment}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Mail className="w-4 h-4 text-gray-400" />
+                              {term.responsibleEmail}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              {new Date(term.termDate).toLocaleDateString('pt-BR')}
+                            </div>
+                          </div>
+                          {term.manualSignature && (
+                            <div className="mt-4">
+                              <p className="text-xs text-gray-500 mb-2">Assinatura:</p>
+                              <img 
+                                src={term.manualSignature} 
+                                alt="Assinatura" 
+                                className="h-20 border border-gray-200 rounded-lg bg-white p-2"
+                              />
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center space-x-3">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              term.status === 'signed'
-                                ? 'bg-green-100 text-green-800'
-                                : term.status === 'sent'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}
-                          >
-                            {term.status === 'signed' ? (
-                              <span className="flex items-center">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Assinado
-                              </span>
-                            ) : term.status === 'sent' ? (
-                              <span className="flex items-center">
-                                <Clock className="w-3 h-3 mr-1" />
-                                Aguardando Assinatura
-                              </span>
-                            ) : (
-                              'Rascunho'
-                            )}
-                          </span>
-                          {term.status === 'sent' && (
-                            <button
-                              onClick={() => checkDocumentStatus(term)}
-                              disabled={loading}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                              title="Verificar Status"
-                            >
-                              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                            </button>
-                          )}
+                        <div className="flex gap-2 ml-4">
                           {term.pdfUrl && (
-                            <button
-                              onClick={() => alert('Visualizar PDF')}
-                              className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
-                              title="Visualizar PDF"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          )}
-                          {term.signedPdfUrl && (
-                            <button
-                              onClick={() => alert('Baixar PDF Assinado')}
-                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                              title="Baixar PDF Assinado"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
+                            <>
+                              <button
+                                onClick={() => {
+                                  // Abrir PDF em nova aba
+                                  const pdfWindow = window.open(term.pdfUrl, '_blank');
+                                  if (!pdfWindow) {
+                                    alert('Por favor, permita pop-ups para visualizar o PDF');
+                                  }
+                                }}
+                                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="Visualizar PDF"
+                              >
+                                <Eye className="w-5 h-5" />
+                              </button>
+                              <a
+                                href={term.pdfUrl}
+                                download={`Termo_Responsabilidade_${term.responsiblePerson.replace(/\s+/g, '_')}.pdf`}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-block"
+                                title="Baixar PDF"
+                              >
+                                <Download className="w-5 h-5" />
+                              </a>
+                            </>
                           )}
                         </div>
                       </div>
-                      {term.assinafySignedAt && (
-                        <p className="text-xs text-green-600 mt-2">
-                          Assinado em: {new Date(term.assinafySignedAt).toLocaleString('pt-BR')}
-                        </p>
+                      {term.observations && (
+                        <div className="mt-3 pt-3 border-t">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Observações:</span> {term.observations}
+                          </p>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -530,7 +753,7 @@ const ResponsibilityTermAssinafy: React.FC<{
               ) : (
                 <div className="text-center py-16">
                   <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 font-medium">Nenhum termo enviado ainda</p>
+                  <p className="text-gray-500 font-medium">Nenhum termo assinado ainda</p>
                   <p className="text-sm text-gray-400 mt-1">
                     Clique em "Novo Termo" para criar o primeiro
                   </p>
@@ -540,8 +763,24 @@ const ResponsibilityTermAssinafy: React.FC<{
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
 
-export default ResponsibilityTermAssinafy;
+export default ResponsibilityTerm;

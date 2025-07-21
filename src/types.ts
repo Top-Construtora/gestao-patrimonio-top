@@ -143,13 +143,10 @@ export interface ResponsibilityTerm {
   responsibleCPF: string;
   responsibleDepartment: string;
   termDate: string;
-  status: 'draft' | 'sent' | 'signed' | 'cancelled';
+  status: 'signed'; 
   observations?: string;
-  assinafyDocumentId?: string;
-  assinafySignerId?: string;
-  assinafySignedAt?: string;
-  pdfUrl?: string;
-  signedPdfUrl?: string;
+  manualSignature: string;
+  pdfUrl?: string; 
 }
 
 export interface DatabaseResponsibilityTerm {
@@ -161,13 +158,10 @@ export interface DatabaseResponsibilityTerm {
   responsible_cpf: string;
   responsible_department: string;
   term_date: string;
-  status: 'draft' | 'sent' | 'signed' | 'cancelled';
+  status: 'signed';
   observations: string | null;
-  assinafy_document_id: string | null;
-  assinafy_signer_id: string | null;
-  assinafy_signed_at: string | null;
-  pdf_url: string | null;
-  signed_pdf_url: string | null;
+  manual_signature: string; // Assinatura em base64
+  pdf_url: string | null; // URL do PDF no storage
   created_at: string;
   updated_at: string;
 }
