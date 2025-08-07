@@ -23,10 +23,9 @@ export const api = {
         responsiblePerson: string;
         responsibleEmail: string;
         responsiblePhone: string;
-        responsibleCPF: string;
         responsibleDepartment: string;
         observations?: string;
-        manualSignature: string | null;
+        manualSignature?: string | null;
       }
     ): Promise<ResponsibilityTerm> {
       try {
@@ -44,12 +43,11 @@ export const api = {
           responsiblePerson: formData.responsiblePerson,
           responsibleEmail: formData.responsibleEmail,
           responsiblePhone: formData.responsiblePhone,
-          responsibleCPF: formData.responsibleCPF,
           responsibleDepartment: formData.responsibleDepartment,
           termDate: new Date().toISOString(),
           status: 'signed',
           observations: formData.observations,
-          manualSignature: formData.manualSignature!
+          manualSignature: formData.manualSignature || undefined
         };
 
         // Criar termo e salvar PDF como anexo
@@ -58,6 +56,38 @@ export const api = {
           termData, 
           pdfBase64
         );
+        
+        // Se há assinatura, anexar o PDF também nos anexos do equipamento
+        if (formData.manualSignature && formData.manualSignature.trim() !== '') {
+          console.log('📎 Anexando PDF assinado nos anexos do equipamento...');
+          try {
+            // Importar inventoryService
+            const { default: inventoryService } = await import('./inventoryService');
+            
+            // Converter base64 para File
+            const byteCharacters = atob(pdfBase64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            
+            const fileName = `Termo_Responsabilidade_${formData.responsiblePerson.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+            const file = new File([byteArray], fileName, { type: 'application/pdf' });
+            
+            // Anexar nos anexos do equipamento
+            await inventoryService.uploadAttachment(
+              equipment.id,
+              file,
+              formData.responsiblePerson
+            );
+            
+            console.log('✅ PDF anexado com sucesso nos anexos do equipamento!');
+          } catch (attachError) {
+            console.error('⚠️ Erro ao anexar PDF nos anexos do equipamento:', attachError);
+            // Não falha se o anexo não funcionar, pois o termo já foi criado
+          }
+        }
         
         console.log('✅ Termo criado com sucesso!');
         return term;

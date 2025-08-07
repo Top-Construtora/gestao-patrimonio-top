@@ -14,8 +14,10 @@ import {
   Download,
   Eye,
   FileSignature,
-  Loader2
+  Loader2,
+  Printer
 } from 'lucide-react';
+import { downloadResponsibilityPDF } from '../../services/pdfGenerator';
 
 // Tipos
 interface Equipment {
@@ -38,12 +40,11 @@ interface ResponsibilityTerm {
   responsiblePerson: string;
   responsibleEmail: string;
   responsiblePhone: string;
-  responsibleCPF: string;
   responsibleDepartment: string;
   termDate: string;
   status: 'signed';
   observations?: string;
-  manualSignature: string;
+  manualSignature?: string;
   pdfUrl?: string;
 }
 
@@ -172,7 +173,7 @@ const SignaturePad: React.FC<{
       <div className="flex justify-between items-center">
         <label className="block text-sm font-semibold text-gray-700">
           <FileSignature className="inline w-4 h-4 mr-1.5" />
-          Assinatura do Responsável
+          Assinatura do Responsável (opcional)
         </label>
         {hasSignature && (
           <button
@@ -239,7 +240,6 @@ const ResponsibilityTerm: React.FC<{
     responsiblePerson: equipment.responsible || '',
     responsibleEmail: '',
     responsiblePhone: '',
-    responsibleCPF: '',
     responsibleDepartment: '',
     observations: ''
   });
@@ -264,33 +264,6 @@ const ResponsibilityTerm: React.FC<{
     }
   };
 
-  // Validação de CPF
-  const validateCPF = (cpf: string) => {
-    cpf = cpf.replace(/[^\d]/g, '');
-    if (cpf.length !== 11) return false;
-    
-    let sum = 0;
-    let remainder;
-    
-    for (let i = 1; i <= 9; i++) {
-      sum += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-    }
-    
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(9, 10))) return false;
-    
-    sum = 0;
-    for (let i = 1; i <= 10; i++) {
-      sum += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-    }
-    
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(10, 11))) return false;
-    
-    return true;
-  };
 
   // Validação do formulário
   const validateForm = () => {
@@ -310,18 +283,8 @@ const ResponsibilityTerm: React.FC<{
       newErrors.responsiblePhone = 'Telefone é obrigatório';
     }
 
-    if (!formData.responsibleCPF.trim()) {
-      newErrors.responsibleCPF = 'CPF é obrigatório';
-    } else if (!validateCPF(formData.responsibleCPF)) {
-      newErrors.responsibleCPF = 'CPF inválido';
-    }
-
     if (!formData.responsibleDepartment.trim()) {
       newErrors.responsibleDepartment = 'Departamento é obrigatório';
-    }
-
-    if (!manualSignature) {
-      newErrors.signature = 'Assinatura é obrigatória';
     }
 
     setErrors(newErrors);
@@ -352,7 +315,6 @@ const ResponsibilityTerm: React.FC<{
         responsiblePerson: '',
         responsibleEmail: '',
         responsiblePhone: '',
-        responsibleCPF: '',
         responsibleDepartment: '',
         observations: ''
       });
@@ -380,15 +342,6 @@ const ResponsibilityTerm: React.FC<{
     } finally {
       setLoading(false);
     }
-  };
-
-  // Formatação de CPF
-  const formatCPF = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 11) {
-      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
-    return value;
   };
 
   // Formatação de telefone
@@ -502,7 +455,7 @@ const ResponsibilityTerm: React.FC<{
                   Dados do Responsável
                 </h3>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                       Nome Completo *
@@ -521,27 +474,6 @@ const ResponsibilityTerm: React.FC<{
                     )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      CPF *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.responsibleCPF}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        responsibleCPF: formatCPF(e.target.value) 
-                      })}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                        errors.responsibleCPF ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="000.000.000-00"
-                      maxLength={14}
-                    />
-                    {errors.responsibleCPF && (
-                      <p className="mt-1 text-xs text-red-600">{errors.responsibleCPF}</p>
-                    )}
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -583,7 +515,7 @@ const ResponsibilityTerm: React.FC<{
                     )}
                   </div>
 
-                  <div className="col-span-2">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
                       Departamento *
                     </label>
@@ -629,6 +561,38 @@ const ResponsibilityTerm: React.FC<{
                   rows={3}
                   placeholder="Informações adicionais sobre o termo..."
                 />
+              </div>
+
+              {/* Botão para gerar PDF de teste */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <Printer className="w-4 h-4" />
+                  Gerar PDF de Teste
+                </h4>
+                <p className="text-xs text-gray-500 mb-3">
+                  Visualize como o termo ficará antes de salvar
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    try {
+                      downloadResponsibilityPDF(equipment, {
+                        responsiblePerson: formData.responsiblePerson || 'Nome do Responsável',
+                        responsibleEmail: formData.responsibleEmail || 'email@exemplo.com',
+                        responsiblePhone: formData.responsiblePhone || '(00) 00000-0000',
+                        responsibleDepartment: formData.responsibleDepartment || 'Departamento',
+                        observations: formData.observations,
+                        manualSignature: manualSignature
+                      });
+                    } catch (error) {
+                      alert('Erro ao gerar PDF. Verifique se todos os campos obrigatórios estão preenchidos.');
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-md text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Baixar PDF de Teste
+                </button>
               </div>
 
               {/* Botões */}
@@ -683,11 +647,7 @@ const ResponsibilityTerm: React.FC<{
                               Assinado
                             </span>
                           </div>
-                          <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
-                            <div className="flex items-center gap-1.5">
-                              <CreditCard className="w-4 h-4 text-gray-400" />
-                              CPF: {term.responsibleCPF}
-                            </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
                             <div className="flex items-center gap-1.5">
                               <Building2 className="w-4 h-4 text-gray-400" />
                               {term.responsibleDepartment}
@@ -712,9 +672,33 @@ const ResponsibilityTerm: React.FC<{
                             </div>
                           )}
                         </div>
-                        <div className="flex gap-2 ml-4">
+                        <div className="flex flex-col gap-2 ml-4">
+                          {/* Botão para gerar novo PDF */}
+                          <button
+                            onClick={() => {
+                              try {
+                                downloadResponsibilityPDF(equipment, {
+                                  responsiblePerson: term.responsiblePerson,
+                                  responsibleEmail: term.responsibleEmail,
+                                  responsiblePhone: term.responsiblePhone,
+                                  responsibleDepartment: term.responsibleDepartment,
+                                  observations: term.observations,
+                                  manualSignature: term.manualSignature
+                                });
+                              } catch (error) {
+                                alert('Erro ao gerar PDF');
+                              }
+                            }}
+                            className="px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
+                            title="Baixar PDF do Termo"
+                          >
+                            <Download className="w-4 h-4" />
+                            Baixar PDF
+                          </button>
+                          
+                          {/* Botões originais se houver pdfUrl */}
                           {term.pdfUrl && (
-                            <>
+                            <div className="flex gap-2">
                               <button
                                 onClick={() => {
                                   // Abrir PDF em nova aba
@@ -724,19 +708,19 @@ const ResponsibilityTerm: React.FC<{
                                   }
                                 }}
                                 className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                title="Visualizar PDF"
+                                title="Visualizar PDF Salvo"
                               >
                                 <Eye className="w-5 h-5" />
                               </button>
                               <a
                                 href={term.pdfUrl}
                                 download={`Termo_Responsabilidade_${term.responsiblePerson.replace(/\s+/g, '_')}.pdf`}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-block"
-                                title="Baixar PDF"
+                                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors inline-block"
+                                title="Baixar PDF Salvo"
                               >
-                                <Download className="w-5 h-5" />
+                                <FileText className="w-5 h-5" />
                               </a>
-                            </>
+                            </div>
                           )}
                         </div>
                       </div>

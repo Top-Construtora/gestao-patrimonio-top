@@ -140,12 +140,11 @@ export interface ResponsibilityTerm {
   responsiblePerson: string;
   responsibleEmail: string;
   responsiblePhone: string;
-  responsibleCPF: string;
   responsibleDepartment: string;
   termDate: string;
   status: 'signed'; 
   observations?: string;
-  manualSignature: string;
+  manualSignature?: string;
   pdfUrl?: string; 
 }
 
@@ -155,12 +154,11 @@ export interface DatabaseResponsibilityTerm {
   responsible_person: string;
   responsible_email: string;
   responsible_phone: string;
-  responsible_cpf: string;
   responsible_department: string;
   term_date: string;
   status: 'signed';
   observations: string | null;
-  manual_signature: string; // Assinatura em base64
+  manual_signature: string | null; // Assinatura em base64 (opcional)
   pdf_url: string | null; // URL do PDF no storage
   created_at: string;
   updated_at: string;

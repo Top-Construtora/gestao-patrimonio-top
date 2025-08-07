@@ -87,10 +87,10 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
         <p className="text-gray-600 mt-2">Visão geral dos equipamentos em operação</p>
       </div>
 
-      {/* Métricas Principais - Apenas Ativos e Manutenção */}
+      {/* Métricas Principais - Design Moderno e Consistente */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total de Equipamentos eDm Operação */}
-        <div className="bg-gradient-to-br from-secondary to-secondary rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        {/* Total de Equipamentos em Operação */}
+        <div className="bg-gradient-to-br from-secondary to-secondary-dark rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-primary-light font-medium">Em Operação</p>
@@ -98,29 +98,29 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
               <p className="text-xs text-primary-light mt-1 font-medium">equipamentos</p>
             </div>
             <div className="p-3 bg-secondary bg-opacity-60 rounded-full">
-              <Laptop className="h-6 w-6 text-primary-light" />
+              <Package className="h-6 w-6 text-primary-light" />
             </div>
           </div>
         </div>
 
         {/* Equipamentos Ativos */}
-        <div className="bg-gradient-to-br from-primary to-primary rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-primary to-primary-dark rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-secondary-dark font-medium">Ativos</p>
+              <p className="text-sm text-white font-medium">Ativos</p>
               <p className="text-3xl font-bold text-white mt-2">{stats.active}</p>
-              <p className="text-xs text-secondary-dark mt-1 font-medium">
+              <p className="text-xs text-white mt-1 font-medium">
                 {stats.total > 0 ? `${Math.round(activePercentage)}% do total` : '0%'}
               </p>
             </div>
             <div className="p-3 bg-primary bg-opacity-60 rounded-full">
-              <CheckCircle className="h-6 w-6 text-secondary-dark" />
+              <CheckCircle className="h-6 w-6 text-white" />
             </div>
           </div>
         </div>
 
         {/* Equipamentos em Manutenção */}
-        <div className="bg-gradient-to-br from-accent-light to-accent-light rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-accent to-accent-dark rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-white font-medium">Manutenção</p>
@@ -129,21 +129,21 @@ const Dashboard: React.FC<DashboardProps> = ({ equipment, historyEntries }) => {
                 {stats.total > 0 ? `${Math.round(maintenancePercentage)}% do total` : '0%'}
               </p>
             </div>
-            <div className="p-3 bg-accent-light bg-opacity-60 rounded-full">
-              <AlertTriangle className="h-6 w-6 text-accent-dark" />
+            <div className="p-3 bg-accent bg-opacity-60 rounded-full">
+              <AlertTriangle className="h-6 w-6 text-white" />
             </div>
           </div>
         </div>
 
         {/* Valor Total */}
-        <div className="bg-gradient-to-br from-gray-900 to-gray-900 rounded-xl p-6 border-0 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400 font-medium">Valor Total</p>
               <p className="text-2xl font-bold text-white mt-2">{formatCurrency(stats.totalValue)}</p>
               <p className="text-xs text-gray-400 mt-1 font-medium">patrimônio ativo</p>
             </div>
-            <div className="p-3 bg-gray bg-opacity-60 rounded-full">
+            <div className="p-3 bg-gray-700 bg-opacity-60 rounded-full">
               <DollarSign className="h-6 w-6 text-gray-400" />
             </div>
           </div>

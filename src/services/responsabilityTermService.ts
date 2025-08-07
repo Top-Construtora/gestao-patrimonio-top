@@ -9,12 +9,11 @@ const transformResponsibilityTerm = (dbTerm: any): ResponsibilityTerm => ({
   responsiblePerson: dbTerm.responsible_person,
   responsibleEmail: dbTerm.responsible_email,
   responsiblePhone: dbTerm.responsible_phone,
-  responsibleCPF: dbTerm.responsible_cpf,
   responsibleDepartment: dbTerm.responsible_department,
   termDate: dbTerm.term_date,
   status: dbTerm.status || 'signed',
   observations: dbTerm.observations || undefined,
-  manualSignature: dbTerm.manual_signature,
+  manualSignature: dbTerm.manual_signature || undefined,
   pdfUrl: dbTerm.pdf_url || undefined
 });
 
@@ -29,12 +28,11 @@ class ResponsibilityTermService {
           responsible_person: termData.responsiblePerson,
           responsible_email: termData.responsibleEmail,
           responsible_phone: termData.responsiblePhone,
-          responsible_cpf: termData.responsibleCPF,
           responsible_department: termData.responsibleDepartment,
           term_date: termData.termDate,
           status: 'signed',
           observations: termData.observations || null,
-          manual_signature: termData.manualSignature
+          manual_signature: termData.manualSignature || null
         })
         .select()
         .single();
