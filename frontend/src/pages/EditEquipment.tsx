@@ -622,7 +622,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             onClick={handleSubmit}
             icon={<Save className="h-4 w-4" />}
             disabled={!hasChanges || Object.keys(errors).length > 0}
-            className="w-full sm:w-auto bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
             Salvar Alterações
           </Button>

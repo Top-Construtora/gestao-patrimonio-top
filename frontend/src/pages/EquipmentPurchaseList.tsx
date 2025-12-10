@@ -150,8 +150,8 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
           <h1 className="text-3xl font-bold text-gray-900">Equipamentos a Adquirir</h1>
           <p className="mt-2 text-sm text-gray-600">Gerencie as solicitações de compra de novos equipamentos</p>
         </div>
-        <Button 
-          className="w-full sm:w-auto bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200" 
+        <Button
+          className="w-full sm:w-auto shadow-lg hover:shadow-xl"
           onClick={onAddNew}
           icon={<PlusCircle size={18} />}
         >

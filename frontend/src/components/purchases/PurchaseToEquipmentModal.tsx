@@ -417,7 +417,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-gray-800 to-blue-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg">
               <ShoppingCart className="h-6 w-6 text-white" />
@@ -792,7 +792,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
               isLoading={isSubmitting}
               loadingText="Convertendo..."
               icon={<ArrowRight size={16} />}
-              className="bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               Converter para Equipamento
             </Button>

@@ -42,21 +42,21 @@ const Button: React.FC<ButtonProps> = ({
     if (gradient) {
       switch (variant) {
         case 'primary':
-          return `bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white ${shadow ? 'shadow-lg shadow-gray-700/25 hover:shadow-xl hover:shadow-gray-700/30' : ''} ${baseTransition}`;
+          return `bg-blue-600 hover:bg-blue-700 text-white ${shadow ? 'shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30' : ''} ${baseTransition}`;
         case 'secondary':
-          return `bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white ${shadow ? 'shadow-lg shadow-gray-500/25 hover:shadow-xl hover:shadow-gray-500/30' : ''} ${baseTransition}`;
+          return `bg-gray-600 hover:bg-gray-700 text-white ${shadow ? 'shadow-lg shadow-gray-500/25 hover:shadow-xl hover:shadow-gray-500/30' : ''} ${baseTransition}`;
         case 'danger':
-          return `bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white ${shadow ? 'shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30' : ''} ${baseTransition}`;
+          return `bg-red-600 hover:bg-red-700 text-white ${shadow ? 'shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30' : ''} ${baseTransition}`;
         case 'success':
-          return `bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white ${shadow ? 'shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30' : ''} ${baseTransition}`;
+          return `bg-green-600 hover:bg-green-700 text-white ${shadow ? 'shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30' : ''} ${baseTransition}`;
         default:
-          return `bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white ${shadow ? 'shadow-lg shadow-gray-700/25 hover:shadow-xl hover:shadow-gray-700/30' : ''} ${baseTransition}`;
+          return `bg-blue-600 hover:bg-blue-700 text-white ${shadow ? 'shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30' : ''} ${baseTransition}`;
       }
     }
 
     switch (variant) {
       case 'primary':
-        return `bg-gray-800 hover:bg-blue-700 focus:ring-gray-700 text-white ${shadow ? 'shadow-md hover:shadow-lg' : ''} ${baseTransition}`;
+        return `bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white ${shadow ? 'shadow-md hover:shadow-lg' : ''} ${baseTransition}`;
       case 'secondary':
         return `bg-gray-600 hover:bg-gray-700 focus:ring-gray-500 text-white ${shadow ? 'shadow-md hover:shadow-lg' : ''} ${baseTransition}`;
       case 'outline':
@@ -70,7 +70,7 @@ const Button: React.FC<ButtonProps> = ({
       case 'link':
         return `bg-transparent hover:bg-transparent focus:ring-0 text-gray-800 hover:text-blue-700 underline-offset-4 hover:underline ${baseTransition}`;
       default:
-        return `bg-gray-800 hover:bg-blue-700 focus:ring-gray-700 text-white ${shadow ? 'shadow-md hover:shadow-lg' : ''} ${baseTransition}`;
+        return `bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white ${shadow ? 'shadow-md hover:shadow-lg' : ''} ${baseTransition}`;
     }
   };
 

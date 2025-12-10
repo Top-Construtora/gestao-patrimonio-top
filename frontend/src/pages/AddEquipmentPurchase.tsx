@@ -515,7 +515,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
           isLoading={isSubmitting}
           loadingText="Criando solicitação..."
           icon={<Save size={16} />}
-          className="flex-1 sm:flex-initial bg-gradient-to-r from-gray-800 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+          className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white"
         >
           Criar Solicitação
         </Button>
