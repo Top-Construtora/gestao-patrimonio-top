@@ -188,7 +188,6 @@ const TransferEquipmentModal: React.FC<TransferEquipmentModalProps> = ({
       
       onClose();
     } catch (error) {
-      console.error('Erro ao transferir equipamento:', error);
       showError('Erro ao transferir equipamento. Tente novamente.');
     } finally {
       setIsSubmitting(false);

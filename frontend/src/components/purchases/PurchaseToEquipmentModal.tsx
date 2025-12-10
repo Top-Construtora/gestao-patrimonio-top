@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import inventoryService from '../../services/inventoryService';
 import { useToast } from '../common/Toast';
+import { validateFiles, ALLOWED_EXTENSIONS } from '../../utils/fileValidation';
 
 interface PurchaseToEquipmentModalProps {
   isOpen: boolean;
@@ -103,7 +104,6 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
           assetNumber: nextNumber
         }));
       } catch (error) {
-        console.error('Erro ao gerar número de patrimônio:', error);
         // Em caso de erro, gerar um número temporário
         const tempNumber = `TOP-${String(Date.now()).slice(-4)}`;
         setFormData(prev => ({
@@ -256,15 +256,15 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
   };
 
   const handleFiles = (files: FileList) => {
-    const newAttachments: FileAttachment[] = [];
-    
-    Array.from(files).forEach(file => {
-      // Verificar tamanho do arquivo (máximo 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        showError(`Arquivo ${file.name} excede o tamanho máximo de 10MB`);
-        return;
-      }
+    const filesArray = Array.from(files);
+    const { validFiles, errors } = validateFiles(filesArray);
 
+    // Mostrar erros de validação
+    errors.forEach(error => showError(error));
+
+    const newAttachments: FileAttachment[] = [];
+
+    validFiles.forEach(file => {
       // Verificar se o arquivo já foi adicionado
       if (attachments.some(att => att.name === file.name && att.size === file.size)) {
         showError(`Arquivo ${file.name} já foi adicionado`);
@@ -272,7 +272,7 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
       }
 
       const fileType = determineFileCategory(file);
-      
+
       newAttachments.push({
         id: `${Date.now()}-${Math.random()}`,
         name: file.name,
@@ -383,7 +383,6 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
       
       showSuccess('Dados preenchidos com sucesso!');
     } catch (error) {
-      console.error('Erro ao processar conversão:', error);
       showError('Erro ao processar dados');
     } finally {
       setIsSubmitting(false);
@@ -701,7 +700,8 @@ const PurchaseToEquipmentModal: React.FC<PurchaseToEquipmentModalProps> = ({
                 className="hidden"
                 multiple
                 onChange={handleFileInput}
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                accept={ALLOWED_EXTENSIONS.join(',')}
+                aria-label="Selecionar arquivos para anexar"
               />
               
               <label

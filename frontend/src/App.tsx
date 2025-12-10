@@ -1,144 +1,111 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import Layout from './components/layout/Layout';
-import Dashboard from './pages/Dashboard';
-import EquipmentList from './pages/EquipmentList';
-import EquipmentDetailsPage from './pages/EquipmentDetailsPage';
-import AddEquipment from './pages/AddEquipment';
-import EditEquipment from './pages/EditEquipment';
-import Reports from './pages/Reports';
-import EquipmentPurchaseList from './pages/EquipmentPurchaseList';
-import AddEquipmentPurchase from './pages/AddEquipmentPurchase';
-import PurchaseToEquipmentModal from './components/purchases/PurchaseToEquipmentModal';
 import { useToast } from './components/common/Toast';
 import Toast from './components/common/Toast';
 import DeleteConfirmationModal from './components/common/DeleteConfirmationModal';
-import { Equipment, HistoryEntry, FileAttachment } from './types';
+import { Equipment, FileAttachment } from './types';
 import { EquipmentPurchase } from './types/purchaseTypes';
+import { useCurrentUser } from './contexts/UserContext';
+import { useOnlineStatus, useEquipment, usePurchases, useNavigation, RouteType } from './hooks';
 import inventoryService from './services/inventoryService';
 import purchaseService from './services/purchaseService';
-import { Wifi, WifiOff } from 'lucide-react';
+import { WifiOff, Loader2 } from 'lucide-react';
 
-// Tipos para rotas
-type RouteType = 'dashboard' | 'equipment' | 'equipment-details' | 'add-equipment' | 'edit-equipment' | 
-                 'reports' | 'inventory' | 'construction' | 'purchases' | 'add-purchase' | 
-                 'edit-purchase' | 'purchase-details';
+// Lazy loading de páginas para reduzir bundle inicial
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const EquipmentList = lazy(() => import('./pages/EquipmentList'));
+const EquipmentDetailsPage = lazy(() => import('./pages/EquipmentDetailsPage'));
+const AddEquipment = lazy(() => import('./pages/AddEquipment'));
+const EditEquipment = lazy(() => import('./pages/EditEquipment'));
+const Reports = lazy(() => import('./pages/Reports'));
+const EquipmentPurchaseList = lazy(() => import('./pages/EquipmentPurchaseList'));
+const AddEquipmentPurchase = lazy(() => import('./pages/AddEquipmentPurchase'));
+const PurchaseToEquipmentModal = lazy(() => import('./components/purchases/PurchaseToEquipmentModal'));
+
+// Loading fallback component
+const PageLoader: React.FC = () => (
+  <div className="flex items-center justify-center h-96">
+    <div className="text-center">
+      <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+      <p className="text-gray-500">Carregando...</p>
+    </div>
+  </div>
+);
 
 function App() {
-  // Estados principais
-  const [route, setRoute] = useState<RouteType>('dashboard');
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
-  const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(null);
-  const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [purchases, setPurchases] = useState<EquipmentPurchase[]>([]);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  
-  // Estados de UI
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  // Hooks customizados
+  const { isOnline, checkServerConnection } = useOnlineStatus();
+  const {
+    equipment,
+    history,
+    setHistory,
+    loadEquipment,
+    loadHistory,
+    loadEquipmentHistory,
+    createEquipment,
+    updateEquipment,
+    deleteEquipment,
+    getEquipmentById
+  } = useEquipment();
+  const {
+    purchases,
+    setPurchases,
+    loadPurchases,
+    createPurchase,
+    deletePurchase: deletePurchaseFromHook,
+    markAsAcquired,
+    getPurchaseById
+  } = usePurchases();
+  const {
+    route,
+    selectedEquipmentId,
+    selectedPurchaseId,
+    setSelectedEquipmentId,
+    navigate,
+    goToEquipmentList,
+    goToEquipmentDetails,
+    goToEditEquipment,
+    goToPurchasesList
+  } = useNavigation();
+
+  // Estados de UI para modais
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [equipmentToDelete, setEquipmentToDelete] = useState<string | null>(null);
   const [showConversionModal, setShowConversionModal] = useState(false);
   const [purchaseToConvert, setPurchaseToConvert] = useState<EquipmentPurchase | null>(null);
   const [showDeletePurchaseModal, setShowDeletePurchaseModal] = useState(false);
   const [purchaseToDelete, setPurchaseToDelete] = useState<string | null>(null);
-  
-  // Hook de Toast
-  const { showSuccess, showError, showInfo, showWarning, toasts } = useToast();
-  
-  // Dados do usuário
-  const currentUser = 'Administrador';
 
-  // Monitorar conexão
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      showSuccess('Conexão restaurada');
-    };
-    
-    const handleOffline = () => {
-      setIsOnline(false);
-      showError('Sem conexão com a internet');
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [showSuccess, showError]);
+  // Toast e usuário
+  const { showSuccess, showError, toasts } = useToast();
+  const currentUser = useCurrentUser();
 
   // Inicialização - Carregamento de dados
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Verificar conexão
-        const isOnline = await inventoryService.checkConnection();
-        setIsOnline(isOnline);
-        
-        if (!isOnline) {
-          showWarning('Sistema operando offline. Algumas funcionalidades podem estar limitadas.');
-        }
-        
-        // Carregar dados de equipamentos e histórico primeiro
-        const [equipmentData, historyData] = await Promise.all([
-          inventoryService.getAllEquipment(),
-          inventoryService.getRecentActivities(10)
-        ]);
-        
-        setEquipment(equipmentData);
-        setHistory(historyData);
-        
-        // Tentar carregar dados de compras separadamente para tratar erro de tabela inexistente
-        try {
-          const purchaseData = await purchaseService.getAllPurchases();
-          setPurchases(purchaseData);
-          console.log(`🛒 ${purchaseData.length} solicitações de compra carregadas`);
-        } catch (purchaseError: any) {
-          if (purchaseError.message?.includes('relation "public.equipment_purchases" does not exist')) {
-            console.warn('⚠️ Tabela equipment_purchases não encontrada. Execute a migração SQL no Supabase.');
-            setPurchases([]);
-            // Não mostrar erro durante a inicialização
-          } else {
-            console.error('❌ Erro ao carregar solicitações:', purchaseError);
-          }
-        }
-        
-        // Log de sucesso
-        console.log('✅ Sistema carregado com sucesso');
-        console.log(`📦 ${equipmentData.length} equipamentos carregados`);
-        console.log(`📋 ${historyData.length} atividades recentes`);
-        
-      } catch (error) {
-        console.error('❌ Erro ao inicializar:', error);
-        showError('Erro ao carregar dados iniciais');
-      }
+    const initializeApp = async () => {
+      await checkServerConnection();
+      await Promise.all([loadEquipment(), loadHistory(), loadPurchases()]);
     };
-    
-    loadData();
-  }, []); // Remover dependências para executar apenas uma vez
 
-  // Funções auxiliares
-  const loadPurchases = useCallback(async () => {
-    try {
-      const purchaseData = await purchaseService.getAllPurchases();
-      setPurchases(purchaseData);
-    } catch (error) {
-      console.error('❌ Erro ao carregar solicitações:', error);
-      showError('Erro ao carregar solicitações de compra');
-    }
-  }, [showError]);
-
-  // Handlers de navegação
-  const handleViewDetails = useCallback((id: string) => {
-    setSelectedEquipmentId(id);
-    setRoute('equipment-details');
+    initializeApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Carregar histórico específico quando visualizar detalhes
+  useEffect(() => {
+    if (route === 'equipment-details' && selectedEquipmentId) {
+      loadEquipmentHistory(selectedEquipmentId);
+    }
+  }, [route, selectedEquipmentId, loadEquipmentHistory]);
+
+  // Handlers de equipamento
+  const handleViewDetails = useCallback((id: string) => {
+    goToEquipmentDetails(id);
+  }, [goToEquipmentDetails]);
 
   const handleEditEquipment = useCallback((id: string) => {
-    setSelectedEquipmentId(id);
-    setRoute('edit-equipment');
-  }, []);
+    goToEditEquipment(id);
+  }, [goToEditEquipment]);
 
   const handleStartDelete = useCallback((id: string) => {
     setEquipmentToDelete(id);
@@ -147,215 +114,159 @@ function App() {
 
   const handleConfirmDelete = useCallback(async () => {
     if (!equipmentToDelete) return;
-    
-    try {
-      await inventoryService.deleteEquipment(equipmentToDelete, currentUser);
-      
-      const [updatedEquipment, updatedHistory] = await Promise.all([
-        inventoryService.getAllEquipment(),
-        inventoryService.getRecentActivities(10)
-      ]);
-      
-      setEquipment(updatedEquipment);
-      setHistory(updatedHistory);
-      
-      showSuccess('Equipamento excluído com sucesso!');
-      
-      if (route === 'equipment-details') {
-        setRoute('equipment');
-      }
-    } catch (error) {
-      console.error('❌ Erro ao excluir:', error);
-      showError('Erro ao excluir equipamento');
-    } finally {
-      setShowDeleteModal(false);
-      setEquipmentToDelete(null);
-    }
-  }, [equipmentToDelete, currentUser, route, showSuccess, showError]);
 
-  // CRUD de Equipamentos
-  const handleAddEquipment = useCallback(async (data: Omit<Equipment, 'id'>, attachmentFiles?: File[]) => {
-    try {
-      await inventoryService.createEquipment(data, currentUser, attachmentFiles);
-      
-      const [updatedEquipment, updatedHistory] = await Promise.all([
-        inventoryService.getAllEquipment(),
-        inventoryService.getRecentActivities(10)
-      ]);
-      
-      setEquipment(updatedEquipment);
-      setHistory(updatedHistory);
-      
-      const attachmentText = attachmentFiles && attachmentFiles.length > 0 
-        ? ` com ${attachmentFiles.length} anexo(s)` 
-        : '';
-      
-      showSuccess(`Equipamento cadastrado com sucesso${attachmentText}!`);
-      setRoute('equipment');
-    } catch (error) {
-      console.error('❌ Erro ao adicionar:', error);
-      showError('Erro ao cadastrar equipamento');
+    const success = await deleteEquipment(equipmentToDelete);
+    if (success && route === 'equipment-details') {
+      goToEquipmentList();
     }
-  }, [currentUser, showSuccess, showError]);
+
+    setShowDeleteModal(false);
+    setEquipmentToDelete(null);
+  }, [equipmentToDelete, deleteEquipment, route, goToEquipmentList]);
+
+  const handleAddEquipment = useCallback(async (
+    data: Omit<Equipment, 'id'>,
+    attachmentFiles?: File[]
+  ) => {
+    const success = await createEquipment(data, attachmentFiles);
+    if (success) {
+      goToEquipmentList();
+    }
+  }, [createEquipment, goToEquipmentList]);
 
   const handleUpdateEquipment = useCallback(async (id: string, data: Partial<Equipment>) => {
-    try {
-      await inventoryService.updateEquipment(id, data, currentUser);
-      
-      const [updatedEquipment, updatedHistory] = await Promise.all([
-        inventoryService.getAllEquipment(),
-        inventoryService.getRecentActivities(10)
-      ]);
-      
-      setEquipment(updatedEquipment);
-      setHistory(updatedHistory);
-      
-      showSuccess('Equipamento atualizado com sucesso!');
+    const success = await updateEquipment(id, data);
+    if (success) {
       setSelectedEquipmentId(id);
-      setRoute('equipment-details');
-    } catch (error) {
-      console.error('❌ Erro ao atualizar:', error);
-      showError('Erro ao atualizar equipamento');
+      goToEquipmentDetails(id);
     }
-  }, [currentUser, showSuccess, showError]);
+  }, [updateEquipment, setSelectedEquipmentId, goToEquipmentDetails]);
 
-  // CRUD de Solicitações de Compra
+  // Handlers de compras
   const handleAddPurchase = useCallback(async (
     data: Omit<EquipmentPurchase, 'id' | 'createdAt' | 'updatedAt' | 'status'>
   ) => {
-    try {
-      await purchaseService.createPurchase(data, currentUser);
-      await loadPurchases();
-      showSuccess('Solicitação de compra criada com sucesso!');
-      setRoute('purchases');
-    } catch (error) {
-      console.error('❌ Erro ao criar solicitação:', error);
-      showError('Erro ao criar solicitação de compra');
-      throw error; // Re-throw para o componente tratar
-    }
-  }, [currentUser, loadPurchases, showSuccess, showError]);
+    await createPurchase(data);
+    goToPurchasesList();
+  }, [createPurchase, goToPurchasesList]);
 
-  const handleMarkAsAcquired = useCallback(async (id: string) => {
-    try {
-      // Buscar dados da solicitação
-      const purchase = purchases.find(p => p.id === id);
-      if (!purchase) {
-        showError('Solicitação não encontrada');
-        return;
-      }
-      
-      // Abrir modal de conversão
-      setPurchaseToConvert(purchase);
-      setShowConversionModal(true);
-    } catch (error) {
-      console.error('❌ Erro ao iniciar conversão:', error);
-      showError('Erro ao processar solicitação');
+  const handleMarkAsAcquired = useCallback((id: string) => {
+    const purchase = getPurchaseById(id);
+    if (!purchase) {
+      showError('Solicitação não encontrada');
+      return;
     }
-  }, [purchases, showError]);
+    setPurchaseToConvert(purchase);
+    setShowConversionModal(true);
+  }, [getPurchaseById, showError]);
 
-  const handleDeletePurchase = useCallback(async (id: string) => {
+  const handleDeletePurchase = useCallback((id: string) => {
     setPurchaseToDelete(id);
     setShowDeletePurchaseModal(true);
   }, []);
-  
+
   const handleConfirmDeletePurchase = useCallback(async () => {
     if (!purchaseToDelete) return;
-    
-    try {
-      await purchaseService.deletePurchase(purchaseToDelete, currentUser);
-      await loadPurchases();
-      showSuccess('Solicitação excluída com sucesso!');
-    } catch (error) {
-      console.error('❌ Erro ao excluir solicitação:', error);
-      showError('Erro ao excluir solicitação');
-    } finally {
-      setShowDeletePurchaseModal(false);
-      setPurchaseToDelete(null);
-    }
-  }, [purchaseToDelete, currentUser, loadPurchases, showSuccess, showError]);
 
-  // Carregar histórico específico quando necessário
-  useEffect(() => {
-    const loadEquipmentHistory = async () => {
-      if (route === 'equipment-details' && selectedEquipmentId) {
-        try {
-          const equipmentHistory = await inventoryService.getEquipmentHistory(selectedEquipmentId);
-          setHistory(equipmentHistory);
-        } catch (error) {
-          console.error('❌ Erro ao carregar histórico:', error);
-        }
-      }
-    };
-    
-    loadEquipmentHistory();
-  }, [route, selectedEquipmentId]);
+    await deletePurchaseFromHook(purchaseToDelete);
+    setShowDeletePurchaseModal(false);
+    setPurchaseToDelete(null);
+  }, [purchaseToDelete, deletePurchaseFromHook]);
+
+  const handleConversionSuccess = useCallback(async (
+    equipmentData: Omit<Equipment, 'id'>,
+    attachments: FileAttachment[]
+  ) => {
+    if (!purchaseToConvert) return;
+
+    try {
+      const attachmentFiles = attachments.map(att => att.file);
+
+      await inventoryService.createEquipment(equipmentData, currentUser, attachmentFiles);
+      await purchaseService.markAsAcquired(purchaseToConvert.id, currentUser);
+
+      // Recarregar dados
+      const [updatedEquipment, updatedPurchases, updatedHistory] = await Promise.all([
+        inventoryService.getAllEquipment(),
+        purchaseService.getAllPurchases(),
+        inventoryService.getRecentActivities(10)
+      ]);
+
+      // Atualizar estados via setters dos hooks
+      // Note: Isso funciona porque os hooks expõem os setters
+      await loadEquipment();
+      await loadPurchases();
+      await loadHistory();
+
+      const attachmentText = attachmentFiles.length > 0
+        ? ` com ${attachmentFiles.length} anexo(s)`
+        : '';
+      showSuccess(`Equipamento cadastrado e solicitação marcada como adquirida${attachmentText}!`);
+
+      setShowConversionModal(false);
+      setPurchaseToConvert(null);
+    } catch (error) {
+      showError('Erro ao converter solicitação em equipamento');
+    }
+  }, [purchaseToConvert, currentUser, loadEquipment, loadPurchases, loadHistory, showSuccess, showError]);
 
   // Renderização de rotas
   const currentRouteContent = useMemo(() => {
     const routes: Record<RouteType, JSX.Element> = {
       dashboard: <Dashboard equipment={equipment} historyEntries={history} />,
-      
+
       equipment: (
-        <EquipmentList 
+        <EquipmentList
           equipment={equipment}
-          onViewDetails={handleViewDetails} 
-          onAddNew={() => setRoute('add-equipment')} 
+          onViewDetails={handleViewDetails}
+          onAddNew={() => navigate('add-equipment')}
         />
       ),
-      
+
       'equipment-details': (
-        <EquipmentDetailsPage 
+        <EquipmentDetailsPage
           equipmentId={selectedEquipmentId || ''}
-          onBack={() => setRoute('equipment')}
+          onBack={() => navigate('equipment')}
           onEdit={handleEditEquipment}
           onDelete={handleStartDelete}
         />
       ),
-      
+
       'add-equipment': (
-        <AddEquipment 
-          onBack={() => setRoute('equipment')}
+        <AddEquipment
+          onBack={() => navigate('equipment')}
           onSubmit={handleAddEquipment}
         />
       ),
-      
+
       'edit-equipment': (
-        <EditEquipment 
+        <EditEquipment
           equipmentId={selectedEquipmentId || ''}
-          onBack={() => {
-            setSelectedEquipmentId(selectedEquipmentId);
-            setRoute('equipment-details');
-          }}
+          onBack={() => goToEquipmentDetails(selectedEquipmentId || '')}
           onSubmit={(data) => handleUpdateEquipment(selectedEquipmentId!, data)}
         />
       ),
-      
+
       reports: <Reports equipment={equipment} />,
-      
+
       purchases: (
         <EquipmentPurchaseList
           purchases={purchases}
-          onViewDetails={(id) => {
-            setSelectedPurchaseId(id);
-            setRoute('purchase-details');
-          }}
-          onEdit={(id) => {
-            setSelectedPurchaseId(id);
-            setRoute('edit-purchase');
-          }}
+          onViewDetails={(id) => navigate('purchase-details')}
+          onEdit={(id) => navigate('edit-purchase')}
           onDelete={handleDeletePurchase}
-          onAddNew={() => setRoute('add-purchase')}
+          onAddNew={() => navigate('add-purchase')}
           onMarkAsAcquired={handleMarkAsAcquired}
         />
       ),
-      
+
       'add-purchase': (
         <AddEquipmentPurchase
-          onBack={() => setRoute('purchases')}
+          onBack={() => navigate('purchases')}
           onSubmit={handleAddPurchase}
         />
       ),
-      
+
       'edit-purchase': (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
@@ -364,7 +275,7 @@ function App() {
           </div>
         </div>
       ),
-      
+
       'purchase-details': (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
@@ -373,7 +284,7 @@ function App() {
           </div>
         </div>
       ),
-      
+
       inventory: (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
@@ -382,7 +293,7 @@ function App() {
           </div>
         </div>
       ),
-      
+
       construction: (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
@@ -395,20 +306,21 @@ function App() {
 
     return routes[route] || routes.dashboard;
   }, [
-    route, 
-    equipment, 
+    route,
+    equipment,
     purchases,
-    history, 
+    history,
     selectedEquipmentId,
-    selectedPurchaseId,
-    handleViewDetails, 
-    handleEditEquipment, 
-    handleStartDelete, 
-    handleAddEquipment, 
+    handleViewDetails,
+    handleEditEquipment,
+    handleStartDelete,
+    handleAddEquipment,
     handleUpdateEquipment,
     handleAddPurchase,
     handleMarkAsAcquired,
-    handleDeletePurchase
+    handleDeletePurchase,
+    navigate,
+    goToEquipmentDetails
   ]);
 
   return (
@@ -422,93 +334,56 @@ function App() {
       )}
 
       {/* Layout Principal */}
-      <Layout 
-        activeRoute={route} 
-        onNavigate={(routeName: string) => setRoute(routeName as RouteType)}
+      <Layout
+        activeRoute={route}
+        onNavigate={(routeName: string) => navigate(routeName as RouteType)}
       >
-        <div className="animate-fadeIn">
-          {currentRouteContent}
-        </div>
+        <Suspense fallback={<PageLoader />}>
+          <div className="animate-fadeIn">
+            {currentRouteContent}
+          </div>
+        </Suspense>
       </Layout>
-      
-      {/* Modal de Exclusão */}
+
+      {/* Modal de Exclusão de Equipamento */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         title="Confirmar Exclusão"
         message="Tem certeza que deseja excluir este equipamento? Esta ação não pode ser desfeita e todos os anexos também serão removidos."
-        itemName={equipment.find(item => item.id === equipmentToDelete)?.assetNumber || ''}
+        itemName={getEquipmentById(equipmentToDelete || '')?.assetNumber || ''}
         onConfirm={handleConfirmDelete}
         onCancel={() => {
           setShowDeleteModal(false);
           setEquipmentToDelete(null);
         }}
       />
-      
+
       {/* Sistema de Toasts */}
       {toasts.map(toast => (
         <Toast key={toast.id} {...toast} />
       ))}
-      
+
       {/* Modal de Conversão */}
-      <PurchaseToEquipmentModal
-        isOpen={showConversionModal}
-        purchase={purchaseToConvert}
-        onClose={() => {
-          setShowConversionModal(false);
-          setPurchaseToConvert(null);
-        }}
-        onSuccess={async (equipmentData, attachments) => {
-          if (purchaseToConvert) {
-            try {
-              // Extrair os arquivos File dos objetos FileAttachment
-              const attachmentFiles = attachments.map(att => att.file);
-              
-              // Criar o equipamento com os anexos
-              await inventoryService.createEquipment(
-                equipmentData,
-                currentUser,
-                attachmentFiles // Passar os arquivos aqui
-              );
-              
-              // Marcar a solicitação como adquirida
-              await purchaseService.markAsAcquired(
-                purchaseToConvert.id,
-                currentUser
-              );
-              
-              // Recarregar dados
-              const [updatedEquipment, updatedPurchases, updatedHistory] = await Promise.all([
-                inventoryService.getAllEquipment(),
-                purchaseService.getAllPurchases(),
-                inventoryService.getRecentActivities(10)
-              ]);
-              
-              setEquipment(updatedEquipment);
-              setPurchases(updatedPurchases);
-              setHistory(updatedHistory);
-              
-              // Mensagem de sucesso incluindo informação sobre anexos
-              const attachmentText = attachmentFiles.length > 0 
-                ? ` com ${attachmentFiles.length} anexo(s)` 
-                : '';
-              showSuccess(`Equipamento cadastrado e solicitação marcada como adquirida${attachmentText}!`);
-              
-              // Fechar modal
+      {showConversionModal && (
+        <Suspense fallback={null}>
+          <PurchaseToEquipmentModal
+            isOpen={showConversionModal}
+            purchase={purchaseToConvert}
+            onClose={() => {
               setShowConversionModal(false);
               setPurchaseToConvert(null);
-            } catch (error) {
-              console.error('❌ Erro ao converter solicitação:', error);
-              showError('Erro ao converter solicitação em equipamento');
-            }
-          }
-        }}
-      />
+            }}
+            onSuccess={handleConversionSuccess}
+          />
+        </Suspense>
+      )}
 
+      {/* Modal de Exclusão de Solicitação */}
       <DeleteConfirmationModal
         isOpen={showDeletePurchaseModal}
         title="Excluir Solicitação"
         message="Tem certeza que deseja excluir esta solicitação?"
-        itemName={purchases.find(p => p.id === purchaseToDelete)?.description || 'Esta solicitação'}
+        itemName={getPurchaseById(purchaseToDelete || '')?.description || 'Esta solicitação'}
         onConfirm={handleConfirmDeletePurchase}
         onCancel={() => {
           setShowDeletePurchaseModal(false);

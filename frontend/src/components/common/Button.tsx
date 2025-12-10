@@ -5,7 +5,7 @@ type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'success' 
 type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: React.ReactNode;
@@ -17,9 +17,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   shadow?: boolean;
   pulse?: boolean;
   gradient?: boolean;
+  /** Obrigatório para botões com apenas ícone (acessibilidade) */
+  'aria-label'?: string;
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   children,
   variant = 'primary',
   size = 'md',
@@ -35,7 +37,7 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   disabled,
   ...props
-}) => {
+}, ref) => {
   const getVariantClasses = () => {
     const baseTransition = 'transition-all duration-200 ease-in-out transform active:scale-95';
     
@@ -116,6 +118,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
+      ref={ref}
       className={`
         inline-flex items-center justify-center
         focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -145,7 +148,9 @@ const Button: React.FC<ButtonProps> = ({
       </span>
     </button>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 // Componente de demonstração
 const ButtonDemo: React.FC = () => {

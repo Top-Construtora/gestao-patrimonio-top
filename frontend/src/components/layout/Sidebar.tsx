@@ -62,10 +62,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
 
   return (
     <>
-      <div
+      <nav
         className={`fixed inset-y-0 left-0 z-30 w-72 bg-gray-800 transform transition-transform duration-300 ease-in-out shadow-xl ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:relative lg:translate-x-0 flex flex-col h-screen`}
+        aria-label="Menu principal"
       >
         <div className="flex flex-col h-full">
           {/* Header - FIXO */}
@@ -76,19 +77,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
             </div>
             <button
               onClick={onClose}
-              className="lg:hidden text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 mr-4"
+              className="lg:hidden text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 mr-4 focus:outline-none focus:ring-2 focus:ring-white"
+              aria-label="Fechar menu"
             >
-              <X size={24} />
+              <X size={24} aria-hidden="true" />
             </button>
           </div>
 
           {/* Navigation - SCROLLÁVEL */}
-          <nav className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="flex-1 overflow-y-auto px-4 py-6" role="navigation">
             <div className="space-y-1">
               {menuItems.map((item, index) => (
                 <div key={item.route} className="relative">
                   <button
-                    className={`relative flex items-center w-full px-4 py-3.5 rounded-lg transition-all duration-200 group ${
+                    className={`relative flex items-center w-full px-4 py-3.5 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-white ${
                       activeRoute === item.route
                         ? 'bg-gray-800 text-white shadow-lg shadow-gray-800/30'
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -97,6 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                       onNavigate(item.route);
                       onClose();
                     }}
+                    aria-current={activeRoute === item.route ? 'page' : undefined}
                   >
                     <span className={`mr-3 transition-transform duration-200 ${
                       activeRoute === item.route ? 'scale-110' : 'group-hover:scale-110'
@@ -133,8 +136,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                 Suporte & Ajuda
               </h3>
               <div className="space-y-1">
-                <button className="flex items-center w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 group">
-                  <HelpCircle size={20} className="mr-3 group-hover:scale-110 transition-transform" />
+                <button
+                  className="flex items-center w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-white"
+                  aria-label="Ajuda e Suporte - Central de atendimento"
+                >
+                  <HelpCircle size={20} className="mr-3 group-hover:scale-110 transition-transform" aria-hidden="true" />
                   <div className="text-left">
                     <span className="block text-sm">Ajuda & Suporte</span>
                     <span className="text-xs text-gray-400">Central de atendimento</span>
@@ -142,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                 </button>
               </div>
             </div>
-          </nav>
+          </div>
 
           {/* User Profile - FIXO */}
           <div className="p-4 border-t border-gray-700 bg-gray-700/30 flex-shrink-0">
@@ -158,19 +164,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onCl
                 <p className="text-xs text-gray-400">admin@exemplo.com</p>
               </div>
             </div>
-            <button className="flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-red-600/10 text-red-400 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200 group">
-              <LogOut size={18} className="mr-2 group-hover:scale-110 transition-transform" />
+            <button
+              className="flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-red-600/10 text-red-400 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-red-400"
+              aria-label="Sair do sistema"
+            >
+              <LogOut size={18} className="mr-2 group-hover:scale-110 transition-transform" aria-hidden="true" />
               <span className="font-medium text-sm">Sair do Sistema</span>
             </button>
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* Mobile Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-20 lg:hidden"
           onClick={onClose}
+          aria-hidden="true"
         ></div>
       )}
     </>

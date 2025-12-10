@@ -1,6 +1,7 @@
 import apiClient from './apiClient';
 import { supabase, STORAGE_BUCKET } from '../lib/supabase';
 import { Equipment, HistoryEntry, Attachment } from '../types';
+import { validateFile } from '../utils/fileValidation';
 
 // API response types
 interface ApiEquipment {
@@ -209,7 +210,7 @@ const inventoryService = {
         try {
           await inventoryService.uploadAttachment(equipment.id, file, user);
         } catch (err) {
-          console.error('Error uploading attachment:', err);
+          // Erro silencioso no upload de anexo secundário
         }
       }
     }
@@ -250,9 +251,10 @@ const inventoryService = {
     file: File,
     uploadedBy: string
   ): Promise<Attachment> => {
-    // Validate size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      throw new Error('Arquivo muito grande. Tamanho máximo: 10MB');
+    // Validar arquivo (tipo, tamanho, extensão)
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      throw new Error(validation.error || 'Arquivo inválido');
     }
 
     const response = await apiClient.uploadFile<ApiAttachment>(

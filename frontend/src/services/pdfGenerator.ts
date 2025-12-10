@@ -1,17 +1,20 @@
 import jsPDF from 'jspdf';
 import { Equipment } from '../types';
 
+// Tipo para dados do formulário de termo de responsabilidade
+export interface ResponsibilityTermFormData {
+  responsiblePerson: string;
+  responsibleEmail: string;
+  responsiblePhone: string;
+  responsibleDepartment: string;
+  observations?: string;
+  manualSignature?: string | null;
+}
+
 // Função para gerar PDF usando jsPDF com formato específico da TOP Construtora
 export const generateResponsibilityPDF = (
-  equipment: Equipment, 
-  formData: {
-    responsiblePerson: string;
-    responsibleEmail: string;
-    responsiblePhone: string;
-    responsibleDepartment: string;
-    observations?: string;
-    manualSignature?: string | null;
-  }
+  equipment: Equipment,
+  formData: ResponsibilityTermFormData
 ): jsPDF => {
   const doc = new jsPDF();
   
@@ -357,7 +360,7 @@ export const downloadResponsibilityPDF = (
 };
 
 // Função para gerar PDF como base64 (para compatibilidade com código existente)
-export const generateNativePDF = (equipment: Equipment, formData: any): string => {
+export const generateNativePDF = (equipment: Equipment, formData: ResponsibilityTermFormData): string => {
   try {
     const doc = generateResponsibilityPDF(equipment, formData);
     return doc.output('datauristring').split(',')[1];

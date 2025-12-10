@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Equipment, HistoryEntry, Attachment } from '../types';
+import { Equipment, HistoryEntry, Attachment, ResponsibilityTerm } from '../types';
 import Button from '../components/common/Button';
 import EquipmentDetails from '../components/equipment/EquipmentDetails';
 import TransferEquipmentModal from '../components/equipment/TransferEquipment';
@@ -60,7 +60,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
       setHistory(historyData);
       setAttachments(attachmentsData);
     } catch (err) {
-      console.error('Error loading equipment details:', err);
       setError((err as Error).message || 'Erro ao carregar detalhes do equipamento');
     }
   };
@@ -101,7 +100,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
       setShowTransferModal(false);
       showSuccess('Equipamento transferido com sucesso!');
     } catch (error) {
-      console.error('Erro ao transferir equipamento:', error);
       showError('Erro ao transferir equipamento');
       throw error;
     }
@@ -122,7 +120,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
       setAttachments([...attachments, newAttachment]);
       showSuccess('Anexo enviado com sucesso!');
     } catch (err) {
-      console.error('Error uploading attachment:', err);
       showError((err as Error).message || 'Erro ao enviar anexo');
     }
   };
@@ -133,7 +130,6 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
       setAttachments(attachments.filter(a => a.id !== attachmentId));
       showSuccess('Anexo removido com sucesso!');
     } catch (err) {
-      console.error('Error deleting attachment:', err);
       showError('Erro ao remover anexo');
     }
   };
@@ -142,13 +138,11 @@ const EquipmentDetailsPage: React.FC<EquipmentDetailsPageProps> = ({
     try {
       await inventoryService.downloadAttachment(attachment);
     } catch (err) {
-      console.error('Error downloading attachment:', err);
       showError('Erro ao baixar anexo');
     }
   };
 
-  const handleTermCreated = async (term: any) => {
-    console.log('Termo criado:', term);
+  const handleTermCreated = async (term: ResponsibilityTerm) => {
     showSuccess('Termo de responsabilidade enviado para assinatura!');
     
     // Recarregar anexos para mostrar o novo termo quando for assinado

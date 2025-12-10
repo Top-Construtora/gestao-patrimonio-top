@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Equipment } from '../types';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 import { useToast } from '../components/common/Toast';
 import inventoryService from '../services/inventoryService';
+import { validateFile, validateFiles, ALLOWED_EXTENSIONS } from '../utils/fileValidation';
 import { 
   ArrowLeft, 
   Package, 
@@ -50,6 +52,7 @@ interface TempAttachment {
 const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
   const { showError, showSuccess, showWarning } = useToast();
   const [loadingAssetNumber, setLoadingAssetNumber] = useState(true);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
     assetNumber: '',
@@ -81,7 +84,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
         setFormData(prev => ({ ...prev, assetNumber: nextNumber }));
         showSuccess(`Número de patrimônio ${nextNumber} gerado automaticamente`);
       } catch (error) {
-        console.error('Erro ao gerar número de patrimônio:', error);
         showError('Erro ao gerar número de patrimônio automático');
         setFormData(prev => ({ ...prev, assetNumber: '' }));
       } finally {
@@ -217,12 +219,15 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
 
   const handleCancel = () => {
     if (hasFormChanges || attachments.length > 0) {
-      if (window.confirm('Existem alterações não salvas. Deseja realmente sair?\n\nOs dados inseridos e anexos serão perdidos.')) {
-        onBack();
-      }
+      setShowCancelModal(true);
     } else {
       onBack();
     }
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false);
+    onBack();
   };
 
   // Funções de anexo
@@ -235,13 +240,10 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
   };
 
   const handleFiles = (files: File[]) => {
-    const validFiles = files.filter(file => {
-      if (file.size > 10 * 1024 * 1024) {
-        showError(`${file.name} excede o tamanho máximo de 10MB`);
-        return false;
-      }
-      return true;
-    });
+    const { validFiles, errors } = validateFiles(files);
+
+    // Mostrar erros de validação
+    errors.forEach(error => showError(error));
 
     const newAttachments: TempAttachment[] = validFiles.map(file => ({
       id: `temp-${Date.now()}-${Math.random()}`,
@@ -253,7 +255,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
 
     setAttachments(prev => [...prev, ...newAttachments]);
     setHasFormChanges(true);
-    
+
     if (newAttachments.length > 0) {
       showSuccess(`${newAttachments.length} arquivo(s) adicionado(s)`);
     }
@@ -660,7 +662,8 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                 className="hidden"
                 onChange={handleFileSelect}
                 multiple
-                accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.svg,.xls,.xlsx,.csv,.doc,.docx"
+                accept={ALLOWED_EXTENSIONS.join(',')}
+                aria-label="Selecionar arquivos para anexar"
               />
               <Button 
                 variant="outline" 
@@ -764,6 +767,19 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
           Salvar Equipamento
         </Button>
       </div>
+
+      {/* Modal de Confirmação de Cancelamento */}
+      <ConfirmationModal
+        isOpen={showCancelModal}
+        title="Descartar alterações?"
+        message="Existem alterações não salvas. Deseja realmente sair?"
+        description="Os dados inseridos e anexos serão perdidos."
+        confirmLabel="Sair"
+        cancelLabel="Continuar editando"
+        variant="warning"
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setShowCancelModal(false)}
+      />
     </div>
   );
 };

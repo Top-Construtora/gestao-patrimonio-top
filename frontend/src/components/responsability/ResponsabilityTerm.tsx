@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  FileText, 
-  X, 
+import {
+  FileText,
+  X,
   Calendar,
   User,
   Mail,
@@ -18,6 +18,7 @@ import {
   Printer
 } from 'lucide-react';
 import { downloadResponsibilityPDF } from '../../services/pdfGenerator';
+import { useToastContext } from '../../contexts/ToastContext';
 
 // Tipos
 interface Equipment {
@@ -229,6 +230,7 @@ const ResponsibilityTerm: React.FC<{
   onClose: () => void;
   onTermCreated?: (term: ResponsibilityTerm) => void;
 }> = ({ equipment, onClose, onTermCreated }) => {
+  const { showSuccess, showError, showWarning } = useToastContext();
   const [loading, setLoading] = useState(false);
   const [loadingTerms, setLoadingTerms] = useState(true);
   const [existingTerms, setExistingTerms] = useState<ResponsibilityTerm[]>([]);
@@ -258,7 +260,7 @@ const ResponsibilityTerm: React.FC<{
       const terms = await api.responsibilityTerms.list(equipment.id);
       setExistingTerms(terms);
     } catch (error) {
-      console.error('Erro ao carregar termos:', error);
+      // Erro silencioso na carga inicial
     } finally {
       setLoadingTerms(false);
     }
@@ -323,22 +325,12 @@ const ResponsibilityTerm: React.FC<{
       if (onTermCreated) {
         onTermCreated(newTerm);
       }
-      
-      // Notificação de sucesso
-      const successMessage = document.createElement('div');
-      successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-slide-in';
-      successMessage.innerHTML = `
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span>Termo criado e salvo nos anexos!</span>
-      `;
-      document.body.appendChild(successMessage);
-      setTimeout(() => successMessage.remove(), 3000);
+
+      // Notificação de sucesso via Toast
+      showSuccess('Termo criado e salvo nos anexos!');
       
     } catch (error) {
-      console.error('Erro ao criar termo:', error);
-      alert('Erro ao processar termo. Tente novamente.');
+      showError('Erro ao processar termo. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -585,7 +577,7 @@ const ResponsibilityTerm: React.FC<{
                         manualSignature: manualSignature
                       });
                     } catch (error) {
-                      alert('Erro ao gerar PDF. Verifique se todos os campos obrigatórios estão preenchidos.');
+                      showError('Erro ao gerar PDF. Verifique se todos os campos obrigatórios estão preenchidos.');
                     }
                   }}
                   className="w-full px-3 py-2 bg-white border border-gray-300 hover:bg-gray-50 rounded-md text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
@@ -686,7 +678,7 @@ const ResponsibilityTerm: React.FC<{
                                   manualSignature: term.manualSignature
                                 });
                               } catch (error) {
-                                alert('Erro ao gerar PDF');
+                                showError('Erro ao gerar PDF');
                               }
                             }}
                             className="px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
@@ -704,7 +696,7 @@ const ResponsibilityTerm: React.FC<{
                                   // Abrir PDF em nova aba
                                   const pdfWindow = window.open(term.pdfUrl, '_blank');
                                   if (!pdfWindow) {
-                                    alert('Por favor, permita pop-ups para visualizar o PDF');
+                                    showWarning('Por favor, permita pop-ups para visualizar o PDF');
                                   }
                                 }}
                                 className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

@@ -108,22 +108,44 @@ const Badge: React.FC<BadgeProps> = ({
 
   const shadowClass = !outlined ? 'shadow-lg' : '';
 
+  // Mapeia variantes para labels acessíveis
+  const getAriaLabel = (): string | undefined => {
+    switch (variante) {
+      case 'ativo':
+      case 'success':
+        return 'Status: Ativo';
+      case 'manutenção':
+        return 'Status: Em manutenção';
+      case 'warning':
+        return 'Status: Atenção necessária';
+      case 'desativado':
+      case 'error':
+        return 'Status: Desativado';
+      case 'info':
+        return 'Informação';
+      default:
+        return undefined;
+    }
+  };
+
   return (
-    <span 
+    <span
       className={`
-        inline-flex items-center font-semibold rounded-full 
-        ${getVariantClasses()} 
-        ${getSizeClasses()} 
+        inline-flex items-center font-semibold rounded-full
+        ${getVariantClasses()}
+        ${getSizeClasses()}
         ${shadowClass}
         ${pulseClass}
         transition-all duration-200 hover:scale-105 hover:shadow-xl
         ${className}
       `}
+      role="status"
+      aria-label={getAriaLabel()}
     >
-      {getIcon()}
+      <span aria-hidden="true">{getIcon()}</span>
       {children}
       {pulse && (
-        <span className="relative flex h-2 w-2 ml-1">
+        <span className="relative flex h-2 w-2 ml-1" aria-hidden="true">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
         </span>

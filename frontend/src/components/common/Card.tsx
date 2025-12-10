@@ -328,7 +328,7 @@ const CardDemo: React.FC = () => {
           variant="bordered"
           clickable
           hoverable
-          onClick={() => alert('Card clicado!')}
+          onClick={() => {}}
         >
           <p className="text-gray-600">
             Clique em qualquer lugar do card.

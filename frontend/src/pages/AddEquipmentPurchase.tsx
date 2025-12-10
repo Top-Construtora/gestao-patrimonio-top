@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { EquipmentPurchase, PurchaseUrgency } from '../types/purchaseTypes';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
-import { 
-  ArrowLeft, 
-  Save, 
+import ConfirmationModal from '../components/common/ConfirmationModal';
+import {
+  ArrowLeft,
+  Save,
   AlertCircle,
   Calendar,
   MapPin,
@@ -26,6 +27,7 @@ interface AddEquipmentPurchaseProps {
 
 const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onSubmit }) => {
   const { showError, showInfo } = useToast();
+  const [showCancelModal, setShowCancelModal] = useState(false);
   
   const [formData, setFormData] = useState({
     description: '',
@@ -76,7 +78,7 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
   };
 
   // Validação em tempo real
-  const validateField = (name: string, value: any) => {
+  const validateField = (name: string, value: string) => {
     const newErrors = { ...errors };
     
     switch (name) {
@@ -214,7 +216,6 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
       
       await onSubmit(submitData);
     } catch (error) {
-      console.error('Erro ao criar solicitação:', error);
       showError('Erro ao criar solicitação. Tente novamente.');
     } finally {
       setIsSubmitting(false);
@@ -229,14 +230,17 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
       }
       return false;
     });
-    
+
     if (hasChanges) {
-      if (window.confirm('Existem alterações não salvas. Deseja realmente sair?\n\nTodos os dados serão perdidos.')) {
-        onBack();
-      }
+      setShowCancelModal(true);
     } else {
       onBack();
     }
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false);
+    onBack();
   };
 
   // Verificar se tem erros
@@ -520,6 +524,19 @@ const AddEquipmentPurchase: React.FC<AddEquipmentPurchaseProps> = ({ onBack, onS
           Criar Solicitação
         </Button>
       </div>
+
+      {/* Modal de Confirmação de Cancelamento */}
+      <ConfirmationModal
+        isOpen={showCancelModal}
+        title="Descartar alterações?"
+        message="Existem alterações não salvas. Deseja realmente sair?"
+        description="Todos os dados serão perdidos."
+        confirmLabel="Sair"
+        cancelLabel="Continuar editando"
+        variant="warning"
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setShowCancelModal(false)}
+      />
     </div>
   );
 };

@@ -66,10 +66,13 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
               <div className="flex items-center">
                 <button
                   type="button"
-                  className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors mr-3"
+                  className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors mr-3 focus:outline-none focus:ring-2 focus:ring-gray-500"
                   onClick={toggleSidebar}
+                  aria-label="Abrir menu de navegação"
+                  aria-expanded={sidebarOpen}
+                  aria-controls="sidebar-navigation"
                 >
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-5 w-5" aria-hidden="true" />
                 </button>
                 
                 <div>
@@ -94,15 +97,17 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
         
         {/* Breadcrumb - FIXO */}
         <div className="bg-gray-50 px-4 sm:px-6 lg:px-8 py-2.5 border-b border-gray-200 flex-shrink-0">
-          <nav className="flex items-center text-sm">
-            <span className="text-gray-500">Sistema</span>
-            <span className="mx-2 text-gray-400">/</span>
-            <span className="text-gray-800 font-medium">{routeLabels[activeRoute] || activeRoute}</span>
+          <nav className="flex items-center text-sm" aria-label="Breadcrumb">
+            <ol className="flex items-center">
+              <li className="text-gray-500">Sistema</li>
+              <li className="mx-2 text-gray-400" aria-hidden="true">/</li>
+              <li className="text-gray-800 font-medium" aria-current="page">{routeLabels[activeRoute] || activeRoute}</li>
+            </ol>
           </nav>
         </div>
         
         {/* Main Content - SCROLLÁVEL */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50" id="main-content" tabIndex={-1}>
           <div className="py-6 px-4 sm:px-6 lg:px-8">
             <div className="animate-fadeIn">
               {children}

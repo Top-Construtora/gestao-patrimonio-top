@@ -3,6 +3,7 @@ import { Equipment } from '../types';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import LoadingOverlay from '../components/common/LoadingOverlay';
+import ConfirmationModal from '../components/common/ConfirmationModal';
 import { 
   ArrowLeft, 
   Save,
@@ -41,6 +42,7 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [observacoesManutenção, setObservacoesManutenção] = useState('');
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
     const fetchEquipment = async () => {
@@ -57,7 +59,6 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
           setObservacoesManutenção(data.observacoesManutenção);
         }
       } catch (err) {
-        console.error('Error loading equipment:', err);
         setError((err as Error).message || 'Erro ao carregar equipamento');
       } finally {
         setLoading(false);
@@ -170,10 +171,9 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
     if (validate()) {
       const changedData: Partial<Equipment> = {};
       
-      Object.keys(formData).forEach(key => {
-        const typedKey = key as keyof Equipment;
+      (Object.keys(formData) as Array<keyof Equipment>).forEach(typedKey => {
         if (formData[typedKey] !== originalData?.[typedKey]) {
-          changedData[typedKey] = formData[typedKey] as any;
+          (changedData as Record<keyof Equipment, Equipment[keyof Equipment]>)[typedKey] = formData[typedKey];
         }
       });
       
@@ -187,9 +187,16 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
   };
 
   const handleCancel = () => {
-    if (!hasChanges || confirm('Tem certeza que deseja cancelar? As alterações não salvas serão perdidas.')) {
+    if (hasChanges) {
+      setShowCancelModal(true);
+    } else {
       onBack();
     }
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false);
+    onBack();
   };
 
   if (loading) {
@@ -627,6 +634,19 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({
             Salvar Alterações
           </Button>
         </div>
+
+        {/* Modal de Confirmação de Cancelamento */}
+        <ConfirmationModal
+          isOpen={showCancelModal}
+          title="Descartar alterações?"
+          message="Tem certeza que deseja cancelar?"
+          description="As alterações não salvas serão perdidas."
+          confirmLabel="Sair"
+          cancelLabel="Continuar editando"
+          variant="warning"
+          onConfirm={handleConfirmCancel}
+          onCancel={() => setShowCancelModal(false)}
+        />
       </div>
     </div>
   );

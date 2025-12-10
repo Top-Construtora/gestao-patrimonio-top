@@ -199,15 +199,23 @@ const Toast: React.FC<ToastProps> = ({
   const styles = getStyles();
   const progressPercentage = (remainingTime / duration) * 100;
 
+  // Mapeia tipo para role ARIA
+  const getAriaRole = (): 'alert' | 'status' => {
+    return type === 'error' || type === 'warning' ? 'alert' : 'status';
+  };
+
   return (
-    <div 
+    <div
       className={`fixed z-50 ${getPositionClasses()} ${getAnimationClasses()} transition-all duration-300`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      role={getAriaRole()}
+      aria-live={type === 'error' || type === 'warning' ? 'assertive' : 'polite'}
+      aria-atomic="true"
     >
-      <div 
+      <div
         className={`
-          ${styles.bg} ${styles.border} 
+          ${styles.bg} ${styles.border}
           ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
           p-4 rounded-xl shadow-2xl border backdrop-blur-sm
           max-w-md min-w-[320px] relative overflow-hidden
@@ -257,9 +265,10 @@ const Toast: React.FC<ToastProps> = ({
           {closable && (
             <button
               onClick={handleClose}
-              className={`ml-4 -mt-1 -mr-1 p-1 rounded-lg transition-all hover:bg-black/5 group`}
+              className={`ml-4 -mt-1 -mr-1 p-1 rounded-lg transition-all hover:bg-black/5 group focus:outline-none focus:ring-2 focus:ring-gray-400`}
+              aria-label="Fechar notificação"
             >
-              <X className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+              <X className="h-4 w-4 text-gray-400 group-hover:text-gray-600" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -343,7 +352,7 @@ export const ToastDemo: React.FC = () => {
         description: 'Suas modificações foram aplicadas.',
         action: {
           label: 'Desfazer',
-          onClick: () => alert('Desfazendo...')
+          onClick: () => {}
         }
       });
     }, 3000);
