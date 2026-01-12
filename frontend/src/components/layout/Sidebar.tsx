@@ -1,187 +1,318 @@
-import React from 'react';
-import { 
-  Home, 
-  Laptop, 
-  FileText, 
+import React, { useState } from 'react';
+import {
+  Home,
+  Laptop,
   PlusCircle,
   LogOut,
   HelpCircle,
   CircleUser,
-  Menu,
   X,
   BarChart3,
-  Package,
-  Building2,
+  ShoppingCart,
+  ChevronLeft,
   ChevronRight,
-  ShoppingCart
+  ChevronDown,
+  Settings,
+  Headphones
 } from 'lucide-react';
 import logo from '/assets/images/logo.png';
 
+interface NavItem {
+  name: string;
+  icon: React.ReactNode;
+  route?: string;
+  description?: string;
+  children?: { name: string; icon: React.ReactNode; route: string }[];
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
 
 interface SidebarProps {
   isOpen: boolean;
+  isCollapsed: boolean;
   activeRoute: string;
   onNavigate: (route: string) => void;
   onClose: () => void;
+  onToggleCollapse: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeRoute, onNavigate, onClose }) => {
-  const menuItems = [
-    { 
-      name: 'Página Inicial', 
-      icon: <Home size={20} />, 
-      route: 'dashboard',
-      description: 'Visão geral'
-    },
-    { 
-      name: 'Equipamentos', 
-      icon: <Laptop size={20} />, 
-      route: 'equipment',
-      description: 'Gestão de ativos'
-    },
-    { 
-      name: 'Adicionar Novo', 
-      icon: <PlusCircle size={20} />, 
-      route: 'add-equipment',
-      description: 'Cadastrar equipamento'
+const Sidebar: React.FC<SidebarProps> = ({
+  isOpen,
+  isCollapsed,
+  activeRoute,
+  onNavigate,
+  onClose,
+  onToggleCollapse
+}) => {
+  const [expandedDropdowns, setExpandedDropdowns] = useState<string[]>([]);
+
+  const toggleDropdown = (itemName: string) => {
+    setExpandedDropdowns(prev =>
+      prev.includes(itemName)
+        ? prev.filter(name => name !== itemName)
+        : [...prev, itemName]
+    );
+  };
+
+  const navSections: NavSection[] = [
+    {
+      title: 'PRINCIPAL',
+      items: [
+        {
+          name: 'Dashboard',
+          icon: <Home size={20} />,
+          route: 'dashboard',
+        },
+        {
+          name: 'Equipamentos',
+          icon: <Laptop size={20} />,
+          children: [
+            { name: 'Listar Todos', icon: <Laptop size={18} />, route: 'equipment' },
+            { name: 'Adicionar Novo', icon: <PlusCircle size={18} />, route: 'add-equipment' },
+          ]
+        },
+        {
+          name: 'Compras',
+          icon: <ShoppingCart size={20} />,
+          children: [
+            { name: 'Solicitações', icon: <ShoppingCart size={18} />, route: 'purchases' },
+            { name: 'Nova Solicitação', icon: <PlusCircle size={18} />, route: 'add-purchase' },
+          ]
+        },
+      ]
     },
     {
-      name: 'Compras',
-      icon: <ShoppingCart size={20} />,
-      route: 'purchases',
-      description: 'Equipamentos para compra'
-
+      title: 'ANÁLISES',
+      items: [
+        {
+          name: 'Relatórios',
+          icon: <BarChart3 size={20} />,
+          route: 'reports',
+        },
+      ]
     },
-    { 
-      name: 'Relatórios', 
-      icon: <BarChart3 size={20} />, 
-      route: 'reports',
-      description: 'Análises e dados'
+    {
+      title: 'CONFIGURAÇÕES',
+      items: [
+        {
+          name: 'Configurações',
+          icon: <Settings size={20} />,
+          route: 'settings',
+        },
+      ]
+    },
+    {
+      title: 'AJUDA',
+      items: [
+        {
+          name: 'Suporte',
+          icon: <Headphones size={20} />,
+          route: 'support',
+        },
+      ]
     },
   ];
+
+  const isRouteActive = (route?: string, children?: NavItem['children']) => {
+    if (route) return activeRoute === route;
+    if (children) return children.some(child => activeRoute === child.route);
+    return false;
+  };
 
   return (
     <>
       <nav
-        className={`fixed inset-y-0 left-0 z-30 w-72 bg-gray-800 transform transition-transform duration-300 ease-in-out shadow-xl ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:relative lg:translate-x-0 flex flex-col h-screen`}
+        className={`fixed left-0 z-30 bg-secondary transform transition-all duration-300 ease-in-out flex flex-col
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isCollapsed ? 'w-[70px]' : 'w-[260px]'}
+          lg:translate-x-0
+          top-[77px] bottom-0
+          rounded-tr-[15px]
+          border-r border-white/10`}
         aria-label="Menu principal"
+        style={{ height: 'calc(100vh - 77px)' }}
       >
-        <div className="flex flex-col h-full">
-          {/* Header - FIXO */}
-          <div className="flex items-center justify-between h-20 border-b border-gray-700 bg-gray-800/95 backdrop-blur-sm flex-shrink-0">
-            <div className="flex items-center -ml-4">
-              <img src={logo} alt="Logo" className="w-auto" style={{height: '120px'}}/>
-              <span className="ml-2 text-lg font-semibold text-white"></span>
-            </div>
-            <button
-              onClick={onClose}
-              className="lg:hidden text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 mr-4 focus:outline-none focus:ring-2 focus:ring-white"
-              aria-label="Fechar menu"
-            >
-              <X size={24} aria-hidden="true" />
-            </button>
-          </div>
+        {/* Toggle Button */}
+        <button
+          onClick={onToggleCollapse}
+          className="hidden lg:flex absolute -right-3 top-6 w-6 h-6 bg-secondary border border-white/20 rounded-full items-center justify-center text-white/80 hover:text-white hover:bg-secondary-light transition-all z-50 shadow-lg"
+          aria-label={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+        >
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
 
-          {/* Navigation - SCROLLÁVEL */}
-          <div className="flex-1 overflow-y-auto px-4 py-6" role="navigation">
-            <div className="space-y-1">
-              {menuItems.map((item, index) => (
-                <div key={item.route} className="relative">
-                  <button
-                    className={`relative flex items-center w-full px-4 py-3.5 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-white ${
-                      activeRoute === item.route
-                        ? 'bg-gray-800 text-white shadow-lg shadow-gray-800/30'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`}
-                    onClick={() => {
-                      onNavigate(item.route);
-                      onClose();
-                    }}
-                    aria-current={activeRoute === item.route ? 'page' : undefined}
-                  >
-                    <span className={`mr-3 transition-transform duration-200 ${
-                      activeRoute === item.route ? 'scale-110' : 'group-hover:scale-110'
-                    }`}>
-                      {item.icon}
-                    </span>
-                    <div className="flex-1 text-left">
-                      <span className="block font-medium text-sm">{item.name}</span>
-                      <span className={`text-xs mt-0.5 ${
-                        activeRoute === item.route ? 'text-white/80' : 'text-gray-400'
-                      }`}>
-                        {item.description}
-                      </span>
-                    </div>
-                    <ChevronRight 
-                      size={16} 
-                      className={`transition-all duration-200 ${
-                        activeRoute === item.route 
-                          ? 'opacity-100 translate-x-0' 
-                          : 'opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
-                      }`}
-                    />
-                  </button>
-                  {activeRoute === item.route && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-gray-700 rounded-r-full"></div>
-                  )}
+        {/* Mobile Close Button */}
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute right-3 top-3 text-white/60 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+          aria-label="Fechar menu"
+        >
+          <X size={20} />
+        </button>
+
+        {/* Navigation Menu */}
+        <div className="flex-1 overflow-y-auto py-6 px-3">
+          {navSections.map((section, sectionIndex) => (
+            <div key={section.title} className={sectionIndex > 0 ? 'mt-6' : ''}>
+              {/* Section Title */}
+              {!isCollapsed && (
+                <div className="px-3 mb-2">
+                  <span className="text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+                    {section.title}
+                  </span>
                 </div>
-              ))}
-            </div>
+              )}
 
-            {/* Support Section */}
-            <div className="mt-8 pt-6 border-t border-gray-700">
-              <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Suporte & Ajuda
-              </h3>
-              <div className="space-y-1">
-                <button
-                  className="flex items-center w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-white"
-                  aria-label="Ajuda e Suporte - Central de atendimento"
-                >
-                  <HelpCircle size={20} className="mr-3 group-hover:scale-110 transition-transform" aria-hidden="true" />
-                  <div className="text-left">
-                    <span className="block text-sm">Ajuda & Suporte</span>
-                    <span className="text-xs text-gray-400">Central de atendimento</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
+              {/* Section Items */}
+              <ul className="space-y-1">
+                {section.items.map((item) => (
+                  <li key={item.name}>
+                    {item.children ? (
+                      // Item with dropdown
+                      <div>
+                        <button
+                          onClick={() => !isCollapsed && toggleDropdown(item.name)}
+                          className={`relative flex items-center w-full px-3 py-3 rounded-lg transition-all duration-200 group
+                            ${isRouteActive(undefined, item.children)
+                              ? 'bg-white/15 text-white'
+                              : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            }`}
+                        >
+                          {isRouteActive(undefined, item.children) && (
+                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-white rounded-r" />
+                          )}
+                          <span className={`${isCollapsed ? '' : 'mr-3'} transition-all`}>
+                            {item.icon}
+                          </span>
+                          {!isCollapsed && (
+                            <>
+                              <span className="flex-1 text-left text-sm font-medium">{item.name}</span>
+                              <ChevronDown
+                                size={16}
+                                className={`transition-transform duration-200 ${
+                                  expandedDropdowns.includes(item.name) ? 'rotate-180' : ''
+                                }`}
+                              />
+                            </>
+                          )}
+                        </button>
 
-          {/* User Profile - FIXO */}
-          <div className="p-4 border-t border-gray-700 bg-gray-700/30 flex-shrink-0">
-            <div className="flex items-center space-x-3 mb-4 p-3 rounded-lg bg-gray-700/50">
+                        {/* Dropdown */}
+                        {!isCollapsed && (
+                          <div
+                            className={`overflow-hidden transition-all duration-300 ${
+                              expandedDropdowns.includes(item.name) ? 'max-h-[500px]' : 'max-h-0'
+                            }`}
+                          >
+                            <div className="mx-2 my-1 bg-black/15 rounded-lg">
+                              {item.children.map((child) => (
+                                <button
+                                  key={child.route}
+                                  onClick={() => {
+                                    onNavigate(child.route);
+                                    onClose();
+                                  }}
+                                  className={`relative flex items-center w-full px-4 py-2.5 text-sm transition-all duration-200
+                                    ${activeRoute === child.route
+                                      ? 'bg-black/10 text-white'
+                                      : 'text-white/70 hover:bg-black/8 hover:text-white'
+                                    }`}
+                                >
+                                  <span className="mr-3">{child.icon}</span>
+                                  <span>{child.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // Simple item
+                      <button
+                        onClick={() => {
+                          if (item.route) {
+                            onNavigate(item.route);
+                            onClose();
+                          }
+                        }}
+                        className={`relative flex items-center w-full px-3 py-3 rounded-lg transition-all duration-200 group
+                          ${activeRoute === item.route
+                            ? 'bg-white/15 text-white'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                          }`}
+                      >
+                        {activeRoute === item.route && (
+                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-white rounded-r" />
+                        )}
+                        <span className={`${isCollapsed ? '' : 'mr-3'} transition-all`}>
+                          {item.icon}
+                        </span>
+                        {!isCollapsed && (
+                          <span className="text-sm font-medium">{item.name}</span>
+                        )}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* User Profile - Footer */}
+        {!isCollapsed && (
+          <div className="p-4 border-t border-white/10">
+            <div className="flex items-center space-x-3 mb-3 p-3 rounded-lg bg-white/5">
               <div className="relative">
-                <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center">
-                  <CircleUser size={24} className="text-white" />
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-md">
+                  <CircleUser size={22} className="text-white" />
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800"></div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-secondary"></div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-white">Administrador</p>
-                <p className="text-xs text-gray-400">admin@exemplo.com</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">Administrador</p>
+                <p className="text-xs text-white/50 truncate">admin@exemplo.com</p>
               </div>
             </div>
             <button
-              className="flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-red-600/10 text-red-400 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-red-500/10 text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-all duration-200 group"
               aria-label="Sair do sistema"
             >
-              <LogOut size={18} className="mr-2 group-hover:scale-110 transition-transform" aria-hidden="true" />
+              <LogOut size={18} className="mr-2 group-hover:scale-110 transition-transform" />
               <span className="font-medium text-sm">Sair do Sistema</span>
             </button>
           </div>
-        </div>
+        )}
+
+        {/* Collapsed user icon */}
+        {isCollapsed && (
+          <div className="p-3 border-t border-white/10 flex flex-col items-center space-y-3">
+            <div className="relative">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center">
+                <CircleUser size={22} className="text-white" />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-secondary"></div>
+            </div>
+            <button
+              className="p-2 rounded-lg bg-red-500/10 text-red-300 hover:bg-red-500/20 transition-all"
+              aria-label="Sair do sistema"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-20 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
-        ></div>
+        />
       )}
     </>
   );
