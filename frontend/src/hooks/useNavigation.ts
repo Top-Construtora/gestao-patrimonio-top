@@ -13,7 +13,9 @@ export type RouteType =
   | 'purchases'
   | 'add-purchase'
   | 'edit-purchase'
-  | 'purchase-details';
+  | 'purchase-details'
+  | 'settings'
+  | 'support';
 
 export const useNavigation = (initialRoute: RouteType = 'dashboard') => {
   const [route, setRoute] = useState<RouteType>(initialRoute);

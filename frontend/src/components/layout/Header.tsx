@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Bell, ChevronDown, Settings, LogOut, User } from 'lucide-react';
+import { Menu, Bell, ChevronDown, Settings, LogOut, User, Home, ChevronRight } from 'lucide-react';
 import logo from '/assets/images/logo.png';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
   userName?: string;
+  activeRoute?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onToggleSidebar, userName = 'Administrador' }) => {
+const Header: React.FC<HeaderProps> = ({ onToggleSidebar, userName = 'Administrador', activeRoute = 'dashboard' }) => {
   const [currentDate, setCurrentDate] = useState('');
   const [currentTime, setCurrentTime] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -63,18 +64,35 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, userName = 'Administra
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  // Obter nome da rota para breadcrumb
+  const getRouteName = (route: string) => {
+    const routeNames: Record<string, string> = {
+      'dashboard': 'Dashboard',
+      'equipment': 'Equipamentos',
+      'equipment-details': 'Detalhes',
+      'add-equipment': 'Adicionar Equipamento',
+      'edit-equipment': 'Editar Equipamento',
+      'reports': 'Relatórios',
+      'purchases': 'Solicitações',
+      'add-purchase': 'Nova Solicitação',
+      'settings': 'Configurações',
+      'support': 'Suporte'
+    };
+    return routeNames[route] || route;
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 h-[77px] bg-secondary border-b border-white/10 z-[1000]">
-      <div className="h-full px-4 lg:px-8 flex items-center justify-between gap-4 lg:gap-8">
+    <header className="fixed top-0 left-0 right-0 h-[64px] bg-gray-800 border-b border-gray-700 z-[1000]">
+      <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
         {/* Left Side - Mobile Menu + Logo */}
         <div className="flex items-center gap-4">
           {/* Mobile Menu Button */}
           <button
             onClick={onToggleSidebar}
-            className="lg:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
             aria-label="Abrir menu"
           >
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
 
           {/* Logo */}
@@ -82,59 +100,83 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, userName = 'Administra
             <img
               src={logo}
               alt="Logo"
-              className="h-14 w-auto"
+              className="h-9 w-auto"
             />
           </a>
+
+          {/* Breadcrumb */}
+          <div className="hidden md:flex items-center gap-2 ml-4 pl-4 border-l border-gray-700">
+            <Home size={14} className="text-gray-500" />
+            <span className="text-gray-500 text-sm">Sistema</span>
+            <ChevronRight size={14} className="text-gray-600" />
+            <span className="text-primary text-sm font-medium">{getRouteName(activeRoute)}</span>
+          </div>
         </div>
 
         {/* Center - Date/Time Display (hidden on mobile) */}
-        <div className="hidden md:flex flex-col items-center">
-          <div className="text-white/70 text-sm">
+        <div className="hidden lg:flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
+          <div className="text-gray-400 text-xs tracking-wide">
             {currentDate}
           </div>
-          <div className="text-white text-2xl font-light tracking-wider font-mono">
+          <div className="text-white text-xl font-semibold tracking-wider font-mono">
             {currentTime}
           </div>
         </div>
 
         {/* Right Side - Actions */}
-        <div className="flex items-center gap-2 lg:gap-4">
+        <div className="flex items-center gap-3">
           {/* Notification Button */}
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all"
+              className="relative p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-all"
               aria-label="Notificações"
             >
               <Bell size={20} />
               {/* Notification Badge */}
-              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold bg-red-500 text-white rounded-full">
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold bg-primary text-white rounded-full">
                 3
               </span>
             </button>
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-slideDown">
-                <div className="p-4 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-800">Notificações</h3>
+              <div className="absolute top-full right-0 mt-2 w-80 bg-gray-800 rounded-xl shadow-xl border border-gray-700 overflow-hidden animate-slideDown">
+                <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+                  <h3 className="font-semibold text-white">Notificações</h3>
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">3 novas</span>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
-                  <div className="p-4 hover:bg-gray-50 border-b border-gray-50 cursor-pointer">
-                    <p className="text-sm text-gray-800 font-medium">Novo equipamento cadastrado</p>
-                    <p className="text-xs text-gray-500 mt-1">Há 5 minutos</p>
+                  <div className="p-4 hover:bg-gray-700/50 border-b border-gray-700/50 cursor-pointer transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <p className="text-sm text-white font-medium">Novo equipamento cadastrado</p>
+                        <p className="text-xs text-gray-400 mt-1">Há 5 minutos</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4 hover:bg-gray-50 border-b border-gray-50 cursor-pointer">
-                    <p className="text-sm text-gray-800 font-medium">Solicitação de compra aprovada</p>
-                    <p className="text-xs text-gray-500 mt-1">Há 1 hora</p>
+                  <div className="p-4 hover:bg-gray-700/50 border-b border-gray-700/50 cursor-pointer transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <p className="text-sm text-white font-medium">Solicitação de compra aprovada</p>
+                        <p className="text-xs text-gray-400 mt-1">Há 1 hora</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4 hover:bg-gray-50 cursor-pointer">
-                    <p className="text-sm text-gray-800 font-medium">Termo de responsabilidade pendente</p>
-                    <p className="text-xs text-gray-500 mt-1">Há 2 horas</p>
+                  <div className="p-4 hover:bg-gray-700/50 cursor-pointer transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
+                      <div>
+                        <p className="text-sm text-white font-medium">Termo de responsabilidade pendente</p>
+                        <p className="text-xs text-gray-400 mt-1">Há 2 horas</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="p-3 border-t border-gray-100">
-                  <button className="w-full text-center text-sm text-secondary hover:text-secondary-dark font-medium">
+                <div className="p-3 border-t border-gray-700 bg-gray-800/50">
+                  <button className="w-full text-center text-sm text-primary hover:text-primary/80 font-medium transition-colors">
                     Ver todas as notificações
                   </button>
                 </div>
@@ -146,49 +188,53 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, userName = 'Administra
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
-              className="flex items-center gap-2 p-1.5 pr-3 rounded-lg hover:bg-white/10 transition-all"
+              className="flex items-center gap-3 p-1.5 pr-3 rounded-lg hover:bg-gray-700 transition-all"
             >
               {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center text-white font-semibold text-sm shadow-md">
+              <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm border-2 border-primary/50">
                 {getInitials(userName)}
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-sm font-medium text-white leading-tight">{userName}</p>
+                <p className="text-xs text-gray-400">Administrador</p>
               </div>
               <ChevronDown
                 size={16}
-                className={`text-white/70 transition-transform duration-200 hidden sm:block ${showUserDropdown ? 'rotate-180' : ''}`}
+                className={`text-gray-400 transition-transform duration-200 hidden sm:block ${showUserDropdown ? 'rotate-180' : ''}`}
               />
             </button>
 
             {/* User Dropdown */}
             {showUserDropdown && (
-              <div className="absolute top-full right-0 mt-3 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-slideDown">
+              <div className="absolute top-full right-0 mt-2 w-56 bg-gray-800 rounded-xl shadow-xl border border-gray-700 overflow-hidden animate-slideDown">
                 {/* User Info */}
-                <div className="p-4 bg-gray-50 border-b border-gray-100">
+                <div className="p-4 bg-gray-700/30 border-b border-gray-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold border-2 border-primary/50">
                       {getInitials(userName)}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-800">{userName}</p>
-                      <p className="text-xs text-gray-500">admin@exemplo.com</p>
+                      <p className="font-medium text-white text-sm">{userName}</p>
+                      <p className="text-xs text-gray-400">admin@exemplo.com</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Menu Items */}
                 <div className="p-2">
-                  <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left">
-                    <User size={18} className="text-gray-500" />
+                  <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-left">
+                    <User size={18} className="text-gray-400" />
                     <span className="text-sm">Meu Perfil</span>
                   </button>
-                  <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left">
-                    <Settings size={18} className="text-gray-500" />
+                  <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-left">
+                    <Settings size={18} className="text-gray-400" />
                     <span className="text-sm">Configurações</span>
                   </button>
                 </div>
 
                 {/* Logout */}
-                <div className="p-2 border-t border-gray-100">
-                  <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors text-left">
+                <div className="p-2 border-t border-gray-700">
+                  <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-left">
                     <LogOut size={18} />
                     <span className="text-sm font-medium">Sair</span>
                   </button>

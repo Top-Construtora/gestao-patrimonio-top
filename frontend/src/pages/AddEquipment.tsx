@@ -1,31 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Equipment } from '../types';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
 import ConfirmationModal from '../components/common/ConfirmationModal';
 import { useToast } from '../components/common/Toast';
 import inventoryService from '../services/inventoryService';
-import { validateFile, validateFiles, ALLOWED_EXTENSIONS } from '../utils/fileValidation';
-import { 
-  ArrowLeft, 
-  Package, 
-  MapPin, 
-  User, 
-  Calendar, 
-  DollarSign, 
-  AlertCircle, 
-  Plus, 
-  Upload, 
+import { validateFiles, ALLOWED_EXTENSIONS } from '../utils/fileValidation';
+import {
+  Package,
+  MapPin,
+  User,
+  DollarSign,
+  AlertCircle,
+  Upload,
   X,
   FileText,
   Image,
   File,
   CheckCircle,
   Info,
-  Trash,
   Save,
-  RefreshCw,
-  Laptop
+  Laptop,
+  Settings,
+  Calendar
 } from 'lucide-react';
 
 interface AddEquipmentProps {
@@ -53,7 +48,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
   const { showError, showSuccess, showWarning } = useToast();
   const [loadingAssetNumber, setLoadingAssetNumber] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  
+
   const [formData, setFormData] = useState<FormData>({
     assetNumber: '',
     description: '',
@@ -75,7 +70,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Carregar número de patrimônio automaticamente
   useEffect(() => {
     const loadAssetNumber = async () => {
       try {
@@ -94,7 +88,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
     loadAssetNumber();
   }, []);
 
-  // Validação do número de patrimônio
   const validateAssetNumber = async (assetNumber: string): Promise<boolean> => {
     if (!assetNumber.trim()) {
       setErrors(prev => ({ ...prev, assetNumber: 'Número do patrimônio é obrigatório' }));
@@ -121,45 +114,45 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
 
   const validateForm = (): boolean => {
     const newErrors: Errors = {};
-    
+
     if (!formData.assetNumber.trim()) {
       newErrors.assetNumber = 'Número do patrimônio é obrigatório';
     } else if (!formData.assetNumber.match(/^TOP-\d{4}$/)) {
       newErrors.assetNumber = 'Formato inválido. Use TOP-0000';
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = 'Descrição é obrigatória';
     }
-    
+
     if (!formData.brand.trim()) {
       newErrors.brand = 'Marca é obrigatória';
     }
-    
+
     if (!formData.model.trim()) {
       newErrors.model = 'Modelo é obrigatório';
     }
-    
+
     if (!formData.location.trim()) {
       newErrors.location = 'Localização é obrigatória';
     }
-    
+
     if (!formData.responsible.trim()) {
       newErrors.responsible = 'Responsável é obrigatório';
     }
-    
+
     if (!formData.acquisitionDate) {
       newErrors.acquisitionDate = 'Data de aquisição é obrigatória';
     }
-    
+
     if (formData.value <= 0) {
       newErrors.value = 'Valor deve ser maior que zero';
     }
-    
+
     if (formData.status === 'manutenção' && !formData.maintenanceDescription?.trim()) {
       newErrors.maintenanceDescription = 'Descrição da manutenção é obrigatória quando o status é "Em Manutenção"';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -167,13 +160,12 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setHasFormChanges(true);
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: name === 'value' ? parseFloat(value) || 0 : value
     }));
-    
-    // Limpar erro do campo ao modificar
+
     if (errors[name]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -181,8 +173,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
         return newErrors;
       });
     }
-    
-    // Validação especial para status de manutenção
+
     if (name === 'status' && value !== 'manutenção') {
       setFormData(prev => ({ ...prev, maintenanceDescription: undefined }));
       setErrors(prev => {
@@ -192,7 +183,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
       });
     }
 
-    // Validação em tempo real do número de patrimônio
     if (name === 'assetNumber' && value) {
       const timeoutId = setTimeout(async () => {
         await validateAssetNumber(value);
@@ -212,7 +202,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
       showError('Por favor, corrija os erros no formulário');
       return;
     }
-    
+
     const attachmentFiles = attachments.map(att => att.file);
     await onSubmit(formData, attachmentFiles);
   };
@@ -230,7 +220,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
     onBack();
   };
 
-  // Funções de anexo
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     handleFiles(files);
@@ -241,8 +230,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
 
   const handleFiles = (files: File[]) => {
     const { validFiles, errors } = validateFiles(files);
-
-    // Mostrar erros de validação
     errors.forEach(error => showError(error));
 
     const newAttachments: TempAttachment[] = validFiles.map(file => ({
@@ -279,7 +266,6 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const files = Array.from(e.dataTransfer.files);
     handleFiles(files);
   };
@@ -294,9 +280,9 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
-    
+
     if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '')) {
-      return <Image className="h-5 w-5 text-gray-700" />;
+      return <Image className="h-5 w-5 text-primary" />;
     } else if (['pdf'].includes(extension || '')) {
       return <FileText className="h-5 w-5 text-red-500" />;
     } else {
@@ -307,13 +293,9 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Novo Equipamento</h1>
-            <p className="text-gray-600 mt-1">Cadastre um novo equipamento no sistema</p>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Novo Equipamento</h1>
+        <p className="text-gray-500 mt-1 text-sm">Cadastre um novo equipamento no sistema</p>
       </div>
 
       {/* Form Grid Layout */}
@@ -321,17 +303,19 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
         {/* Coluna Esquerda */}
         <div className="space-y-6">
           {/* Identificação */}
-          <Card>
-            <div className="flex items-center gap-2 mb-4">
-              <Laptop className="h-5 w-5 text-primary light" />
-              <h3 className="text-lg font-semibold text-gray-900">Identificação</h3>
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Laptop className="h-4 w-4 text-primary" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Identificação</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Número do Patrimônio *
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
+                    Patrimônio *
                   </label>
                   <input
                     type="text"
@@ -341,31 +325,30 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     disabled={loadingAssetNumber}
                     readOnly
                     placeholder={loadingAssetNumber ? "Carregando..." : "TOP-0000"}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
-                      errors.assetNumber ? 
-                      'border-red-300 bg-red-50' : 
-                      loadingAssetNumber ? 
-                      'bg-gray-100 cursor-not-allowed' : 
-                      'border-gray-300 bg-gray-50'
-                    }`}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 ${errors.assetNumber
+                        ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                        : loadingAssetNumber
+                          ? 'bg-gray-100 cursor-not-allowed border-gray-200'
+                          : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                      }`}
                   />
                   {errors.assetNumber && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1" />
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
                       {errors.assetNumber}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                     Status
                   </label>
                   <select
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm bg-white"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
                   >
                     <option value="ativo">Ativo</option>
                     <option value="manutenção">Em Manutenção</option>
@@ -375,7 +358,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                   Descrição *
                 </label>
                 <textarea
@@ -384,14 +367,14 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Descreva o equipamento..."
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none text-sm ${
-                    errors.description ? 
-                    'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2.5 border rounded-lg text-sm resize-none transition-all duration-200 ${errors.description
+                      ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                      : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                    }`}
                 />
                 {errors.description && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
+                  <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
                     {errors.description}
                   </p>
                 )}
@@ -399,7 +382,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
 
               {formData.status === 'manutenção' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                     Descrição da Manutenção *
                   </label>
                   <textarea
@@ -408,33 +391,35 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     onChange={handleChange}
                     rows={2}
                     placeholder="Descreva o que será feito na manutenção..."
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none text-sm ${
-                      errors.maintenanceDescription ? 
-                      'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm resize-none transition-all duration-200 ${errors.maintenanceDescription
+                        ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                        : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                      }`}
                   />
                   {errors.maintenanceDescription && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1" />
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
                       {errors.maintenanceDescription}
                     </p>
                   )}
                 </div>
               )}
             </div>
-          </Card>
+          </div>
 
           {/* Detalhes Técnicos */}
-          <Card>
-            <div className="flex items-center gap-2 mb-4">
-              <FileText className="h-5 w-5 text-secondary-dark" />
-              <h3 className="text-lg font-semibold text-gray-900">Detalhes Técnicos</h3>
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
+              <div className="p-2 bg-secondary/10 rounded-lg">
+                <Settings className="h-4 w-4 text-secondary" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Detalhes Técnicos</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                     Marca *
                   </label>
                   <input
@@ -443,21 +428,21 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     value={formData.brand}
                     onChange={handleChange}
                     placeholder="Ex: Dell"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
-                      errors.brand ? 
-                      'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 ${errors.brand
+                        ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                        : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                      }`}
                   />
                   {errors.brand && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1" />
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
                       {errors.brand}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                     Modelo *
                   </label>
                   <input
@@ -466,14 +451,14 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                     value={formData.model}
                     onChange={handleChange}
                     placeholder="Ex: OptiPlex 7090"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
-                      errors.model ? 
-                      'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 ${errors.model
+                        ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                        : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                      }`}
                   />
                   {errors.model && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1" />
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
                       {errors.model}
                     </p>
                   )}
@@ -481,7 +466,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                   Especificações Técnicas
                 </label>
                 <textarea
@@ -490,25 +475,27 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Ex: Intel Core i7, 16GB RAM, 512GB SSD..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all resize-none text-sm"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
                 />
               </div>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Coluna Direita */}
         <div className="space-y-6">
           {/* Localização e Responsável */}
-          <Card>
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin className="h-5 w-5 text-accent-dark" />
-              <h3 className="text-lg font-semibold text-gray-900">Localização e Responsável</h3>
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <MapPin className="h-4 w-4 text-accent" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Localização</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                   Localização *
                 </label>
                 <input
@@ -517,21 +504,21 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   value={formData.location}
                   onChange={handleChange}
                   placeholder="Ex: Sala de TI - 2º Andar"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
-                    errors.location ? 
-                    'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 ${errors.location
+                      ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                      : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                    }`}
                 />
                 {errors.location && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
+                  <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
                     {errors.location}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                   Responsável *
                 </label>
                 <input
@@ -540,68 +527,70 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   value={formData.responsible}
                   onChange={handleChange}
                   placeholder="Nome do responsável"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
-                    errors.responsible ? 
-                    'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 ${errors.responsible
+                      ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                      : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                    }`}
                 />
                 {errors.responsible && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
+                  <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
                     {errors.responsible}
                   </p>
                 )}
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Informações Financeiras */}
-          <Card>
-            <div className="flex items-center gap-2 mb-4">
-              <DollarSign className="h-5 w-5 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900">Informações Financeiras</h3>
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <DollarSign className="h-4 w-4 text-gray-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Financeiro</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Data de Aquisição *
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
+                    Data Aquisição *
                   </label>
                   <input
                     type="date"
                     name="acquisitionDate"
                     value={formData.acquisitionDate}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
-                      errors.acquisitionDate ? 
-                      'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 ${errors.acquisitionDate
+                        ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                        : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                      }`}
                   />
                   {errors.acquisitionDate && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <AlertCircle className="h-3 w-3 mr-1" />
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
                       {errors.acquisitionDate}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Data da Nota Fiscal
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
+                    Data Nota Fiscal
                   </label>
                   <input
                     type="date"
                     name="invoiceDate"
                     value={formData.invoiceDate || ''}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">
                   Valor (R$) *
                 </label>
                 <input
@@ -612,48 +601,48 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                   step="0.01"
                   min="0"
                   placeholder="0,00"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all text-sm ${
-                    errors.value ? 
-                    'border-red-300 bg-red-50' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 ${errors.value
+                      ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                      : 'border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary'
+                    }`}
                 />
                 {errors.value && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
+                  <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
                     {errors.value}
                   </p>
                 )}
               </div>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Seção de Anexos - Largura Total */}
         <div className="lg:col-span-2">
-          <Card>
-            <div className="flex items-center gap-2 mb-4">
-              <Upload className="h-5 w-5 text-black" />
-              <h3 className="text-lg font-semibold text-gray-900">Anexos</h3>
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
+              <div className="p-2 bg-secondary/10 rounded-lg">
+                <Upload className="h-4 w-4 text-secondary" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide">Anexos</h3>
             </div>
-            
+
             {/* Área de Upload */}
-            <div 
-              className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
-                isDragging 
-                  ? 'border-blue-400 bg-blue-50' 
-                  : 'border-gray-300 hover:border-gray-400 bg-gray-50'
-              }`}
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${isDragging
+                  ? 'border-primary bg-primary/5'
+                  : 'border-gray-200 hover:border-gray-300 bg-gray-50'
+                }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleFileDrop}
             >
-              <Upload className={`mx-auto h-10 w-10 mb-3 ${
-                isDragging ? 'text-gray-700' : 'text-gray-400'
-              }`} />
+              <Upload className={`mx-auto h-10 w-10 mb-3 ${isDragging ? 'text-primary' : 'text-gray-400'
+                }`} />
               <p className="text-sm font-medium text-gray-700 mb-1">
                 Arraste arquivos aqui ou clique para selecionar
               </p>
-              <p className="text-xs text-gray-500 mb-3">
+              <p className="text-xs text-gray-400 mb-4">
                 PDF, Imagens, Planilhas, Documentos (máx. 10MB)
               </p>
               <input
@@ -663,47 +652,46 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                 onChange={handleFileSelect}
                 multiple
                 accept={ALLOWED_EXTENSIONS.join(',')}
-                aria-label="Selecionar arquivos para anexar"
               />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                icon={<Upload size={16} />}
+              <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
+                <Upload size={16} />
                 Selecionar Arquivos
-              </Button>
+              </button>
             </div>
 
             {/* Lista de Anexos */}
             {attachments.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
+                <p className="text-xs font-medium text-gray-600 mb-3 uppercase tracking-wide">
                   Arquivos Selecionados ({attachments.length})
-                </h4>
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {attachments.map((attachment) => (
-                    <div 
-                      key={attachment.id} 
-                      className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-all group"
+                    <div
+                      key={attachment.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="flex-shrink-0">
                           {getFileIcon(attachment.name)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-gray-800 truncate">
                             {attachment.name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-400">
                             {formatFileSize(attachment.size)}
                           </p>
                         </div>
                       </div>
-                      
+
                       <button
                         onClick={() => handleFileRemove(attachment.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title="Remover anexo"
                         type="button"
                       >
@@ -714,18 +702,18 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
                 </div>
               </div>
             )}
-          </Card>
+          </div>
         </div>
 
         {/* Mensagens de Status - Largura Total */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3">
           {/* Success Preview */}
           {Object.keys(errors).length === 0 && formData.assetNumber && formData.description && (
-            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-              <div className="text-sm text-green-800">
+            <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+              <div className="text-sm text-gray-700">
                 <span className="font-medium">Pronto para salvar!</span>
-                <span className="ml-2">
+                <span className="ml-2 text-gray-500">
                   Todos os campos obrigatórios foram preenchidos.
                   {attachments.length > 0 && ` ${attachments.length} anexo(s) será(ão) incluído(s).`}
                 </span>
@@ -734,11 +722,11 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
           )}
 
           {/* Form Instructions */}
-          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <Info className="h-5 w-5 text-gray-800 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Instruções de Cadastro:</p>
-              <ul className="text-xs space-y-0.5 list-disc list-inside">
+          <div className="flex items-start gap-3 p-4 bg-secondary/5 border border-secondary/20 rounded-lg">
+            <Info className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-gray-600">
+              <p className="font-medium text-gray-700 mb-1">Instruções de Cadastro:</p>
+              <ul className="text-xs space-y-0.5 list-disc list-inside text-gray-500">
                 <li>O número de patrimônio é gerado automaticamente no formato TOP-0000</li>
                 <li>Campos marcados com asterisco (*) são obrigatórios</li>
                 <li>Anexe documentos relevantes como notas fiscais e manuais</li>
@@ -749,23 +737,21 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onBack, onSubmit }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t">
-        <Button
-          variant="outline"
+      <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
+        <button
           onClick={handleCancel}
-          className="w-full sm:w-auto"
+          className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
         >
           Cancelar
-        </Button>
-        <Button
-          variant="primary"
+        </button>
+        <button
           onClick={handleSubmit}
-          icon={<Save className="h-4 w-4" />}
           disabled={Object.keys(errors).length > 0 || loadingAssetNumber}
-          className="w-full sm:w-auto"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-secondary text-white font-medium text-sm rounded-lg hover:bg-secondary-dark transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
+          <Save className="h-4 w-4" />
           Salvar Equipamento
-        </Button>
+        </button>
       </div>
 
       {/* Modal de Confirmação de Cancelamento */}

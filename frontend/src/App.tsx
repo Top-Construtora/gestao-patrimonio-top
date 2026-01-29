@@ -21,6 +21,7 @@ const Reports = lazy(() => import('./pages/Reports'));
 const EquipmentPurchaseList = lazy(() => import('./pages/EquipmentPurchaseList'));
 const AddEquipmentPurchase = lazy(() => import('./pages/AddEquipmentPurchase'));
 const PurchaseToEquipmentModal = lazy(() => import('./components/purchases/PurchaseToEquipmentModal'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 // Loading fallback component
 const PageLoader: React.FC = () => (
@@ -298,6 +299,17 @@ function App() {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <h3 className="text-2xl font-semibold text-gray-700 mb-2">Equipamentos em Obras</h3>
+            <p className="text-gray-500">Esta funcionalidade está em desenvolvimento</p>
+          </div>
+        </div>
+      ),
+
+      settings: <Settings />,
+
+      support: (
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <h3 className="text-2xl font-semibold text-gray-700 mb-2">Suporte</h3>
             <p className="text-gray-500">Esta funcionalidade está em desenvolvimento</p>
           </div>
         </div>

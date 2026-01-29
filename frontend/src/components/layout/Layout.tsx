@@ -42,9 +42,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       {/* Fixed Header */}
-      <Header onToggleSidebar={toggleSidebar} />
+      <Header onToggleSidebar={toggleSidebar} activeRoute={activeRoute} />
 
       {/* Sidebar */}
       <Sidebar
@@ -58,37 +58,22 @@ const Layout: React.FC<LayoutProps> = ({ children, activeRoute, onNavigate }) =>
 
       {/* Main Content Area */}
       <main
-        className={`transition-all duration-300 pt-[77px] min-h-screen ${
-          sidebarCollapsed ? 'lg:ml-[70px]' : 'lg:ml-[260px]'
+        className={`transition-all duration-300 pt-[64px] min-h-screen flex flex-col ${
+          sidebarCollapsed ? 'lg:ml-[70px]' : 'lg:ml-[250px]'
         }`}
       >
-        {/* Breadcrumb */}
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center text-sm" aria-label="Breadcrumb">
-            <ol className="flex items-center">
-              <li className="text-gray-500 hover:text-gray-700 cursor-pointer" onClick={() => onNavigate('dashboard')}>
-                Sistema
-              </li>
-              <li className="mx-2 text-gray-400" aria-hidden="true">/</li>
-              <li className="text-secondary font-medium" aria-current="page">
-                {routeLabels[activeRoute] || activeRoute}
-              </li>
-            </ol>
-          </nav>
-        </div>
-
         {/* Page Content */}
-        <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8">
           <div className="animate-fadeIn">
             {children}
           </div>
         </div>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 mt-auto">
-          <div className="px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500">
-              <span>GIO - Sistema de Controle de Patrimônio © {new Date().getFullYear()}</span>
+        <footer className="bg-white border-t border-gray-200">
+          <div className="px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500">
+              <span>© {new Date().getFullYear()} GIO • Sistema de Controle de Patrimônio</span>
               <span className="mt-1 sm:mt-0">Versão 1.0</span>
             </div>
           </div>

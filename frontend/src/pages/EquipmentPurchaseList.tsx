@@ -1,18 +1,14 @@
-// pages/EquipmentPurchaseList.tsx
 import React, { useState } from 'react';
 import { EquipmentPurchase, PurchaseUrgency, PurchaseStatus } from '../types/purchaseTypes';
-import Card from '../components/common/Card';
-import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
-import { 
-  PlusCircle, 
-  Search, 
-  Filter, 
-  ChevronDown, 
+import {
+  PlusCircle,
+  Search,
+  Filter,
+  ChevronDown,
   ChevronUp,
   ShoppingCart,
   Clock,
-  AlertTriangle,
   CheckCircle,
   XCircle,
   Calendar,
@@ -39,7 +35,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
   onAddNew,
   onMarkAsAcquired
 }) => {
-  // Estados para filtragem e ordenação
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [urgencyFilter, setUrgencyFilter] = useState<string>('all');
@@ -47,9 +42,8 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Aplicar filtros
   const filteredPurchases = purchases.filter(item => {
-    const matchesSearch = 
+    const matchesSearch =
       item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.requestedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -62,7 +56,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     return matchesSearch && matchesStatus && matchesUrgency;
   });
 
-  // Aplicar ordenação
   const sortedPurchases = [...filteredPurchases].sort((a, b) => {
     const aValue = a[sortField];
     const bValue = b[sortField];
@@ -76,7 +69,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     return 0;
   });
 
-  // Alternar ordenação
   const handleSort = (field: keyof EquipmentPurchase) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -86,7 +78,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     }
   };
 
-  // Estatísticas
   const stats = {
     total: purchases.length,
     pending: purchases.filter(p => p.status === 'pendente').length,
@@ -94,7 +85,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     acquired: purchases.filter(p => p.status === 'adquirido').length
   };
 
-  // Obter ícone de status
   const getStatusIcon = (status: PurchaseStatus) => {
     switch (status) {
       case 'pendente':
@@ -108,7 +98,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     }
   };
 
-  // Obter cor de urgência
   const getUrgencyColor = (urgency: PurchaseUrgency): 'info' | 'warning' | 'error' | 'success' => {
     switch (urgency) {
       case 'baixa':
@@ -124,7 +113,6 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     }
   };
 
-  // Formatar data mês/ano
   const formatMonthYear = (dateString?: string) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -133,12 +121,11 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
     return `${month}/${year}`;
   };
 
-  // Renderizar indicador de ordenação
   const renderSortIndicator = (field: keyof EquipmentPurchase) => {
     if (sortField !== field) return null;
-    
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="inline-block h-3 w-3 ml-1" /> : 
+
+    return sortDirection === 'asc' ?
+      <ChevronUp className="inline-block h-3 w-3 ml-1" /> :
       <ChevronDown className="inline-block h-3 w-3 ml-1" />;
   };
 
@@ -147,73 +134,81 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Equipamentos a Adquirir</h1>
-          <p className="mt-2 text-sm text-gray-600">Gerencie as solicitações de compra de novos equipamentos</p>
+          <h1 className="text-2xl font-bold text-gray-800">Solicitações de Compra</h1>
+          <p className="text-gray-500 mt-1 text-sm">Gerencie as solicitações de compra de novos equipamentos</p>
         </div>
-        <Button
-          className="w-full sm:w-auto shadow-lg hover:shadow-xl"
+        <button
           onClick={onAddNew}
-          icon={<PlusCircle size={18} />}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white font-medium text-sm rounded-lg hover:bg-secondary-dark transition-all duration-200 hover:shadow-lg"
         >
+          <PlusCircle size={18} />
           Nova Solicitação
-        </Button>
+        </button>
       </div>
 
-      {/* Cards de Estatísticas */}
+      {/* Stats Cards - Estilo GIO */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-secondary to-secondary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        {/* Total */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5 transition-all duration-200 hover:border-secondary hover:shadow-lg hover:shadow-secondary/10 group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-primary-light">Total de Solicitações</p>
-              <p className="text-2xl font-bold text-white mt-1">{stats.total}</p>
+              <p className="text-xs font-medium text-secondary uppercase tracking-wide">Total</p>
+              <p className="text-3xl font-bold text-gray-800 mt-2">{stats.total}</p>
+              <p className="text-xs text-gray-400 mt-1">solicitações</p>
             </div>
-            <div className="p-2 bg-secondary bg-opacity-60 rounded-lg">
-              <ShoppingCart size={20} className="text-primary-light" />
+            <div className="p-3 bg-secondary/10 rounded-lg group-hover:bg-secondary/20 transition-colors">
+              <ShoppingCart className="h-6 w-6 text-secondary" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="bg-gradient-to-br from-accent-light to-accent-light border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        {/* Pendentes */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5 transition-all duration-200 hover:border-accent hover:shadow-lg hover:shadow-accent/10 group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-white">Pendentes</p>
-              <p className="text-2xl font-bold text-white mt-1">{stats.pending}</p>
+              <p className="text-xs font-medium text-accent uppercase tracking-wide">Pendentes</p>
+              <p className="text-3xl font-bold text-gray-800 mt-2">{stats.pending}</p>
+              <p className="text-xs text-gray-400 mt-1">aguardando</p>
             </div>
-            <div className="p-2 bg-accent-light bg-opacity-60 rounded-lg">
-              <Clock size={20} className="text-white" />
+            <div className="p-3 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+              <Clock className="h-6 w-6 text-accent" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="bg-gradient-to-br from-primary to-primary border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        {/* Aprovadas */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5 transition-all duration-200 hover:border-primary hover:shadow-lg hover:shadow-primary/10 group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-secondary">Aprovadas</p>
-              <p className="text-2xl font-bold text-white mt-1">{stats.approved}</p>
+              <p className="text-xs font-medium text-primary uppercase tracking-wide">Aprovadas</p>
+              <p className="text-3xl font-bold text-gray-800 mt-2">{stats.approved}</p>
+              <p className="text-xs text-gray-400 mt-1">para compra</p>
             </div>
-            <div className="p-2 bg-primary bg-opacity-60 rounded-lg">
-              <CheckCircle size={20} className="text-secondary" />
+            <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+              <CheckCircle className="h-6 w-6 text-primary" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="bg-gradient-to-br from-gray-900 to-gray-900 border-0 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        {/* Adquiridas */}
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-5 transition-all duration-200 hover:border-primary hover:shadow-lg group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-gray-400">Adquiridas</p>
-              <p className="text-2xl font-bold text-white mt-1">{stats.acquired}</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Adquiridas</p>
+              <p className="text-3xl font-bold text-white mt-2">{stats.acquired}</p>
+              <p className="text-xs text-gray-500 mt-1">finalizadas</p>
             </div>
-            <div className="p-2 bg-gray-900 bg-opacity-60 rounded-lg">
-              <Receipt size={20} className="text-gray-400" />
+            <div className="p-3 bg-gray-700 rounded-lg group-hover:bg-gray-600 transition-colors">
+              <Receipt className="h-6 w-6 text-primary" />
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
-      {/* Filtros e Pesquisa */}
-      <Card>
-        <div className="space-y-4">
-          {/* Barra de pesquisa e toggle de filtros */}
+      {/* Filters and Table */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="p-4 sm:p-6 space-y-4">
+          {/* Search and Filter Header */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -222,28 +217,27 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                 placeholder="Buscar por descrição, fornecedor, marca ou modelo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
-            <Button
-              variant="outline"
+            <button
               onClick={() => setShowFilters(!showFilters)}
-              icon={<Filter size={18} />}
-              className="whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
             >
+              <Filter size={18} />
               {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-            </Button>
+            </button>
           </div>
 
-          {/* Filtros expandidos */}
+          {/* Expanded Filters */}
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">Status</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 >
                   <option value="all">Todos</option>
                   <option value="pendente">Pendente</option>
@@ -254,11 +248,11 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Urgência</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1.5 uppercase tracking-wide">Urgência</label>
                 <select
                   value={urgencyFilter}
                   onChange={(e) => setUrgencyFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-700 focus:border-transparent"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 >
                   <option value="all">Todas</option>
                   <option value="baixa">Baixa</option>
@@ -270,87 +264,91 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
             </div>
           )}
 
-          {/* Informações dos Resultados */}
-          <div className="flex items-center justify-between px-2">
-            <p className="text-sm text-gray-600">
-              Mostrando <span className="font-semibold text-gray-900">{sortedPurchases.length}</span> de{' '}
-              <span className="font-semibold text-gray-900">{purchases.length}</span> solicitações
+          {/* Results Info */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Mostrando <span className="font-semibold text-gray-800">{sortedPurchases.length}</span> de{' '}
+              <span className="font-semibold text-gray-800">{purchases.length}</span> solicitações
             </p>
             {(searchTerm || statusFilter !== 'all' || urgencyFilter !== 'all') && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => {
                   setSearchTerm('');
                   setStatusFilter('all');
                   setUrgencyFilter('all');
                 }}
-                className="text-gray-800 hover:text-blue-700"
+                className="text-sm text-primary hover:text-primary-dark font-medium transition-colors"
               >
                 Limpar filtros
-              </Button>
+              </button>
             )}
           </div>
+        </div>
 
-          {/* Tabela */}
-          <div className="overflow-x-auto -mx-6">
+        {/* Table */}
+        <div className="overflow-hidden border-t border-gray-200">
+          <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  <th
+                    className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('description')}
                   >
                     Descrição {renderSortIndicator('description')}
                   </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  <th
+                    className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('urgency')}
                   >
                     Urgência {renderSortIndicator('urgency')}
                   </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  <th
+                    className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('status')}
                   >
                     Status {renderSortIndicator('status')}
                   </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  <th
+                    className="hidden md:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('expectedDate')}
                   >
-                    Data Esperada {renderSortIndicator('expectedDate')}
+                    Previsão {renderSortIndicator('expectedDate')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fornecedor Sugerido
+                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Fornecedor
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {sortedPurchases.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <ShoppingCart className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                      <p className="text-gray-500">Nenhuma solicitação encontrada</p>
-                      <p className="text-sm text-gray-400 mt-1">Tente ajustar os filtros ou criar uma nova solicitação</p>
+                    <td colSpan={6} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                          <ShoppingCart className="h-8 w-8 text-gray-300" />
+                        </div>
+                        <p className="text-gray-500 font-medium">Nenhuma solicitação encontrada</p>
+                        <p className="text-sm text-gray-400 mt-1">Tente ajustar os filtros ou criar uma nova solicitação</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   sortedPurchases.map((item) => (
-                    <tr 
-                      key={item.id} 
-                      className="hover:bg-gray-50 transition-colors"
+                    <tr
+                      key={item.id}
+                      className="hover:bg-gray-50 transition-colors border-l-2 border-transparent hover:border-primary"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-800">
                             {item.description}
                           </div>
                           {(item.brand || item.model) && (
-                            <div className="text-xs text-gray-400 mt-1">
+                            <div className="text-xs text-gray-400 mt-0.5">
                               {item.brand && <span>{item.brand}</span>}
                               {item.brand && item.model && <span> - </span>}
                               {item.model && <span>{item.model}</span>}
@@ -365,27 +363,32 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          {getStatusIcon(item.status)}
-                          <span className={`text-sm font-medium ${
-                            item.status === 'pendente' ? 'text-yellow-600' :
-                            item.status === 'aprovado' ? 'text-green-600' :
-                            item.status === 'rejeitado' ? 'text-red-600' :
-                            'text-gray-800'
-                          }`}>
+                          <span className={`${item.status === 'pendente' ? 'text-accent' :
+                              item.status === 'aprovado' ? 'text-primary' :
+                                item.status === 'rejeitado' ? 'text-red-500' :
+                                  'text-gray-600'
+                            }`}>
+                            {getStatusIcon(item.status)}
+                          </span>
+                          <span className={`text-sm font-medium ${item.status === 'pendente' ? 'text-accent' :
+                              item.status === 'aprovado' ? 'text-primary' :
+                                item.status === 'rejeitado' ? 'text-red-500' :
+                                  'text-gray-600'
+                            }`}>
                             {item.status}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1 text-sm text-gray-500">
-                          <Calendar className="h-3.5 w-3.5" />
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                          <Calendar className="h-3.5 w-3.5 text-gray-400" />
                           {formatMonthYear(item.expectedDate)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                         {item.supplier ? (
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <Briefcase className="h-3.5 w-3.5" />
+                          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                            <Briefcase className="h-3.5 w-3.5 text-gray-400" />
                             {item.supplier}
                           </div>
                         ) : (
@@ -396,34 +399,29 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
                         <div className="flex items-center justify-center gap-1">
                           {item.status !== 'adquirido' && (
                             <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                              <button
                                 onClick={() => onEdit(item.id)}
-                                icon={<Edit size={16} />}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-secondary hover:bg-gray-100 rounded-lg transition-colors"
                               >
-                                Editar
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
+                                <Edit size={14} />
+                                <span className="hidden sm:inline">Editar</span>
+                              </button>
+                              <button
                                 onClick={() => onMarkAsAcquired(item.id)}
-                                icon={<CheckCircle size={16} />}
-                                className="text-green-600 hover:text-green-700"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
                               >
-                                Adquirido
-                              </Button>
+                                <CheckCircle size={14} />
+                                <span className="hidden sm:inline">Adquirido</span>
+                              </button>
                             </>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <button
                             onClick={() => onDelete(item.id)}
-                            icon={<Trash size={16} />}
-                            className="text-red-600 hover:text-red-700"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           >
-                            Excluir
-                          </Button>
+                            <Trash size={14} />
+                            <span className="hidden sm:inline">Excluir</span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -433,7 +431,7 @@ const EquipmentPurchaseList: React.FC<EquipmentPurchaseListProps> = ({
             </table>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
