@@ -31,8 +31,6 @@ frontend/.env
 .claude/
 CLAUDE.md
 
-# Documentation (optional - remove if you want to commit)
-README.md
 
 # Editor directories and files
 .vscode/*
